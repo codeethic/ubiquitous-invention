@@ -6,7 +6,9 @@
 
 ## AWS eks commands
 
-`aws eks list-clusters`
+```
+aws eks list-clusters
+```
 
 `aws eks update-kubeconfig --region us-east-2 --name sas-demo-cluster`
 
