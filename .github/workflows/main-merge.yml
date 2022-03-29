@@ -39,4 +39,4 @@ jobs:
         if: always()
         uses: Ilshidur/action-discord@master
         with:
-          args: 'The project {{ EVENT_PAYLOAD.repository.full_name }} has a new shit.'
+          args: '${{ github.job }} job in worflow ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }}\n {{ github.run_number }}'
