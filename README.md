@@ -6,4 +6,4 @@ Demo for SAS
 - GitHub actions
   - PR
   - Main
-  - Notifications
+  - Discord notifications
