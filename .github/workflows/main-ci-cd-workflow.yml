@@ -48,9 +48,9 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./webapi
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Apply K8 deployment
+      - name: Apply deployment
         run: |
-          sed -i 's/hash/$IMAGE_TAG/g' input.txt
+          sed -i 's/hash/$IMAGE_TAG/g' ./resources/service-deployment.yaml
           aws eks update-kubeconfig --region $DEFAULT_REGION --name sas-demo-cluster
           kubectl apply -f ./resources/service-deployment.yaml
 
