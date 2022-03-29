@@ -24,7 +24,7 @@ namespace todo_app.Controllers
 
         // GET: api/hire-me
         [HttpGet("hire-me")]
-        public bool Get() => true;
+        public bool HireMe() => true;
 
         // GET: api/todo/5
         [HttpGet("{id}")]
