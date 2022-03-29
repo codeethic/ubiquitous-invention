@@ -33,10 +33,10 @@ jobs:
           echo Add other actions to build,
           echo test, and deploy your project.
 
- name: Discord notification
-  env:
-    DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-  if: always()
-  uses: Ilshidur/action-discord@master
-  with:
-    args: 'The project {{ EVENT_PAYLOAD.repository.full_name }} has a new shit.'
+      - name: Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        if: always()
+        uses: Ilshidur/action-discord@master
+        with:
+          args: 'The project {{ EVENT_PAYLOAD.repository.full_name }} has a new shit.'
