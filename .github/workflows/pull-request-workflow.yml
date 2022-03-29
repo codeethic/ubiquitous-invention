@@ -4,7 +4,7 @@ on:
   # Triggers the workflow on push or pull request events but only for non-main branches
   push:
     branches: 
-      - 'features/**'
+      - 'feature/**'
       - 'bugfix/**'
 
   # Allows you to run this workflow manually from the Actions tab
