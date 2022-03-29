@@ -49,8 +49,12 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Apply deployment
+        env:
+          DEPLOYMENT_YAML: ./resources/service-deployment.yaml
         run: |
-          sed -i 's/hash/$IMAGE_TAG/g' ./resources/service-deployment.yaml
-          aws eks update-kubeconfig --region $DEFAULT_REGION --name sas-demo-cluster
-          kubectl apply -f ./resources/service-deployment.yaml
+          echo replace string 'hash' in deployment file to force change 
+          sed -i 's/hash/$IMAGE_TAG/g' DEPLOYMENT_YAML
+          cat DEPLOYMENT_YAML
+          aws eks update-kubeconfig --region $AWS_REGION --name sas-demo-cluster
+          kubectl apply -f DEPLOYMENT_YAML
 
