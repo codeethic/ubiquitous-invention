@@ -20,19 +20,20 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - uses: ./.github/workflows/build-workflow.yml
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      # - uses: actions/checkout@v3
 
-      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
-        uses: actions/setup-dotnet@v1.7.2
-        with:
-          dotnet-version: ${{ matrix.dotnet-version }}
+      # - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+      #   uses: actions/setup-dotnet@v1.7.2
+      #   with:
+      #     dotnet-version: ${{ matrix.dotnet-version }}
       
-      - name: Install dependencies
-        run: dotnet restore ./webapi
+      # - name: Install dependencies
+      #   run: dotnet restore ./webapi
 
-      - name: Build webapi
-        run: dotnet build ./webapi --configuration Release --no-restore
+      # - name: Build webapi
+      #   run: dotnet build ./webapi --configuration Release --no-restore
 
-      - name: Test webapi
-        run: dotnet test ./webapi --no-restore --verbosity normal
+      # - name: Test webapi
+      #   run: dotnet test ./webapi --no-restore --verbosity normal
