@@ -13,7 +13,7 @@ on:
 
 env:
   REGION: "us-east-2"
-  ACCOUNT_NUMBER: "596605154423"
+  ACCOUNT_NUMBER: ${{ secrets.ACCOUNT_NUMBER }}
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -26,21 +26,21 @@ jobs:
     steps:
       # Checks-out repository under $GITHUB_WORKSPACE, so our job can access it
       - uses: actions/checkout@v3
+      - uses: ./.github/workflows/pr-ci.yml
 
-      # Build .net todo web api
-      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
-        uses: actions/setup-dotnet@v1.7.2
-        with:
-          dotnet-version: ${{ matrix.dotnet-version }}
+      # - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+      #   uses: actions/setup-dotnet@v1.7.2
+      #   with:
+      #     dotnet-version: ${{ matrix.dotnet-version }}
       
-      - name: Install dependencies
-        run: dotnet restore ./webapi
+      # - name: Install dependencies
+      #   run: dotnet restore ./webapi
 
-      - name: Build
-        run: dotnet build ./webapi --configuration Release --no-restore
+      # - name: Build webapi
+      #   run: dotnet build ./webapi --configuration Release --no-restore
 
-      - name: Test
-        run: dotnet test ./webapi --no-restore --verbosity normal
+      # - name: Test webapi
+      #   run: dotnet test ./webapi --no-restore --verbosity normal
 
       # Prepare to push new image
       - name: Configure AWS credentials
@@ -62,14 +62,4 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./webapi
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-  
-      # Runs a single command using the runners shell
-      # - name: Build webapi
 
-      #   run: | 
-
-      #     # make file runnable, might not be necessary
-      #     chmod +x "${GITHUB_WORKSPACE}/run-infra.sh"
-
-      #     # run script
-      #     "${GITHUB_WORKSPACE}/run-infra.sh"

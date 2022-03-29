@@ -1,0 +1,36 @@
+name: pr-ci
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+  steps:
+      # Checks-out repository under $GITHUB_WORKSPACE, so our job can access it
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v1.7.2
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+      
+      - name: Install dependencies
+        run: dotnet restore ./webapi
+
+      - name: Build webapi
+        run: dotnet build ./webapi --configuration Release --no-restore
+
+      - name: Test webapi
+        run: dotnet test ./webapi --no-restore --verbosity normal
+
