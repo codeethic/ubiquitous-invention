@@ -22,8 +22,8 @@ namespace todo_app.Controllers
             _todoContext = new TodoContext(options);
         }
 
-        // GET: api/todo/5
-        [HttpGet("hire-ms")]
+        // GET: api/hire-me
+        [HttpGet("hire-me")]
         public bool Get() => true;
 
         // GET: api/todo/5
