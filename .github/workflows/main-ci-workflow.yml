@@ -1,4 +1,4 @@
-name: main-ci
+name: main-ci-workflow
 
 # Controls when the workflow will run
 on:
