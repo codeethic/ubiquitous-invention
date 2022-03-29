@@ -1,4 +1,4 @@
-name: Main-CI
+name: pr-ci
 
 # Controls when the workflow will run
 on:
@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v3
 
       # Runs a single command using the runners shell
-      - name: Run a one-line script
+      - name: 
         run: echo Hello, world!
 
       # Runs a set of commands using the runners shell
