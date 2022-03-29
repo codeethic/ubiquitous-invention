@@ -49,5 +49,7 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Apply K8 deployment
-        run: kubectl apply -f ./resources/service-deployment.yaml
+        run: |
+          aws eks update-kubeconfig --region us-east-2 --name sas-demo-cluster
+          kubectl apply -f ./resources/service-deployment.yaml
 
