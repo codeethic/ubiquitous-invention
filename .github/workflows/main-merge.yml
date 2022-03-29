@@ -34,13 +34,13 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
       
       - name: Install dependencies
-        run: dotnet restore
+        run: dotnet restore ./webapi
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build ./webapi --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test --no-restore --verbosity normal
+        run: dotnet test ./webapi --no-restore --verbosity normal
 
       # Prepare to push new image
       - name: Configure AWS credentials
@@ -60,7 +60,7 @@ jobs:
           ECR_REPOSITORY: todo-app
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./webapi
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
   
       # Runs a single command using the runners shell
