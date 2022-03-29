@@ -18,7 +18,7 @@ jobs:
   ci-build:
     uses: ./.github/workflows/build-workflow.yml
   
-  build:
+  push-image:
     needs: ci-build
     runs-on: ubuntu-latest
 
@@ -47,4 +47,9 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./webapi
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          
+  kubectl-apply-changes:
+    needs: push-image
+    steps:
+      run: kubectl apply -f ./resources/service-deployment.yaml
 
