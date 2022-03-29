@@ -23,6 +23,10 @@ namespace todo_app.Controllers
         }
 
         // GET: api/todo/5
+        [HttpGet("hire-ms")]
+        public bool Get() => true;
+
+        // GET: api/todo/5
         [HttpGet("{id}")]
         public List<Todo> Get(int id) => _todoContext.GetAllTodos();
 
