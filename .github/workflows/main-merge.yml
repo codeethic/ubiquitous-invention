@@ -23,6 +23,10 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
+      env:
+          REGION: "us-east-2"
+          ACCOUNT: "596605154423"
+
       # Runs a single command using the runners shell
       - name: Build webapi
         run: | 
