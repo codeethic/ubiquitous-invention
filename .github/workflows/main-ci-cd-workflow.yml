@@ -45,16 +45,6 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./webapi
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Apply deployment
-        env:
-          DEPLOYMENT_YAML: ./resources/service-deployment.yaml
-        run: |
-          echo replace string 'hash' in deployment file with $IMAGE_TAG
-          sed -i "s/hash/$IMAGE_TAG/g" $DEPLOYMENT_YAML
-          cat $DEPLOYMENT_YAML
-          aws eks update-kubeconfig --region $AWS_REGION --name sas-demo-cluster
-          kubectl apply -f $DEPLOYMENT_YAML
-
   apply-service-deployment:
     needs: push-new-image
     runs-on: ubuntu-latest
