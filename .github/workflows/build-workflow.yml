@@ -18,7 +18,7 @@ jobs:
 
       - name: verify
         run: |
-          echo ${{ secrets.DATADOG_API_KEY }}
+          echo "${{ secrets.DATADOG_API_KEY }} foobar"
 
       - name: Start the Datadog Agent locally
         uses: datadog/agent-github-action@v1
