@@ -11,8 +11,8 @@ on:
   workflow_dispatch:
 
 env:
-  REGION: "us-east-2"
   ACCOUNT_NUMBER: ${{ secrets.ACCOUNT_NUMBER }}
+  IMAGE_TAG: ${{ github.sha }}
 
 jobs:
   ci-build:
@@ -42,7 +42,6 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: todo-app
-          IMAGE_TAG: ${{ github.sha }}
           # IMAGE_TAG: latest
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./webapi
@@ -52,7 +51,7 @@ jobs:
         env:
           DEPLOYMENT_YAML: ./resources/service-deployment.yaml
         run: |
-          echo replace string 'hash' in deployment file to force change 
+          echo replace string 'hash' in deployment file with $IMAGE_TAG
           sed -i "s/hash/$IMAGE_TAG/g" $DEPLOYMENT_YAML
           cat $DEPLOYMENT_YAML
           aws eks update-kubeconfig --region $AWS_REGION --name sas-demo-cluster
