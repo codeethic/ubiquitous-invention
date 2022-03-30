@@ -27,7 +27,7 @@ jobs:
       - name: Build webapi
         run: dotnet build ./src/webapi --configuration Release --no-restore
 
-      - name: DataDog Agent -> log test results to DD
+      - name: DataDog Agent log test results to DD
         uses: DataDog/agent-github-action@v1
         with:
           api_key: ${{ secrets.DATADOG_API_KEY }}
