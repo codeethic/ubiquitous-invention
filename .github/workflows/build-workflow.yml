@@ -27,10 +27,13 @@ jobs:
       - name: Build webapi
         run: dotnet build ./src/webapi --configuration Release --no-restore
 
-      - name: DataDog Agent log test results to DD
-        uses: DataDog/agent-github-action@v1
+      - name: Start the Datadog Agent locally
+        uses: datadog/agent-github-action@v1
         with:
           api_key: ${{ secrets.DATADOG_API_KEY }}
+        run: make test
 
       - name: Test webapi
-        run: dotnet test ./src/webapi-tests --verbosity minimal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+        run: |
+          dotnet tool update -g dd-trace
+          dotnet test ./src/webapi-tests --verbosity minimal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
