@@ -72,5 +72,5 @@ jobs:
       - name: Configure datadog
         run: |
           helm repo add datadog https://helm.datadoghq.com
-          helm install sas-demo-deployment-$IMAGE_TAG -f ./resources/datadog-values.yaml --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} datadog/datadog
+          helm install datadog-deployment -f ./resources/datadog-values.yaml --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} datadog/datadog
 
