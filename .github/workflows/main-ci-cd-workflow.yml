@@ -60,8 +60,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checks-out repository under $GITHUB_WORKSPACE, so our job can access it
-      # - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       # - name: Configure AWS credentials
       #   uses: aws-actions/configure-aws-credentials@v1
