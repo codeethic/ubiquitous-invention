@@ -42,7 +42,7 @@ jobs:
           ECR_REPOSITORY: todo-app
           # IMAGE_TAG: latest
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./webapi
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./src/webapi
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
   apply-service-deployment:

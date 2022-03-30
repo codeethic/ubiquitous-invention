@@ -22,10 +22,10 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
       
       - name: Install dependencies
-        run: dotnet restore ./webapi
+        run: dotnet restore ./src/webapi
 
       - name: Build webapi
-        run: dotnet build ./webapi --configuration Release --no-restore
+        run: dotnet build ./src/webapi --configuration Release --no-restore
 
       - name: Test webapi
-        run: dotnet test ./webapi --no-restore --verbosity normal
+        run: dotnet test ./src/webapi-tests --no-build --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencoverdotnet 
