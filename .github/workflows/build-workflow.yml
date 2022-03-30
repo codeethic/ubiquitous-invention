@@ -34,5 +34,6 @@ jobs:
 
       - name: Test webapi
         run: |
+          echo ${{ secrets.DATADOG_API_KEY }}
           dotnet tool update -g dd-trace
           dotnet test ./src/webapi-tests --verbosity minimal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
