@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Serilog;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -16,7 +17,17 @@ namespace todo_app.Controllers
         [HttpGet("error")]
         public IActionResult TestMonitor()
         {
-            return Problem(detail: "Intentional 500 for testing datadog monitors", statusCode: 500);
+            var logger = new LoggerConfiguration().WriteTo
+                                              .Console()
+                                              .Enrich
+                                              .FromLogContext()
+                                              .CreateLogger();
+
+            var detail = "Intentional 500 for testing datadog monitors";
+
+            logger.Error(detail);
+
+            return Problem(detail: detail, statusCode: 500);
         }
 
  

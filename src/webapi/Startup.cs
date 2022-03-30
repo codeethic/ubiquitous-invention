@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace todo_app
 {
@@ -31,7 +32,6 @@ namespace todo_app
                 .Configure<Parameters>(Configuration.GetSection("Config"));
 
             services.AddSwaggerGen();
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
