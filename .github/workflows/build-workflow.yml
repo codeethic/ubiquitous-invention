@@ -9,7 +9,8 @@ on:
   workflow_call:
 
 env:
-  DD_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+  DD_API_KEY: d0a761b81b32df2cc1c928d75c7f441e
+  # ${{ secrets.DATADOG_API_KEY }}
   
 jobs:
   build:
