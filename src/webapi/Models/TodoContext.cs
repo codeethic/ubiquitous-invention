@@ -3,17 +3,19 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace todo_app.Models
 {
     public class TodoContext: DbContext
     {
-        public string ConnectionString { get; set; }    
+        public string ConnectionString { get; set; }
+        static Dictionary<Guid, Todo> database = new Dictionary<Guid, Todo>();
     
         public TodoContext(IOptions<Parameters> options)
         {
-            this.ConnectionString = options.Value.AuroraDbConnectionString;
-            Console.WriteLine("Connection string - " + ConnectionString);
+            //this.ConnectionString = options.Value.AuroraDbConnectionString;
+            //Console.WriteLine("Connection string - " + ConnectionString);
         }
 
         private MySqlConnection GetConnection()    
@@ -23,66 +25,75 @@ namespace todo_app.Models
 
         public List<Todo> GetAllTodos()
         {
-            CreateToDosTable();
-            List<Todo> list = new List<Todo>();
+            return database.Values.ToList();
+            //CreateToDosTable();
+            //List<Todo> list = new List<Todo>();
 
-            using (MySqlConnection conn = GetConnection())
-            {
-                conn.Open();
-                MySqlCommand cmd = new MySqlCommand("select * from ToDos", conn);
+            //using (MySqlConnection conn = GetConnection())
+            //{
+            //    conn.Open();
+            //    MySqlCommand cmd = new MySqlCommand("select * from ToDos", conn);
 
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        list.Add(new Todo()
-                        {
-                            Status = reader["Status"].ToString(),
-                            Task = reader["Task"].ToString()
-                        });
-                    }
-                }
-            }
-            return list;
+            //    using (var reader = cmd.ExecuteReader())
+            //    {
+            //        while (reader.Read())
+            //        {
+            //            list.Add(new Todo()
+            //            {
+            //                Status = reader["Status"].ToString(),
+            //                Task = reader["Task"].ToString()
+            //            });
+            //        }
+            //    }
+            //}
+            //return list;
         }
 
         public void SaveTodo(string status, string task)
         {
-            CreateToDosTable();
-            using (MySqlConnection conn = GetConnection())
+            var todo = new Todo
             {
-                conn.Open();
-                MySqlCommand cmd = new MySqlCommand();
-                cmd.Connection = conn;
+                Status = status,
+                Task = task
+            };
 
-                cmd.CommandText = "INSERT INTO ToDos(status,task) VALUES(?status,?task)";
-                cmd.Parameters.Add("?status", MySqlDbType.VarChar).Value = status;
-                cmd.Parameters.Add("?task", MySqlDbType.VarChar).Value = task;
-                cmd.ExecuteNonQuery();
-            }
-            Console.WriteLine("Succesfully saved values");
+            database.Add(todo.Id, todo);
+
+            //CreateToDosTable();
+            //using (MySqlConnection conn = GetConnection())
+            //{
+            //    conn.Open();
+            //    MySqlCommand cmd = new MySqlCommand();
+            //    cmd.Connection = conn;
+
+            //    cmd.CommandText = "INSERT INTO ToDos(status,task) VALUES(?status,?task)";
+            //    cmd.Parameters.Add("?status", MySqlDbType.VarChar).Value = status;
+            //    cmd.Parameters.Add("?task", MySqlDbType.VarChar).Value = task;
+            //    cmd.ExecuteNonQuery();
+            //}
+            //Console.WriteLine("Succesfully saved values");
         }
 
         public void CreateToDosTable()
         {
-            using (MySqlConnection conn = GetConnection())
-            {
-                conn.Open();
-                MySqlCommand cmd = new MySqlCommand();
-                cmd.Connection = conn;
+            //using (MySqlConnection conn = GetConnection())
+            //{
+            //    conn.Open();
+            //    MySqlCommand cmd = new MySqlCommand();
+            //    cmd.Connection = conn;
 
-                string createTableSql = "use sasdemodb; ";
-                createTableSql += "create table IF NOT EXISTS ToDos(";
-                createTableSql += "id MEDIUMINT not null auto_increment,";
-                createTableSql += "   CreatedTime TIMESTAMP DEFAULT now(),";
-                createTableSql += "   Status VARCHAR(50),";
-                createTableSql += "   Task VARCHAR(50),";
-                createTableSql += "   primary key(id)";
-                createTableSql += "); ";
-                cmd.CommandText = createTableSql;
-                cmd.ExecuteNonQuery();
-            }
-            Console.WriteLine("Table created successfully!!");
+            //    string createTableSql = "use sasdemodb; ";
+            //    createTableSql += "create table IF NOT EXISTS ToDos(";
+            //    createTableSql += "id MEDIUMINT not null auto_increment,";
+            //    createTableSql += "   CreatedTime TIMESTAMP DEFAULT now(),";
+            //    createTableSql += "   Status VARCHAR(50),";
+            //    createTableSql += "   Task VARCHAR(50),";
+            //    createTableSql += "   primary key(id)";
+            //    createTableSql += "); ";
+            //    cmd.CommandText = createTableSql;
+            //    cmd.ExecuteNonQuery();
+            //}
+            //Console.WriteLine("Table created successfully!!");
         }
     }
 
