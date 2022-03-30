@@ -68,4 +68,7 @@ jobs:
           cat $DEPLOYMENT_YAML
           aws eks update-kubeconfig --region $AWS_REGION --name sas-demo-cluster
           kubectl apply -f $DEPLOYMENT_YAML
+      
+      - name: Configure datadog
+        run: helm install sas-demo-deployment-$IMAGE_TAG -f ./resources/datadog-values.yaml --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} datadog/datadog
 
