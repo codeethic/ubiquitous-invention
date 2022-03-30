@@ -12,6 +12,14 @@ namespace todo_app.Controllers
     [Route("api/[controller]")]
     public class ValuesController : Controller
     {
+  
+        [HttpGet("error")]
+        public IActionResult TestMonitor()
+        {
+            return Problem(detail: "Intentional 500 for testing datadog monitors", statusCode: 500);
+        }
+
+ 
         // GET: api/values
         [HttpGet]
         public IEnumerable<string> Get()
