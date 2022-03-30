@@ -8,6 +8,9 @@ on:
   # Allows for ruese in other workflows
   workflow_call:
 
+env:
+  DD_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+  
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,12 +21,12 @@ jobs:
 
       - name: verify
         run: |
-          echo "foobar ${{ secrets.DATADOG_API_KEY }} foobar"
+          echo "foobar $DD_API_KEY foobar"
 
       - name: Start the Datadog Agent locally
         uses: datadog/agent-github-action@v1
         with:
-          api_key: ${{ secrets.DATADOG_API_KEY }}
+          api_key: $DD_API_KEY
 
       - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
         uses: actions/setup-dotnet@v1.7.2
