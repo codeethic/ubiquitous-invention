@@ -28,4 +28,4 @@ jobs:
         run: dotnet build ./src/webapi --configuration Release --no-restore
 
       - name: Test webapi
-        run: dotnet test ./src/webapi-tests --no-restore --verbosity minimal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+        run: dotnet test ./src/webapi-tests --verbosity minimal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
