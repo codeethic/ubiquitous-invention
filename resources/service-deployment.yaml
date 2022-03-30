@@ -7,22 +7,22 @@ spec:
     - port: 80
       targetPort: 8080
   selector:
-    app: cdk8stodoappE8635BF5
+    app: sastodoappE8635BF5
   type: LoadBalancer
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cdk8s-todo-app-deployment-hash
+  name: sas-demo-todo-app-deployment-hash
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: cdk8stodoappE8635BF5
+      app: sastodoappE8635BF5
   template:
     metadata:
       labels:
-        app: cdk8stodoappE8635BF5
+        app: sastodoappE8635BF5
     spec:
       terminationGracePeriodSeconds: 10
       containers:  
