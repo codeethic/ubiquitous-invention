@@ -1,11 +1,9 @@
 name: main-ci-cd-workflow
 
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
+  # Triggers the workflow on push only for the main branch
   push:
     branches: [ main ]
-  # pull_request:
-  #   branches: [ main ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -18,7 +16,7 @@ jobs:
   ci-build:
     uses: ./.github/workflows/build-workflow.yml
   
-  push-image:
+  push-new-image:
     needs: ci-build
     runs-on: ubuntu-latest
 
@@ -46,6 +44,31 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./webapi
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Apply deployment
+        env:
+          DEPLOYMENT_YAML: ./resources/service-deployment.yaml
+        run: |
+          echo replace string 'hash' in deployment file with $IMAGE_TAG
+          sed -i "s/hash/$IMAGE_TAG/g" $DEPLOYMENT_YAML
+          cat $DEPLOYMENT_YAML
+          aws eks update-kubeconfig --region $AWS_REGION --name sas-demo-cluster
+          kubectl apply -f $DEPLOYMENT_YAML
+
+  apply-service-deployment:
+    needs: push-new-image
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out repository under $GITHUB_WORKSPACE, so our job can access it
+      # - uses: actions/checkout@v3
+
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: "us-east-2"
 
       - name: Apply deployment
         env:
