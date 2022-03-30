@@ -32,5 +32,15 @@ namespace SasDemo.WebApi.Tests
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.InternalServerError, because: "we explicity test for 500");
         }
+
+        [Fact]
+        public async Task Expect200()
+        {
+            // Act
+            var response = await client.GetAsync("/api/values/error");
+
+            // Assert
+            response.StatusCode.Should().Be(HttpStatusCode.OK, because: "we explicity test for 500");
+        }
     }
 }
