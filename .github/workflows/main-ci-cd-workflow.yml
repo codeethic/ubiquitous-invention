@@ -70,5 +70,7 @@ jobs:
           kubectl apply -f $DEPLOYMENT_YAML
       
       - name: Configure datadog
-        run: helm install sas-demo-deployment-$IMAGE_TAG -f ./resources/datadog-values.yaml --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} datadog/datadog
+        run: |
+          helm repo add datadog https://helm.datadoghq.com
+          helm install sas-demo-deployment-$IMAGE_TAG -f ./resources/datadog-values.yaml --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} datadog/datadog
 
