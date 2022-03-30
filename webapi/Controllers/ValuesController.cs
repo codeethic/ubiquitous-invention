@@ -19,12 +19,6 @@ namespace todo_app.Controllers
             return new string[] { "value1", "valuetwo" };
         }
 
-        [HttpGet]
-        public ActionResult<string> TestMonitor()
-        {
-            return Problem(detail: "Intentional 500 for testing datadog monitors", statusCode: 500);
-        }
-
         // GET api/values/5
         [HttpGet("{id}")]
         public string Get(int id)
