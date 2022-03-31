@@ -14,4 +14,3 @@
 - Failure to anticipate obstacles
 - Not planning timeframes
 - Scope creep 
-  
