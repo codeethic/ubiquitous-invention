@@ -20,7 +20,7 @@ namespace todo_app.Controllers
         public TodoController(IOptions<Parameters> options)
         {
             Console.WriteLine("Todo Controller Start!");
-            _options = options;            
+            _options = options;
             _todoContext = new TodoContext(options);
 
             logger = new LoggerConfiguration().WriteTo
@@ -31,8 +31,8 @@ namespace todo_app.Controllers
         }
 
         // GET: api/hire-me
-        //[HttpGet("hire-josh")]
-        //public bool HireJosh() => true;
+        [HttpGet("hire-josh")]
+        public bool HireJosh() => true;
 
         [HttpGet("error")]
         public IActionResult TestMonitor()
@@ -54,7 +54,7 @@ namespace todo_app.Controllers
 
         // POST api/values
         [HttpPost]
-        public void Post([FromBody]Todo todoVal)
+        public void Post([FromBody] Todo todoVal)
         {
             logger.Information($"Entering todo POST - " + JsonConvert.SerializeObject(todoVal, Formatting.Indented));
 
