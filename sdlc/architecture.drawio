@@ -136,6 +136,14 @@
             </root>
         </mxGraphModel>
     </diagram>
+    <diagram id="dePuRNLq04wLD7HDxFxY" name="TFS, Work Item &lt;=&gt; Artifacts">
+        <mxGraphModel dx="1374" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="1wFMZoLAR0oYRsFDouOC-0"/>
+                <mxCell id="1wFMZoLAR0oYRsFDouOC-1" parent="1wFMZoLAR0oYRsFDouOC-0"/>
+            </root>
+        </mxGraphModel>
+    </diagram>
     <diagram id="uWjWy3pqvLtlc2e7YA1Y" name="State of the Art">
         <mxGraphModel dx="1374" dy="4400" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>

@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using todo_app;
-using todo_app.Controllers;
 using Xunit;
 
 namespace SasDemo.WebApi.Tests
@@ -13,12 +12,8 @@ namespace SasDemo.WebApi.Tests
 
     public class TodoTests
     {
-        private readonly TestServer server;
-        private readonly HttpClient client;
-
         public TodoTests()
         {
-            // Arrange
             server = new TestServer(new WebHostBuilder().UseStartup<Startup>());
             client = server.CreateClient();
         }
@@ -26,21 +21,31 @@ namespace SasDemo.WebApi.Tests
         [Fact]
         public async Task Expect500()
         {
-            // Act
-            var response = await client.GetAsync("/api/values/error");
-
-            // Assert
-            response.StatusCode.Should().Be(HttpStatusCode.InternalServerError, because: "we explicity test for 500");
+            await WhenGetError();
+            ThenExpectHttpStatusCodeOf(HttpStatusCode.InternalServerError);
         }
 
-        //[Fact]
-        //public async Task Expect200()
-        //{
-        //    // Act
-        //    var response = await client.GetAsync("/api/values/error");
+        [Fact(Skip = "Skip until ready in demo")]
+        public async Task Expect200()
+        {
+            await WhenGetError();
+            ThenExpectHttpStatusCodeOf(HttpStatusCode.OK);
+        }
 
-        //    // Assert
-        //    response.StatusCode.Should().Be(HttpStatusCode.OK, because: "we explicity test for 500");
-        //}
+        private async Task WhenGetError()
+        {
+            response = await client.GetAsync("/api/values/error");
+        }
+
+        private void ThenExpectHttpStatusCodeOf(HttpStatusCode expectedStatusCode)
+        {
+            response?.StatusCode
+                     .Should()
+                     .Be(expectedStatusCode, because: $"{expectedStatusCode} is expected response");
+        }
+
+        private readonly TestServer server;
+        private readonly HttpClient client;
+        private HttpResponseMessage? response;
     }
 }

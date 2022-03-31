@@ -31,12 +31,18 @@ namespace todo_app.Controllers
         }
 
         // GET: api/hire-me
-        [HttpGet("hire-me")]
-        public bool HireMe() => true;
+        //[HttpGet("hire-josh")]
+        //public bool HireJosh() => true;
 
-        // GET: api/todo/5
-        [HttpGet("{id}")]
-        public List<Todo> Get(int id) => _todoContext.GetAllTodos();
+        [HttpGet("error")]
+        public IActionResult TestMonitor()
+        {
+            var detail = "Intentional 500 for testing datadog monitors";
+
+            logger.Error(detail);
+
+            return Problem(detail: detail, statusCode: 500);
+        }
 
         // GET: api/todo
         [HttpGet]
