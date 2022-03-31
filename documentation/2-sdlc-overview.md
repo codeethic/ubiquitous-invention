@@ -1,18 +1,12 @@
-**Preliminary analysis**: Begin with a preliminary analysis, propose alternative solutions, describe costs and benefits, and submit a preliminary plan with recommendations.
-
-**Conduct the preliminary analysis**: Discover the organization's objectives and the nature and scope of the problem under study. Even if a problem refers only to a small segment of the organization itself, find out what the objectives of the organization itself are. Then see how the problem being studied fits in with them.
-
-**Propose alternative solutions**: After digging into the organization's objectives and specific problems, several solutions may have been discovered. However, alternate proposals may still come from interviewing employees, clients, suppliers, and/or consultants. Insight may also be gained by researching what competitors are doing.
-
-**Cost benefit analysis**: Analyze and describe the costs and benefits of implementing the proposed changes. In the end, the ultimate decision on whether to leave the system as is, improve it, or develop a new system will be guided by this and the rest of the preliminary analysis data.
-
-**Systems analysis, requirements definition**: Define project goals into defined functions and operations of the intended application. This involves the process of gathering and interpreting facts, diagnosing problems, and recommending improvements to the system. Project goals will be further aided by analysis of end-user information needs and the removal of any inconsistencies and incompleteness in these requirements.
-A series of steps followed by the developer include:
+**Analysis**: Begin with a preliminary analysis, propose alternative solutions, describe costs and benefits, and submit a preliminary plan with recommendations. Discover the organization's objectives and the nature and scope of the problem under study. Even if a problem refers only to a small segment of the organization itself, find out what the objectives of the organization itself are. Then see how the problem being studied fits in with them.
 
 1. **Collection of facts**: Obtain end user requirements through documentation, client interviews, observation, and questionnaires.
-
-2. **Scrutiny of the existing system**: Identify pros and cons of the current system in-place, so as to carry forward the pros and avoid the cons in the new system.
-3. **Analysis of the proposed system**: Find solutions to the shortcomings described in step two and prepare the specifications using any specific user proposals.
+2. **Propose alternative solutions**: After digging into the organization's objectives and specific problems, several solutions may have been discovered. However, alternate proposals may still come from interviewing employees, clients, suppliers, and/or consultants. Insight may also be gained by researching what competitors are doing.
+3. **Cost benefit analysis**: Analyze and describe the costs and benefits of implementing the proposed changes. In the end, the ultimate decision on whether to leave the system as is, improve it, or develop a new system will be guided by this and the rest of the preliminary analysis data.
+4. **Scrutiny of the existing system**: Identify pros and cons of the current system in-place, so as to carry forward the pros and avoid the cons in the new system.
+5. **Analysis of the proposed system**: Find solutions to the shortcomings described in step two and prepare the specifications using any specific user proposals.
+6. **Requirements definition**: Define project goals into defined functions and operations of the intended application. This involves the process of gathering and interpreting facts, diagnosing problems, and recommending improvements to the system. Project goals will be further aided by analysis of end-user information needs and the removal of any inconsistencies and incompleteness in these requirements.
+A series of steps followed by the developer include:
 
 **Systems design**: At this step, desired features and operations are described in detail, including screen layouts, business rules, process diagrams, pseudocode, and other documentation.
 
