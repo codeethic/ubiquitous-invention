@@ -34,7 +34,7 @@ namespace SasDemo.WebApi.Tests
 
         private async Task WhenGetError()
         {
-            response = await client.GetAsync("/api/badfood/error");
+            response = await client.GetAsync("/api/ToDo/error");
         }
 
         private void ThenExpectHttpStatusCodeOf(HttpStatusCode expectedStatusCode)
