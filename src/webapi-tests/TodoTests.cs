@@ -18,13 +18,6 @@ namespace SasDemo.WebApi.Tests
             client = server.CreateClient();
         }
 
-        [Fact]
-        public async Task Expect500()
-        {
-            await WhenGetError();
-            ThenExpectHttpStatusCodeOf(HttpStatusCode.InternalServerError);
-        }
-
         [Fact(Skip = "Skip until ready in demo")]
         public async Task Expect200()
         {
@@ -32,9 +25,16 @@ namespace SasDemo.WebApi.Tests
             ThenExpectHttpStatusCodeOf(HttpStatusCode.OK);
         }
 
+        [Fact]
+        public async Task Expect500()
+        {
+            await WhenGetError();
+            ThenExpectHttpStatusCodeOf(HttpStatusCode.InternalServerError);
+        }
+
         private async Task WhenGetError()
         {
-            response = await client.GetAsync("/api/values/error");
+            response = await client.GetAsync("/api/todo/error");
         }
 
         private void ThenExpectHttpStatusCodeOf(HttpStatusCode expectedStatusCode)
