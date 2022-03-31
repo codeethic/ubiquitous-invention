@@ -40,7 +40,6 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: todo-app
-          # IMAGE_TAG: latest
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./src/webapi
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
@@ -61,17 +60,18 @@ jobs:
 
       - name: Apply deployment
         env:
-          DEPLOYMENT_YAML: ./resources/service-deployment.yaml
+          DEPLOYMENT_YAML: ./resources/service-deployment.yml
         run: |
-          echo replace string 'hash' in deployment file with $IMAGE_TAG
-          sed -i "s/hash/$IMAGE_TAG/g" $DEPLOYMENT_YAML
+          echo replace string 'GIT_SHA' in deployment file with $IMAGE_TAG
+          sed -i "s/GIT_SHA/$IMAGE_TAG/g" $DEPLOYMENT_YAML
           cat $DEPLOYMENT_YAML
           aws eks update-kubeconfig --region $AWS_REGION --name sas-demo-cluster
           kubectl apply -f $DEPLOYMENT_YAML
       
+      # Revisit, as it looks like a very useful dashboard
       # - name: Configure datadog
       #   run: |
       #     helm repo add datadog https://helm.datadoghq.com
-      #     helm install datadog-deployment -f ./resources/datadog-values.yaml --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} datadog/datadog
+      #     helm install datadog-deployment -f ./resources/datadog-values.yml --set datadog.apiKey=${{ secrets.DATADOG_API_KEY }} datadog/datadog
 
 
