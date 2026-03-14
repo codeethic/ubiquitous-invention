@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e" pages="1">
     <diagram id="B5ZyRWWeNDYVwnpTZKAO" name="Cow-person Agile">
-        <mxGraphModel dx="1250" dy="4224" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" page="0" fold="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="zyvHbTYCoBxjpQ5ART5n-0"/>
                 <mxCell id="zyvHbTYCoBxjpQ5ART5n-1" parent="zyvHbTYCoBxjpQ5ART5n-0"/>
@@ -46,7 +46,7 @@
         </mxGraphModel>
     </diagram>
     <diagram id="NHrxNwzHcHytye7DgV9m" name="Source Control, oh my!">
-        <mxGraphModel dx="798" dy="4224" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" page="0" fold="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="j6Jv_49wpIOIfNEbEc9r-0"/>
                 <mxCell id="j6Jv_49wpIOIfNEbEc9r-1" parent="j6Jv_49wpIOIfNEbEc9r-0"/>
@@ -96,7 +96,7 @@
         </mxGraphModel>
     </diagram>
     <diagram id="b1KXGtRv-vXALtMS9Yl2" name="Merge Hell">
-        <mxGraphModel dx="1250" dy="4224" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" page="0" fold="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="68cRftaq75gitALyQ55k-0"/>
                 <mxCell id="68cRftaq75gitALyQ55k-1" parent="68cRftaq75gitALyQ55k-0"/>
@@ -200,7 +200,7 @@
         </mxGraphModel>
     </diagram>
     <diagram id="uWjWy3pqvLtlc2e7YA1Y" name="CI/CD Spike">
-        <mxGraphModel dx="1570" dy="4400" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="1278" dy="4224" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
