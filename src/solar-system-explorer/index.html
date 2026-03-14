@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar System Explorer</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Orbitron:wght@400;600;700&display=swap" rel="stylesheet">
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loader-content">
+            <div class="loader-ring">
+                <div class="ring r1"></div>
+                <div class="ring r2"></div>
+                <div class="ring r3"></div>
+                <div class="loader-dot"></div>
+            </div>
+            <h2 class="loader-title">SOLAR SYSTEM EXPLORER</h2>
+            <p class="loader-status" id="loading-status">Initializing...</p>
+            <div class="loader-bar"><div class="loader-bar-fill" id="loading-bar"></div></div>
+        </div>
+    </div>
+
+    <!-- UI Overlay -->
+    <div id="ui-container">
+        <!-- Title -->
+        <div id="title-bar">
+            <h1>SOLAR SYSTEM <span>EXPLORER</span></h1>
+        </div>
+
+        <!-- Planet Navigation (left sidebar) -->
+        <nav id="planet-nav" aria-label="Planet navigation">
+            <!-- Populated by JavaScript -->
+        </nav>
+
+        <!-- Info Panel (right side) -->
+        <aside id="info-panel" class="hidden" aria-label="Planet information">
+            <div class="info-header">
+                <div class="info-title-row">
+                    <div class="planet-color-dot" id="planet-dot"></div>
+                    <div>
+                        <h2 id="planet-name">Planet</h2>
+                        <span class="planet-type" id="planet-type">Type</span>
+                    </div>
+                </div>
+                <button id="close-info" aria-label="Close panel" title="Close">✕</button>
+            </div>
+            <p id="planet-desc" class="info-description"></p>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Distance from Sun</span>
+                    <span class="stat-value" id="stat-distance">—</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Equatorial Radius</span>
+                    <span class="stat-value" id="stat-radius">—</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Orbital Period</span>
+                    <span class="stat-value" id="stat-period">—</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Day Length</span>
+                    <span class="stat-value" id="stat-day">—</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Surface Temperature</span>
+                    <span class="stat-value" id="stat-temp">—</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Known Moons</span>
+                    <span class="stat-value" id="stat-moons">—</span>
+                </div>
+            </div>
+            <div class="info-facts">
+                <h3>Notable Features</h3>
+                <p id="planet-facts"></p>
+            </div>
+        </aside>
+
+        <!-- Bottom Controls -->
+        <div id="bottom-bar">
+            <div class="ctrl-group">
+                <button class="ctrl-btn active" id="toggle-orbits" title="Toggle orbit lines (O)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="12" rx="10" ry="4"/></svg>
+                    <span>Orbits</span>
+                </button>
+                <button class="ctrl-btn active" id="toggle-labels" title="Toggle labels (L)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+                    <span>Labels</span>
+                </button>
+            </div>
+
+            <div class="ctrl-group time-controls">
+                <button class="ctrl-btn" id="speed-down" title="Slow down (←)">⏪</button>
+                <button class="ctrl-btn" id="speed-pause" title="Pause / Play (Space)">⏸</button>
+                <button class="ctrl-btn" id="speed-up" title="Speed up (→)">⏩</button>
+                <div class="speed-display">
+                    <span id="speed-label">1.0×</span>
+                </div>
+            </div>
+
+            <div class="ctrl-group">
+                <button class="ctrl-btn" id="reset-camera" title="Reset view (R)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    <span>Reset</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Hints -->
+        <div id="hints">
+            Scroll to zoom &middot; Drag to orbit &middot; Click a planet to explore &middot; <kbd>Esc</kbd> to deselect
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
