@@ -1,0 +1,20 @@
+# --- Site ---
+title: ubiquitous-invention
+description: notes, experiments & write-ups from the terminal
+
+# --- Theme (GitHub Pages supported) ---
+theme: jekyll-theme-hacker
+
+# --- Header buttons ---
+show_downloads: false
+
+# --- Build ---
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+# Exclude project source from the built site
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - vendor
