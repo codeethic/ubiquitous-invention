@@ -8,6 +8,10 @@ theme: jekyll-theme-hacker
 # --- Header buttons ---
 show_downloads: false
 
+# --- Permalinks ---
+# Date-free URLs (e.g. /jacob/) so re-dating posts never changes their links.
+permalink: /:title/
+
 # --- Build ---
 plugins:
   - jekyll-feed
