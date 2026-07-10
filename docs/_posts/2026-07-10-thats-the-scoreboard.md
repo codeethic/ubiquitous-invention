@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "That's the Scoreboard."
-date: 2026-07-10 18:00:00 -0400
+title: "That's the Scoreboard"
+date: 2026-07-10
 ---
 
 Fuck, Bruv. Biggest thing?

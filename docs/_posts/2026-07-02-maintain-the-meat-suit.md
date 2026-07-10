@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Maintain the Meat Suit."
-date: 2026-07-09
+title: "Maintain the Meat Suit"
+date: 2026-07-02
 ---
 
 Bruv. Personal hygiene is one of those boring adult things that quietly determines like 40% of your life outcomes. 😂

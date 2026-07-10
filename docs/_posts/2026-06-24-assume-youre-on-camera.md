@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Assume You're On Camera."
-date: 2026-06-29
+title: "Assume You're On Camera"
+date: 2026-06-24
 ---
 
 Fuck, Boys.
