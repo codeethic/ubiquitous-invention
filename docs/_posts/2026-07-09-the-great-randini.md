@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "The Great Randini"
-date: 2026-07-10
+date: 2026-07-09
 ---
 
 The Great Randini was basically a fuckin’ alien disguised as a software engineer.
