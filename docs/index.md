@@ -3,11 +3,24 @@ layout: default
 title: Home
 ---
 
-## &gt; welcome
+## &gt; whoami
 
-You've reached the blog. Everything here lives in the `docs/` directory and is
-served straight from GitHub Pages using the **Hacker** theme. Grab a coffee, pop
-open a shell, and read on.
+I'm Josh. Fifty-ish. Software engineer, girl-dad to two boys, Hurricanes
+addict, bourbon enthusiast with an increasingly complicated relationship to
+bourbon. I live in Raleigh, write code, yell at hockey games, and somehow became
+the guy people call when life catches on fire.
+
+This is where I think out loud. It wanders on purpose — software and AI one day,
+markets and retirement math the next, then hockey, grief, my kids, dumb jokes,
+and probably too much profanity. Actually, definitely too much profanity.
+
+No brand. No hustle. No productivity gospel. Just one tired engineer trying to
+make a little sense of the world between pull requests, playoff overtimes, and
+the occasional existential crisis.
+
+Pour something. Stay a while.
+
+Let's fuckin' go.
 
 ## &gt; latest posts
 
