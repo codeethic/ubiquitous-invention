@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Metallica"
-date: 2026-07-07
+date: 2026-07-01
 ---
 
 LFG.

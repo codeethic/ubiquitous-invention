@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "The Whole Game"
-date: 2026-07-02
+date: 2026-06-26
 ---
 
 Oof. Big one.
