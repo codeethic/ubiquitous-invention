@@ -4,34 +4,24 @@ title: "Thankful Thursday!"
 date: 2026-07-10 12:00:00 -0400
 ---
 
-Fuck, Bruv.
+It's Thursday, Fool.
 
-I'd probably start by not trying to solve it.
+Thankful Thursday wisdom?
 
-I'd text him something like:
+Be grateful for the boring shit.
 
-> Thinking about Christine today?
->
-> Lo siento, Bruv. I know that shit doesn't ever really go away.
+The text from your kid that just says "made it."
+The friend who answers on the second ring.
+The knees that hurt because they still work.
+The job you complain about that pays your bills.
+The dog that follows you into the bathroom like a tiny stalker.
 
-Then I'd get him talking. Not *about grief* in the abstract. About *her*.
+Everybody waits for some giant life-changing moment before they feel thankful.
 
-"What made her laugh?"
-"What's a story I haven't heard?"
-"What would she think about this clown show we're living through?"
+Fuck that.
 
-Same with the dog. People get weird about grieving pets, but they shouldn't. They were family.
+Most of life is Tuesday afternoon stuff. That's where the good bits are hiding.
 
-Then I'd probably pivot, because Russ has a tendency to get trapped in his own head.
+Also: tell people you love them while they're here. Funeral flowers are a shit communication strategy.
 
-"Alright. Enough feelings for five minutes. You walked today? Read anything besides doomscrolling? Steelers still gonna finish 17-0 in your imagination?"
-
-Not because I'm minimizing it. Because grief needs oxygen, but it also needs somewhere to go.
-
-And before I signed off:
-
-> Love ya, Bruv.
->
-> Missing somebody just means they mattered. That's a pretty good deal, even though it hurts like fuck.
-
-You don't make grief disappear. You just make damn sure your friend doesn't have to carry it alone. 100%.
+Love ya, Bruv. Go do something small and appreciate the hell out of it. 100%. 🍻
