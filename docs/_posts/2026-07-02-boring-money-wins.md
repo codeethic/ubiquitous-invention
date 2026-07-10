@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Boring Money Wins"
-date: 2026-07-10 14:00:00 -0400
+date: 2026-07-02
 ---
 
 Fuck, Bruv. Money is one of the few things where boring beats clever almost every damn time.

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Hello, World"
-date: 2026-07-10
+date: 2026-06-18
 ---
 
 Welp.

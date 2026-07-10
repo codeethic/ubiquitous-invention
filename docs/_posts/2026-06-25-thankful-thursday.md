@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Thankful Thursday!"
-date: 2026-07-10 12:00:00 -0400
+date: 2026-06-25
 ---
 
 It's Thursday, Fool.
