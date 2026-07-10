@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Mikey George."
-date: 2026-07-10 13:00:00 -0400
+date: 2026-07-08
 ---
 
 Mikey George?
