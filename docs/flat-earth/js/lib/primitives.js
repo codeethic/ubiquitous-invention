@@ -110,3 +110,9 @@ export function makeDisc(radiusKm) {
   mesh.rotation.x = -Math.PI / 2;
   return mesh;
 }
+
+/** Emissive sun sphere of the given diameter. */
+export function makeSun(diameterKm) {
+  return new THREE.Mesh(
+    new THREE.SphereGeometry(diameterKm / 2, 32, 24), MATERIALS.sunGlow);
+}
