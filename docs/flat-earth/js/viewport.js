@@ -47,8 +47,20 @@ export function createDualViewport(canvas) {
     }
   }
 
+  /**
+   * Which pane a client-space point falls in: 0 = flat, 1 = globe.
+   * DOM coordinates are y-down while GL's are y-up, so the stacked case tests
+   * `y < h/2` for the flat pane even though its scissor rect uses `y = h/2`.
+   */
+  function paneIndexAt(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left, y = clientY - rect.top;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    return w >= h ? (x < w / 2 ? 0 : 1) : (y < h / 2 ? 0 : 1);
+  }
+
   return {
-    renderer, flatScene, globeScene, render, resize,
+    renderer, flatScene, globeScene, render, resize, paneIndexAt,
     setCameras(f, g) { flatCam = f; globeCam = g; resize(); },
     dispose() { renderer.dispose(); },
   };

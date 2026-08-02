@@ -2,7 +2,14 @@ import * as THREE from 'three';
 
 /**
  * Orbit camera on a spherical rig. Deliberately hand-rolled rather than pulling
- * in OrbitControls, so the vendored payload stays to a single Three.js file.
+ * in OrbitControls, so the vendored payload stays to the two Three.js files.
+ *
+ * The rig owns NO event listeners. The harness (main.js) installs one set of
+ * pointer listeners on the canvas, decides which pane a drag started in, and
+ * drives that pane's rig directly. Two rigs sharing one canvas must not both
+ * listen: when linked, each drag would move both rigs twice; when unlinked,
+ * a drag on either pane would still move both.
+ *
  * setLinked(other) makes drags on this rig drive the other rig too.
  */
 export function createOrbitRig({
@@ -14,9 +21,6 @@ export function createOrbitRig({
   const camera = new THREE.PerspectiveCamera(fov, 1, near, far);
   const state = { distance, polar, azimuth, target: target.clone() };
   let linked = null;
-  let el = null;
-  let dragging = false;
-  let lastX = 0, lastY = 0;
 
   function apply() {
     const sp = Math.sin(state.polar), cp = Math.cos(state.polar);
@@ -42,15 +46,6 @@ export function createOrbitRig({
     if (propagate && linked) linked.zoom(delta, false);
   }
 
-  const onDown = e => { dragging = true; lastX = e.clientX; lastY = e.clientY; };
-  const onUp = () => { dragging = false; };
-  const onMove = e => {
-    if (!dragging) return;
-    orbit(e.clientX - lastX, e.clientY - lastY);
-    lastX = e.clientX; lastY = e.clientY;
-  };
-  const onWheel = e => { e.preventDefault(); zoom(e.deltaY); };
-
   apply();
 
   return {
@@ -60,21 +55,6 @@ export function createOrbitRig({
     setDistance(d) { state.distance = d; apply(); },
     setTarget(v) { state.target.copy(v); apply(); },
     setLinked(other) { linked = other; },
-    attach(element) {
-      el = element;
-      el.addEventListener('pointerdown', onDown);
-      window.addEventListener('pointerup', onUp);
-      window.addEventListener('pointermove', onMove);
-      el.addEventListener('wheel', onWheel, { passive: false });
-    },
-    dispose() {
-      if (!el) return;
-      el.removeEventListener('pointerdown', onDown);
-      window.removeEventListener('pointerup', onUp);
-      window.removeEventListener('pointermove', onMove);
-      el.removeEventListener('wheel', onWheel);
-      el = null;
-      linked = null;
-    },
+    dispose() { linked = null; },
   };
 }
