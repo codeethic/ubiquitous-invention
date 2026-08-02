@@ -22,3 +22,10 @@ exclude:
   - Gemfile
   - Gemfile.lock
   - vendor
+  # Design specs live in the repo, not on the site.
+  - superpowers
+  # Flat Earth Lab test scaffolding; the app itself publishes normally.
+  # Note: its vendored Three.js lives in flat-earth/third-party/, deliberately
+  # not named "vendor", so the bare `vendor` entry above cannot swallow it.
+  - flat-earth/test
+  - flat-earth/package.json
