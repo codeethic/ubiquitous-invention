@@ -7,11 +7,16 @@ import {
   solarDeclinationDeg, earthSunDistanceKm,
 } from '../physics/solar.js';
 import { azimuthalEquidistantRadiusKm } from '../physics/geodesy.js';
-import { makeOcean, makeGlobeCap, makeSun, disposeTree } from '../lib/primitives.js';
+import { makeSun, disposeTree } from '../lib/primitives.js';
 
 const EYE_KM = 0.002;          // 2 m observer eye height
 const VIEW_FOV_DEG = 10;       // narrow, so a 0.53° disc is a readable fraction
 const GLOBE_SUN_RENDER_KM = 2e6;
+
+// Preallocated scratch, reused every frame — update() runs at 60 fps and the
+// other modules in this codebase are allocation-free in their hot path.
+const SUN_DIR = new THREE.Vector3();
+const OBS = new THREE.Vector3();
 
 /**
  * Ground distance from the observer to the subsolar point.
@@ -54,13 +59,18 @@ export default {
   linkCameras: false,
 
   build() {
+    // No ground geometry in either pane. With a 10° FOV aimed at the sun, the
+    // sun's elevation never drops below ~11°, so a horizon would sit outside
+    // the frustum in every reachable state. An earlier version added an ocean
+    // plane and a 200 km globe cap; the cap was centred on the +Y pole while
+    // the observer stands at the subsolar latitude, leaving it 7,400–12,600 km
+    // away and invisible. Both panes are deliberately the observer's view of
+    // the sun against sky, which is exactly what "apparent size" means.
     flatRoot = new THREE.Group();
-    flatRoot.add(makeOcean(FLAT_DISC_RADIUS_KM * 2));
     flatSun = makeSun(flatSunDiameterKm());          // TRUE derived diameter
     flatRoot.add(flatSun);
 
     globeRoot = new THREE.Group();
-    globeRoot.add(makeGlobeCap(R_EARTH_KM, 200));    // local ground reference
     globeSun = makeSun(1);                           // rescaled per frame
     globeRoot.add(globeSun);
 
@@ -85,21 +95,22 @@ export default {
     // is overhead at noon exactly as on the flat pane.
     const d = solarDeclinationDeg(state.dayOfYear) * DEG;
     const theta = (state.hour - 12) / 24 * Math.PI * 2;
-    const sunDir = new THREE.Vector3(
+    SUN_DIR.set(
       Math.cos(d) * Math.sin(theta), Math.sin(d), Math.cos(d) * Math.cos(theta));
-    globeSun.position.copy(sunDir).multiplyScalar(GLOBE_SUN_RENDER_KM);
+    globeSun.position.copy(SUN_DIR).multiplyScalar(GLOBE_SUN_RENDER_KM);
 
-    // Drawn at a reduced distance with a diameter chosen to preserve the TRUE
-    // angular size — placing it at a real 1 AU would wreck depth precision
-    // while changing nothing a viewer can see.
+    OBS.set(0, Math.sin(d), Math.cos(d)).multiplyScalar(R_EARTH_KM + EYE_KM);
+
+    // Size the sun from the CAMERA-to-sun distance, not the origin-to-sun
+    // distance. The camera stands 6,371 km off the origin, and as the hour
+    // angle turns that gap swings the rendered size from +0.32% to −0.32%
+    // against the reported figure — a visible drift at the 3-decimal precision
+    // the readout shows, caused by nothing physical.
     const angDeg = solarAngularDiameterDeg(state.dayOfYear);
-    const renderDiameter =
-      2 * GLOBE_SUN_RENDER_KM * Math.tan(angDeg / 2 * DEG);
-    globeSun.scale.setScalar(renderDiameter);
+    const camToSun = globeSun.position.distanceTo(OBS);
+    globeSun.scale.setScalar(2 * camToSun * Math.tan(angDeg / 2 * DEG));
 
-    const obs = new THREE.Vector3(0, Math.sin(d), Math.cos(d))
-      .multiplyScalar(R_EARTH_KM + EYE_KM);
-    globeCam.position.copy(obs);
+    globeCam.position.copy(OBS);
     globeCam.lookAt(globeSun.position);
   },
 
@@ -108,11 +119,12 @@ export default {
     const globeDeg = solarAngularDiameterDeg(state.dayOfYear);
     const flatDeg = flatSunAngularDiameterDeg(ground);
     const flatNoon = flatSunAngularDiameterDeg(0);
+    const relativePercent = (100 * flatDeg / flatNoon).toFixed(0);
 
     return {
       flat: [
         { label: 'Angular diameter', value: `${flatDeg.toFixed(3)}°` },
-        { label: 'Relative to noon', value: `${(100 * flatDeg / flatNoon).toFixed(0)}%` },
+        { label: 'Relative to noon', value: `${relativePercent}%` },
         { label: 'Sun diameter (derived)', value: `${flatSunDiameterKm().toFixed(1)} km` },
         { label: 'Distance to sun', value: `${Math.hypot(FLAT_SUN_ALTITUDE_KM, ground).toFixed(0)} km` },
       ],
@@ -127,8 +139,9 @@ export default {
       ],
       observed:
         'The sun measures 0.52°–0.54° all day, every day. The flat model\'s sun is '
-        + 'sized here to match exactly at noon — its best case — and still falls to '
-        + 'roughly a third of that by 18:00, and never actually sets.',
+        + 'sized here to match exactly at noon — its best case — yet at this hour it '
+        + `is ${relativePercent}% of that size, and it never `
+        + 'actually sets.',
     };
   },
 

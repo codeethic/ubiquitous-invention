@@ -67,8 +67,10 @@ Rules:
   - *Fixed-camera* — return `rig: null`, own the camera outright, receive no
     pointer routing. `linkCameras` is ignored.
   A module that returns a rig AND writes the camera every frame will have every
-  drag silently erased on the next frame. `horizon` is the only fixed-camera
-  module: its readout is only true from one specific eye position.
+  drag silently erased on the next frame. `horizon` and `sun-size` are the
+  fixed-camera modules: their readouts assert a quantity that is only true from
+  one specific eye position, so orbiting the camera would decouple the claim
+  from the image.
 - `load()` is optional. Modules needing external data (cities.json) fetch it
   there and throw a descriptive Error on failure; the harness turns that into
   a pane error card without taking down the rest of the app.
