@@ -14,6 +14,7 @@ const state = createState({});
 let viewport = null;
 let active = null;
 let built = null;
+let moduleFaulted = false;
 
 function teardown() {
   if (!active) return;
@@ -25,6 +26,7 @@ function teardown() {
   try { active.dispose(); } catch { /* teardown must not block a switch */ }
   active = null;
   built = null;
+  moduleFaulted = false;
 }
 
 async function activate(id) {
@@ -69,7 +71,14 @@ async function activate(id) {
   } catch (err) {
     showErrorCard(canvasError, `${module.title} readout failed`, err.message);
   }
-  if (built) module.update(state.get(), 0);
+  if (built) {
+    try {
+      module.update(state.get(), 0);
+    } catch (err) {
+      moduleFaulted = true;
+      showErrorCard(canvasError, `${module.title} stopped`, err.message);
+    }
+  }
 }
 
 /**
@@ -121,7 +130,14 @@ async function boot() {
     MODULES, MODULES[0].id, activate);
 
   state.subscribe(v => {
-    if (active && built) active.update(v, 0);
+    if (active && built) {
+      try {
+        active.update(v, 0);
+      } catch (err) {
+        moduleFaulted = true;
+        showErrorCard(canvasError, `${active.title} stopped`, err.message);
+      }
+    }
     if (!active) return;
     try {
       renderReadout(document.getElementById('readout-panel'), active, state);
@@ -137,7 +153,18 @@ async function boot() {
     let last = performance.now();
     (function loop(now) {
       const dt = (now - last) / 1000; last = now;
-      if (active && built) active.update(state.get(), dt);
+      // A throwing update() must not take the loop with it: without this guard
+      // neither viewport.render() nor requestAnimationFrame() below would run,
+      // and rendering would stop permanently with nothing on screen to say why.
+      // moduleFaulted latches so a broken module is not re-entered 60x/second.
+      if (active && built && !moduleFaulted) {
+        try {
+          active.update(state.get(), dt);
+        } catch (err) {
+          moduleFaulted = true;
+          showErrorCard(canvasError, `${active.title} stopped`, err.message);
+        }
+      }
       viewport.render();
       requestAnimationFrame(loop);
     })(last);
