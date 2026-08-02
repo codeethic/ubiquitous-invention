@@ -19,10 +19,17 @@ Covers `js/physics/` only — pure math, no browser required.
 
 ## Three.js
 
-Vendored at `third-party/three.module.js`, pinned to **r185** (0.185.1).
+Vendored in `third-party/` as two files, both pinned to **r185** (0.185.1):
+- `three.module.js` (650 KB) — entry point with renderer and utilities
+- `three.core.js` (1.4 MB) — core library (Scene, Camera, Geometry, etc.)
+
+These files form a complete import graph: `three.module.js` imports from
+`three.core.js`, and `three.core.js` has no further external dependencies.
+
 Not loaded from a CDN: a blank portfolio page caused by a CDN outage is not
-an acceptable failure mode. Upgrades are deliberate — replace the file and
-re-run the manual visual checklist below.
+an acceptable failure mode. Upgrades are deliberate — replace **both files together**
+with the next version and re-run the manual visual checklist below. Replacing only
+one file will break the import graph.
 
 The directory is named `third-party/`, not `vendor/`, because
 `docs/_config.yml` excludes `vendor` from the Jekyll build.
