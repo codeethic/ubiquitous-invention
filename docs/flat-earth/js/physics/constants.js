@@ -13,6 +13,13 @@ export const FLAT_SUN_ALTITUDE_KM = 5000;
 // Disc radius: north pole at centre, south "rim" at latitude -90.
 export const FLAT_DISC_RADIUS_KM = R_EARTH_KM * Math.PI;
 
+/**
+ * Radius of the flat model's illuminated spotlight, chosen so it lights exactly
+ * half the disc's AREA. This is the model's best case: smaller and it fails
+ * trivially, larger and it lights more than half the world at once.
+ */
+export const FLAT_SPOTLIGHT_RADIUS_KM = FLAT_DISC_RADIUS_KM / Math.SQRT2;
+
 export const CRUISE_SPEED_KMH = 900;
 
 export const DEG = Math.PI / 180;
