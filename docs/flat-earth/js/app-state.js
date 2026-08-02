@@ -7,7 +7,11 @@ export function createState(initial = {}) {
   const listeners = new Set();
 
   const notify = () => {
-    const snapshot = { ...value };
+    // Frozen because every subscriber in a cycle receives the SAME object.
+    // Unfrozen, a subscriber that annotates what it was handed silently
+    // corrupts what later subscribers see. ES modules are strict mode, so a
+    // stray write now throws at the offending line instead.
+    const snapshot = Object.freeze({ ...value });
     for (const fn of listeners) fn(snapshot);
   };
 

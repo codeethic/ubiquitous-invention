@@ -44,3 +44,21 @@ test('unsubscribe stops notifications', () => {
   s.set({ a: 3 });
   assert.equal(calls, 1);
 });
+
+test('one subscriber cannot corrupt what another sees', () => {
+  const s = createState({ a: 1 });
+  let seenByB;
+  s.subscribe(v => { try { v.a = 'CORRUPTED'; } catch { /* frozen, expected */ } });
+  s.subscribe(v => { seenByB = v.a; });
+  s.set({ a: 2 });
+  assert.equal(seenByB, 2);
+});
+
+test('the delivered snapshot is frozen', () => {
+  const s = createState({ a: 1 });
+  let snap;
+  s.subscribe(v => { snap = v; });
+  s.set({ a: 2 });
+  assert.ok(Object.isFrozen(snap));
+  assert.throws(() => { snap.a = 3; }, TypeError);
+});
