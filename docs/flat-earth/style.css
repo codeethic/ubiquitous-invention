@@ -16,6 +16,19 @@ body { margin:0; background:var(--bg); color:var(--fg);
                   display:grid; place-items:center; }
 .error-card { border:1px solid var(--warn); color:var(--warn);
               padding:1rem; margin:1rem; }
+.control { display:grid; grid-template-columns:9rem 1fr 7rem;
+           gap:.75rem; align-items:center; margin-bottom:.5rem; }
+.control-label { color:var(--dim); }
+.control-value { text-align:right; }
+.readout-claim { color:var(--dim); margin:0 0 1rem; }
+.readout-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+.readout-column h3 { font-size:.7rem; letter-spacing:.16em;
+                     color:var(--dim); margin:0 0 .5rem; }
+.readout-row { display:flex; justify-content:space-between;
+               border-bottom:1px solid var(--rule); padding:.25rem 0; }
+.readout-observed { margin:1rem 0 0; padding-top:.75rem;
+                    border-top:1px solid var(--rule); }
+@media (max-width: 900px) { .readout-grid { grid-template-columns:1fr; } }
 @media (max-width: 900px) {
   #pane-labels { flex-direction:column; }
   #stage { height:70vh; }
