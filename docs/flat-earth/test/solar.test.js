@@ -6,6 +6,7 @@ import {
   globeRadiusFromPairKm, flatSunAltitudeFromPairKm,
   isDaylitGlobe, isDaylitFlat,
 } from '../js/physics/solar.js';
+import { OBLIQUITY_DEG } from '../js/physics/constants.js';
 
 const near = (a, e, tol, label) =>
   assert.ok(Math.abs(a - e) <= tol, `${label}: expected ${e} ±${tol}, got ${a}`);
@@ -71,6 +72,27 @@ test('the flat sun should more than halve in size by 10000 km ground distance', 
 test('the globe gives one radius from every latitude pair', () => {
   near(globeRadiusFromPairKm(30, 45, 0), 6371, 1, 'pair A.B');
   near(globeRadiusFromPairKm(45, 60, 0), 6371, 1, 'pair B.C');
+});
+
+test('globeRadiusFromPairKm actually reads its inputs', () => {
+  // Inside the valid domain the answer is exactly R for ANY pair — the physical
+  // point, but also why `return R_EARTH_KM` would satisfy the test above. This
+  // case steps deliberately OUTSIDE the domain, putting the subsolar latitude
+  // between the observers so the shadow angles no longer subtract. A real
+  // computation diverges; a hard-coded constant would not.
+  const outOfDomain = globeRadiusFromPairKm(10, 50, 25);
+  assert.ok(Math.abs(outOfDomain - 6371) > 1000,
+    `expected out-of-domain divergence, got ${outOfDomain}`);
+});
+
+test('the Eratosthenes controls cannot reach the degenerate case', () => {
+  // Observer A starts at 25°N, above the 23.44° maximum declination, so the
+  // subsolar point can never fall between two observers. Were A allowed down to
+  // 5°N, then A=5 / B=41 at declination 23 would put them equidistant from the
+  // subsolar latitude, zero the denominator, and render "Infinity km" on screen.
+  assert.ok(25 > OBLIQUITY_DEG,
+    'lowest selectable observer latitude must exceed the maximum declination');
+  assert.equal(Number.isFinite(globeRadiusFromPairKm(25, 41, OBLIQUITY_DEG)), true);
 });
 
 test('the flat model gives contradictory sun altitudes from two pairs', () => {

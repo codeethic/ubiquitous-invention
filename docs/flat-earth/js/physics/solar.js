@@ -63,7 +63,19 @@ export function flatSunAngularDiameterDeg(groundDistanceKm,
   return 2 * Math.atan(flatSunDiameterKm(altitudeKm) / 2 / slant) * RAD;
 }
 
-/** Earth radius inferred from two noon shadow angles. Same answer for every pair. */
+/**
+ * Earth radius inferred from two noon shadow angles. Same answer for every pair.
+ *
+ * DOMAIN: both observers must lie on the SAME side of the subsolar latitude.
+ * That is the classical Eratosthenes setup, and within it the two shadow angles
+ * subtract cleanly and the result is exactly R for any pair — which is the
+ * whole point. If the subsolar latitude falls BETWEEN the observers the angles
+ * no longer subtract: the result diverges wildly, and at the symmetric case
+ * (both equidistant from the subsolar latitude) the denominator is zero and the
+ * result is Infinity. Callers must keep every observer on one side; the
+ * Eratosthenes module does this by starting its lowest latitude above the
+ * maximum declination.
+ */
 export function globeRadiusFromPairKm(latA, latB, declinationDeg) {
   const arcKm = R_EARTH_KM * Math.abs(latA - latB) * DEG;
   const dTheta = Math.abs(Math.abs(latA - declinationDeg)
