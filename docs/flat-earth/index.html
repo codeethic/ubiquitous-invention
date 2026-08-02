@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flat Earth Lab</title>
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{ "imports": { "three": "./third-party/three.module.js" } }
+</script>
+</head>
+<body>
+<div id="loading-screen"><p id="loading-status">Initializing…</p></div>
+
+<header id="app-header">
+  <h1>FLAT EARTH LAB</h1>
+  <select id="phenomenon-select" aria-label="Phenomenon"></select>
+  <button id="params-button" type="button" aria-label="Model parameters">i</button>
+</header>
+
+<main id="stage">
+  <div id="pane-labels"><span>FLAT MODEL</span><span>GLOBE MODEL</span></div>
+  <canvas id="scene-canvas"></canvas>
+  <div id="canvas-error" hidden></div>
+</main>
+
+<section id="control-strip"></section>
+<section id="readout-panel"></section>
+<dialog id="params-dialog"></dialog>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
