@@ -58,8 +58,17 @@ async function activate(id) {
       `${err.message} — other phenomena are unaffected.`);
   }
 
-  renderControls(document.getElementById('control-strip'), module.controls, state);
-  renderReadout(document.getElementById('readout-panel'), module, state);
+  // Guarded separately from build(): a module whose readout() throws must not
+  // escape activate(). boot() awaits activate(), so an uncaught throw here
+  // would skip the rAF loop and setLoading(false) entirely, wedging the app on
+  // the loading screen with WebGL perfectly healthy. Most likely trigger is a
+  // readout() dereferencing load()-fetched data that never arrived.
+  try {
+    renderControls(document.getElementById('control-strip'), module.controls, state);
+    renderReadout(document.getElementById('readout-panel'), module, state);
+  } catch (err) {
+    showErrorCard(canvasError, `${module.title} readout failed`, err.message);
+  }
   if (built) module.update(state.get(), 0);
 }
 
@@ -113,7 +122,12 @@ async function boot() {
 
   state.subscribe(v => {
     if (active && built) active.update(v, 0);
-    if (active) renderReadout(document.getElementById('readout-panel'), active, state);
+    if (!active) return;
+    try {
+      renderReadout(document.getElementById('readout-panel'), active, state);
+    } catch (err) {
+      showErrorCard(canvasError, `${active.title} readout failed`, err.message);
+    }
   });
 
   await activate(MODULES[0].id);

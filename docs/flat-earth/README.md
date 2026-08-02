@@ -75,5 +75,15 @@ Rules:
 - `rig` may be null for a module with a fixed camera; `linkCameras` is then ignored.
 - `readout(state)` must not depend on `build()` having run — it reads state and
   calls `js/physics/` only. The WebGL-unavailable fallback relies on this.
+- **`readout(state)` must not throw.** "Must not depend on `build()`" is not
+  enough: a module whose `load()` failed or has not run yet still gets
+  `readout()` called. Guard for missing data and return a row saying so —
+  e.g. `{ label: 'Distance', value: 'data unavailable' }` — rather than
+  dereferencing it. The harness catches a throw and shows an error card, but
+  the readout is the one surface that is supposed to keep working when
+  everything else has failed.
+- **`rig` must be both-or-neither across `flat` and `globe`.** An asymmetric
+  module is silently degraded, not rejected: the rig-less pane gets no drag
+  routing and `linkCameras` no-ops. Pick one mode for the whole module.
 - Adding a phenomenon: one file in `js/phenomena/`, one import and one array
   entry in `js/registry.js`. No UI code changes.
