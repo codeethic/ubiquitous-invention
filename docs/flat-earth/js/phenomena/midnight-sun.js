@@ -78,6 +78,12 @@ export default {
       far * Math.cos(d) * Math.cos(hourAngle));
     const phi = state.latDeg * DEG;
     globeObs.position.set(0, R_EARTH_KM * Math.sin(phi), R_EARTH_KM * Math.cos(phi));
+    // Stand the marker on the local vertical. Without this its "up" stays world
+    // +Y, correct only at the pole — at this module's own default of -70° the
+    // post leans ~160° off and points into the globe. Same pattern as the
+    // gnomons in eratosthenes.js.
+    globeObs.lookAt(globeObs.position.clone().multiplyScalar(2));
+    globeObs.rotateX(Math.PI / 2);
   },
 
   readout(state) {
@@ -98,9 +104,15 @@ export default {
         ? 'At this latitude and date the flat model happens to agree. Its spotlight '
           + 'covers the whole northern region, so it reproduces the Arctic midnight '
           + 'sun. Set the latitude to -70° in December to see where it fails.'
-        : `Observed daylight here is ${globeHours.toFixed(1)} h. The flat model `
-          + `predicts ${flatHours.toFixed(1)} h, because a sun circling above a disc `
-          + 'must move away from the southern rim and set.',
+        : flatHours < globeHours
+          ? `Observed daylight here is ${globeHours.toFixed(1)} h. The flat model `
+            + `predicts only ${flatHours.toFixed(1)} h: its sun circles above the disc `
+            + 'and must move away from this latitude and set. No circling sun can keep '
+            + 'the southern rim lit for a full day.'
+          : `Observed daylight here is ${globeHours.toFixed(1)} h. The flat model `
+            + `predicts ${flatHours.toFixed(1)} h — too much. Its spotlight still covers `
+            + 'this latitude when the real sky is dark. A disc cannot tilt away from the '
+            + 'sun, so it has no way to produce a polar night.',
     };
   },
 
