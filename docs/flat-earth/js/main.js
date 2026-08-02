@@ -17,6 +17,7 @@ let built = null;
 
 function teardown() {
   if (!active) return;
+  if (built) for (const side of [built.flat, built.globe]) side.rig?.setLinked(null);
   if (built) {
     viewport.flatScene.remove(built.flat.root);
     viewport.globeScene.remove(built.globe.root);
@@ -26,38 +27,81 @@ function teardown() {
   built = null;
 }
 
-function activate(id) {
+async function activate(id) {
   teardown();
   const module = getModule(id);
   state.reset({ ...module.defaults });
+  active = module;
 
-  // Guarded on `viewport`: when WebGL is unavailable createDualViewport already
-  // showed an accurate card, and blindly touching viewport.flatScene here would
-  // throw, overwriting it with a misleading per-module error that also falsely
-  // claims other phenomena are unaffected.
   try {
+    if (module.load) await module.load();
+    // Guarded on `viewport`: when WebGL is unavailable, boot() already showed
+    // an accurate "WebGL unavailable" card, and blindly touching
+    // viewport.flatScene here would throw, overwriting it with a misleading
+    // per-module error that also wrongly claims other phenomena are
+    // unaffected (all of them are, since there is no renderer). `load()`
+    // still runs above so data-fetch failures surface correctly either way.
     if (viewport) {
       built = module.build({ canvas });
       viewport.flatScene.add(built.flat.root);
       viewport.globeScene.add(built.globe.root);
       viewport.setCameras(built.flat.camera, built.globe.camera);
+      if (module.linkCameras && built.flat.rig && built.globe.rig) {
+        built.flat.rig.setLinked(built.globe.rig);
+        built.globe.rig.setLinked(built.flat.rig);
+      }
       clearErrorCard(canvasError);
     }
   } catch (err) {
     built = null;
-    showErrorCard(canvasError, `${module.title} failed to load`,
+    showErrorCard(canvasError, `${module.title} is unavailable`,
       `${err.message} — other phenomena are unaffected.`);
   }
 
-  active = module;
   renderControls(document.getElementById('control-strip'), module.controls, state);
   renderReadout(document.getElementById('readout-panel'), module, state);
   if (built) module.update(state.get(), 0);
 }
 
-function boot() {
+/**
+ * One listener set for the app's lifetime, installed once from boot(). Never
+ * re-attached on phenomenon switch, so switching cannot accumulate listeners.
+ * Rigs themselves own no listeners (see js/lib/camera-rig.js) — this is the
+ * harness routing drags to whichever rig's pane they started in.
+ */
+function installPointerControls() {
+  let activeRig = null;
+  let lastX = 0, lastY = 0;
+
+  // Which rig a pointer event belongs to. Resolved per event rather than
+  // cached, because the split axis flips with the viewport aspect.
+  const rigAt = e => {
+    if (!built || !viewport) return null;
+    return viewport.paneIndexAt(e.clientX, e.clientY) === 0
+      ? built.flat.rig
+      : built.globe.rig;
+  };
+
+  canvas.addEventListener('pointerdown', e => {
+    activeRig = rigAt(e);
+    lastX = e.clientX; lastY = e.clientY;
+  });
+  window.addEventListener('pointerup', () => { activeRig = null; });
+  window.addEventListener('pointermove', e => {
+    if (!activeRig) return;
+    activeRig.orbit(e.clientX - lastX, e.clientY - lastY);
+    lastX = e.clientX; lastY = e.clientY;
+  });
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    rigAt(e)?.zoom(e.deltaY);
+  }, { passive: false });
+}
+
+async function boot() {
   try {
     viewport = createDualViewport(canvas);
+    installPointerControls();
   } catch (err) {
     showErrorCard(canvasError, 'WebGL unavailable',
       `${err.message} — the numeric readouts below still work.`);
@@ -72,7 +116,7 @@ function boot() {
     if (active) renderReadout(document.getElementById('readout-panel'), active, state);
   });
 
-  activate(MODULES[0].id);
+  await activate(MODULES[0].id);
 
   if (viewport) {
     window.addEventListener('resize', viewport.resize);

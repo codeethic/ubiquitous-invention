@@ -40,3 +40,40 @@ The directory is named `third-party/`, not `vendor/`, because
 
 Rendering has no headless GL path. After any change to `js/lib/` or
 `js/phenomena/`, load each phenomenon and confirm both panes draw.
+
+## Module contract (frozen at Task 7)
+
+Each file in `js/phenomena/` default-exports:
+
+    {
+      id, title, claim,
+      controls: [{ id, label, min, max, step, unit }]      // or { id, label, options: [{value,label}] }
+      defaults: { ...controlId: value },
+      linkCameras: boolean,
+      load?()         -> Promise<void>,   // optional, awaited before build()
+      build(ctx)      -> { flat: {root, camera, rig}, globe: {root, camera, rig} },
+      update(state, dt),
+      readout(state)  -> { flat: Row[], globe: Row[], observed: string },
+      dispose(),
+    }
+
+    Row = { label: string, value: string }   // value preformatted, units included
+
+Rules:
+- The harness owns the two THREE.Scene instances. Modules return a `root` Group.
+- **Camera ownership is one mode or the other, never both:**
+  - *Rig-driven* — return a rig, never write `camera.position`/`camera.lookAt`.
+    Steer with `rig.setTarget()` / `rig.setDistance()`. Drags are routed here.
+  - *Fixed-camera* — return `rig: null`, own the camera outright, receive no
+    pointer routing. `linkCameras` is ignored.
+  A module that returns a rig AND writes the camera every frame will have every
+  drag silently erased on the next frame. `horizon` is the only fixed-camera
+  module: its readout is only true from one specific eye position.
+- `load()` is optional. Modules needing external data (cities.json) fetch it
+  there and throw a descriptive Error on failure; the harness turns that into
+  a pane error card without taking down the rest of the app.
+- `rig` may be null for a module with a fixed camera; `linkCameras` is then ignored.
+- `readout(state)` must not depend on `build()` having run — it reads state and
+  calls `js/physics/` only. The WebGL-unavailable fallback relies on this.
+- Adding a phenomenon: one file in `js/phenomena/`, one import and one array
+  entry in `js/registry.js`. No UI code changes.

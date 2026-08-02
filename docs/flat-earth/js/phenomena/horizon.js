@@ -2,12 +2,11 @@ import * as THREE from 'three';
 import { R_EARTH_KM } from '../physics/constants.js';
 import { hiddenHeightM, horizonDistanceKm, geometricDropM } from '../physics/geodesy.js';
 import { makeOcean, makeGlobeCap, makeShip, disposeTree } from '../lib/primitives.js';
-import { createOrbitRig } from '../lib/camera-rig.js';
 
 const SHIP_HEIGHT_KM = 0.04;   // 40 m mast-top — a schematic tall ship
 const CAP_EXTENT_KM = 60;
 
-let flatRoot, globeRoot, flatShip, globeShip, flatRig, globeRig;
+let flatRoot, globeRoot, flatShip, globeShip, flatCam, globeCam;
 
 export default {
   id: 'horizon',
@@ -20,7 +19,11 @@ export default {
   ],
   defaults: { distanceKm: 12, eyeHeightM: 2 },
 
-  linkCameras: true,
+  // Fixed-camera module: the readout asserts a hidden height for a specific
+  // eye position, so orbiting away from that eye would desync the rendered
+  // occlusion from the number on screen. See the camera-ownership rule in
+  // the module contract (README.md).
+  linkCameras: false,
 
   build() {
     flatRoot = new THREE.Group();
@@ -37,12 +40,14 @@ export default {
     globeRoot.add(globeShip);
 
     // Both cameras sit at the observer's eye, looking along +Z toward the ship.
-    flatRig = createOrbitRig({ fov: 12, near: 0.001, far: 5000, distance: 0.001 });
-    globeRig = createOrbitRig({ fov: 12, near: 0.001, far: 5000, distance: 0.001 });
+    // Fixed cameras, not rigs: update() positions them directly every frame,
+    // and no pointer routing or linking applies (rig: null below).
+    flatCam = new THREE.PerspectiveCamera(12, 1, 0.001, 5000);
+    globeCam = new THREE.PerspectiveCamera(12, 1, 0.001, 5000);
 
     return {
-      flat: { root: flatRoot, camera: flatRig.camera },
-      globe: { root: globeRoot, camera: globeRig.camera },
+      flat: { root: flatRoot, camera: flatCam, rig: null },
+      globe: { root: globeRoot, camera: globeCam, rig: null },
     };
   },
 
@@ -52,9 +57,8 @@ export default {
 
     // Flat pane: ocean in the XZ plane, observer at the origin.
     flatShip.position.set(0, 0, d);
-    flatRig.setTarget(new THREE.Vector3(0, eyeKm, d));
-    flatRig.camera.position.set(0, eyeKm, 0);
-    flatRig.camera.lookAt(0, eyeKm, d);
+    flatCam.position.set(0, eyeKm, 0);
+    flatCam.lookAt(0, eyeKm, d);
 
     // Globe pane: observer at the north pole of a globe-radius sphere; the ship
     // sits on the surface d km away along a great circle.
@@ -62,8 +66,8 @@ export default {
     globeShip.position.set(
       0, R_EARTH_KM * Math.cos(theta), R_EARTH_KM * Math.sin(theta));
     globeShip.rotation.x = theta;
-    globeRig.camera.position.set(0, R_EARTH_KM + eyeKm, 0);
-    globeRig.camera.lookAt(globeShip.position);
+    globeCam.position.set(0, R_EARTH_KM + eyeKm, 0);
+    globeCam.lookAt(globeShip.position);
   },
 
   readout(state) {
@@ -92,8 +96,7 @@ export default {
   },
 
   dispose() {
-    flatRig.dispose(); globeRig.dispose();
     disposeTree(flatRoot); disposeTree(globeRoot);
-    flatRoot = globeRoot = flatShip = globeShip = flatRig = globeRig = null;
+    flatRoot = globeRoot = flatShip = globeShip = flatCam = globeCam = null;
   },
 };
