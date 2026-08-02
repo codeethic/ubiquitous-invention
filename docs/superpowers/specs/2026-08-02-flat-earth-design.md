@@ -270,8 +270,8 @@ and the tests assert them.
 ### 8. Sun angular size
 
 - **Controls:** time of day
-- **Globe:** at ~150 million km the sun subtends ≈0.53° all day, varying only
-  ≈0.52–0.54° across the year as Earth's distance changes
+- **Globe:** at ~150 million km the sun subtends ≈0.533° all day, varying only
+  ≈0.524–0.542° across the year as Earth's distance changes
 - **Flat:** a sun 5,000 km up — sized so it matches the observed 0.53° when
   overhead — is far closer at noon than at "sunset", so it should visibly shrink
   through the day, and should never actually set, only recede
@@ -319,7 +319,8 @@ test before it reaches a demo:
 - Day length at **70°N** on the June solstice = 24 h. Deliberately not the Arctic
   Circle itself (66.56°), where the result sits exactly on the boundary and any
   rounding or refraction assumption flips it — a guaranteed flaky test.
-- Solar angular diameter between 0.52° and 0.54° across a full year
+- Solar angular diameter between 0.524° and 0.542° across a full year
+  (perihelion 0.5420°, aphelion 0.5241°, mean 0.5329°)
 - Flat-model solar angular diameter at 5,000 km altitude: ≈0.53° overhead by
   construction, and less than half that at 10,000 km ground distance
 - Eratosthenes: globe radius identical from pairs A·B and B·C; flat-model
