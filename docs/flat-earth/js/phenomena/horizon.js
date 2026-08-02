@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { R_EARTH_KM } from '../physics/constants.js';
 import { hiddenHeightM, horizonDistanceKm, geometricDropM } from '../physics/geodesy.js';
-import { makeOcean, makeGlobeOcean, makeShip, disposeTree } from '../lib/primitives.js';
+import { makeOcean, makeGlobeCap, makeShip, disposeTree } from '../lib/primitives.js';
 import { createOrbitRig } from '../lib/camera-rig.js';
 
 const SHIP_HEIGHT_KM = 0.04;   // 40 m mast-top — a schematic tall ship
+const CAP_EXTENT_KM = 60;
 
 let flatRoot, globeRoot, flatShip, globeShip, flatRig, globeRig;
 
@@ -28,7 +29,10 @@ export default {
     flatRoot.add(flatShip);
 
     globeRoot = new THREE.Group();
-    globeRoot.add(makeGlobeOcean(R_EARTH_KM));
+    // A CAP, not the whole globe: at whole-globe tessellation the entire 0–40 km
+    // control range falls inside one flat facet, and the curvature this module
+    // exists to show would not render at all.
+    globeRoot.add(makeGlobeCap(R_EARTH_KM, CAP_EXTENT_KM));
     globeShip = makeShip(SHIP_HEIGHT_KM);
     globeRoot.add(globeShip);
 

@@ -31,12 +31,18 @@ function activate(id) {
   const module = getModule(id);
   state.reset({ ...module.defaults });
 
+  // Guarded on `viewport`: when WebGL is unavailable createDualViewport already
+  // showed an accurate card, and blindly touching viewport.flatScene here would
+  // throw, overwriting it with a misleading per-module error that also falsely
+  // claims other phenomena are unaffected.
   try {
-    built = module.build({ canvas });
-    viewport.flatScene.add(built.flat.root);
-    viewport.globeScene.add(built.globe.root);
-    viewport.setCameras(built.flat.camera, built.globe.camera);
-    clearErrorCard(canvasError);
+    if (viewport) {
+      built = module.build({ canvas });
+      viewport.flatScene.add(built.flat.root);
+      viewport.globeScene.add(built.globe.root);
+      viewport.setCameras(built.flat.camera, built.globe.camera);
+      clearErrorCard(canvasError);
+    }
   } catch (err) {
     built = null;
     showErrorCard(canvasError, `${module.title} failed to load`,

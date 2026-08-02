@@ -9,9 +9,26 @@ export function makeOcean(sizeKm) {
   return mesh;
 }
 
-/** Sphere of radius radiusKm centred at the origin. */
+/** Whole sphere of radius radiusKm centred at the origin. For whole-globe views. */
 export function makeGlobeOcean(radiusKm) {
   const geo = new THREE.SphereGeometry(radiusKm, 96, 64);
+  return new THREE.Mesh(geo, MATERIALS.ocean);
+}
+
+/**
+ * Finely tessellated spherical cap centred on the +Y pole, spanning extentKm of
+ * surface arc. Use this — NOT makeGlobeOcean — for any view that looks along the
+ * surface at human scale.
+ *
+ * Why: makeGlobeOcean's 64 height segments put one flat facet across 313 km of
+ * arc, with a 1,919 m sagitta. Any effect smaller than that (the horizon module's
+ * hidden height is 3.8 m) is swallowed entirely and the globe renders flat. A
+ * 60 km cap at 160 radial bands gives 375 m bands and a 2.8 mm sagitta instead.
+ */
+export function makeGlobeCap(radiusKm, extentKm, radialSegments = 160, angularSegments = 96) {
+  const thetaLength = extentKm / radiusKm;
+  const geo = new THREE.SphereGeometry(
+    radiusKm, angularSegments, radialSegments, 0, Math.PI * 2, 0, thetaLength);
   return new THREE.Mesh(geo, MATERIALS.ocean);
 }
 
@@ -31,10 +48,16 @@ export function makeShip(scaleKm) {
     MATERIALS.sail);
   mast.position.y = hullH + scaleKm * 0.325;
 
+  // The sail needs DoubleSide. It gets its OWN material: writing
+  // `sail.material.side` would mutate the shared MATERIALS.sail singleton and
+  // silently make every later phenomenon's use of it double-sided too, with
+  // nothing ever reverting it.
+  const sailMat = MATERIALS.sail.clone();
+  sailMat.side = THREE.DoubleSide;
   const sail = new THREE.Mesh(
-    new THREE.PlaneGeometry(scaleKm * 0.4, scaleKm * 0.45), MATERIALS.sail);
+    new THREE.PlaneGeometry(scaleKm * 0.4, scaleKm * 0.45), sailMat);
   sail.position.set(scaleKm * 0.2, hullH + scaleKm * 0.35, 0);
-  sail.material.side = THREE.DoubleSide;
+  sail.userData.ownsMaterial = true;
 
   group.add(hull, mast, sail);
   return group;
@@ -49,7 +72,14 @@ export function makeObserverMarker() {
   return g;
 }
 
-/** Recursively free geometry owned by a subtree. Shared materials are not freed. */
+/**
+ * Recursively free geometry owned by a subtree. Shared MATERIALS are never
+ * freed — only materials a mesh explicitly owns, flagged with
+ * `userData.ownsMaterial` (e.g. the ship's cloned double-sided sail).
+ */
 export function disposeTree(root) {
-  root.traverse(obj => { if (obj.geometry) obj.geometry.dispose(); });
+  root.traverse(obj => {
+    if (obj.geometry) obj.geometry.dispose();
+    if (obj.userData?.ownsMaterial && obj.material) obj.material.dispose();
+  });
 }
