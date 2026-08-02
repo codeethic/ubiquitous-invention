@@ -83,3 +83,30 @@ export function disposeTree(root) {
     if (obj.userData?.ownsMaterial && obj.material) obj.material.dispose();
   });
 }
+
+/** Vertical stick plus its cast shadow, for shadow-angle demonstrations. */
+export function makeGnomon(heightKm, shadowLengthKm) {
+  const g = new THREE.Group();
+  const stick = new THREE.Mesh(
+    new THREE.CylinderGeometry(heightKm * 0.04, heightKm * 0.04, heightKm, 8),
+    MATERIALS.sail);
+  stick.position.y = heightKm / 2;
+  const shadow = new THREE.Mesh(
+    new THREE.PlaneGeometry(heightKm * 0.1, Math.max(1e-6, shadowLengthKm)),
+    MATERIALS.shadow);
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.position.z = shadowLengthKm / 2;
+  g.add(stick, shadow);
+  g.userData.setShadow = len => {
+    shadow.scale.y = Math.max(1e-6, len) / Math.max(1e-6, shadowLengthKm);
+    shadow.position.z = len / 2;
+  };
+  return g;
+}
+
+/** Flat disc of the whole world, radius radiusKm, in the XZ plane. */
+export function makeDisc(radiusKm) {
+  const mesh = new THREE.Mesh(new THREE.CircleGeometry(radiusKm, 128), MATERIALS.ocean);
+  mesh.rotation.x = -Math.PI / 2;
+  return mesh;
+}

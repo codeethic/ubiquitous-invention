@@ -24,3 +24,12 @@ export const CRUISE_SPEED_KMH = 900;
 
 export const DEG = Math.PI / 180;
 export const RAD = 180 / Math.PI;
+
+/**
+ * Lowest observer latitude the Eratosthenes module may offer. Must stay above
+ * OBLIQUITY_DEG so the subsolar point can never fall between two observers —
+ * see the DOMAIN note on globeRadiusFromPairKm. Lives here rather than as a
+ * literal in the module so a pure test can enforce it; the module itself
+ * imports Three.js and cannot be loaded under `node --test`.
+ */
+export const ERATOSTHENES_MIN_LAT_DEG = 25;

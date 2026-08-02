@@ -6,7 +6,7 @@ import {
   globeRadiusFromPairKm, flatSunAltitudeFromPairKm,
   isDaylitGlobe, isDaylitFlat,
 } from '../js/physics/solar.js';
-import { OBLIQUITY_DEG } from '../js/physics/constants.js';
+import { OBLIQUITY_DEG, ERATOSTHENES_MIN_LAT_DEG } from '../js/physics/constants.js';
 
 const near = (a, e, tol, label) =>
   assert.ok(Math.abs(a - e) <= tol, `${label}: expected ${e} ±${tol}, got ${a}`);
@@ -86,13 +86,15 @@ test('globeRadiusFromPairKm actually reads its inputs', () => {
 });
 
 test('the Eratosthenes controls cannot reach the degenerate case', () => {
-  // Observer A starts at 25°N, above the 23.44° maximum declination, so the
-  // subsolar point can never fall between two observers. Were A allowed down to
-  // 5°N, then A=5 / B=41 at declination 23 would put them equidistant from the
-  // subsolar latitude, zero the denominator, and render "Infinity km" on screen.
-  assert.ok(25 > OBLIQUITY_DEG,
+  // Observer A starts at ERATOSTHENES_MIN_LAT_DEG, above the maximum declination, so the
+  // subsolar point can never fall between two observers. Sourcing the bound from
+  // a constant means widening the slider later fails the test suite instead of
+  // shipping the degenerate case.
+  assert.ok(ERATOSTHENES_MIN_LAT_DEG > OBLIQUITY_DEG,
     'lowest selectable observer latitude must exceed the maximum declination');
-  assert.equal(Number.isFinite(globeRadiusFromPairKm(25, 41, OBLIQUITY_DEG)), true);
+  assert.equal(
+    Number.isFinite(globeRadiusFromPairKm(ERATOSTHENES_MIN_LAT_DEG, 41, OBLIQUITY_DEG)),
+    true);
 });
 
 test('the flat model gives contradictory sun altitudes from two pairs', () => {
