@@ -13,17 +13,46 @@ let flatRoot, globeRoot, flatRig, globeRig;
 let flatMoon, globeMoon, flatShadow, globeShadow, flatEarth;
 
 function makeMoon() {
-  return new THREE.Mesh(
+  const mesh = new THREE.Mesh(
     new THREE.SphereGeometry(MOON_RADIUS_KM, 48, 32),
     new THREE.MeshStandardMaterial({ color: 0xcfc9bd, roughness: 1 }));
+  // Not from MATERIALS, so this module owns it and disposeTree must free it.
+  // Without the flag two materials leak on every phenomenon switch.
+  mesh.userData.ownsMaterial = true;
+  return mesh;
 }
 
-/** Flat ellipse standing in front of the moon, representing the cast shadow. */
+/**
+ * Flat ellipse standing in front of the moon, representing the cast shadow.
+ * Sized from the real umbra at lunar distance, ≈2.6 lunar radii.
+ */
 function makeShadowEllipse() {
-  const mesh = new THREE.Mesh(new THREE.CircleGeometry(MOON_RADIUS_KM * 1.4, 96),
-    MATERIALS.shadow);
-  mesh.position.z = MOON_RADIUS_KM * 1.05;
+  // Own material, cloned. It needs DoubleSide so orbiting the rig past 90°
+  // cannot back-face cull it — and writing `.side` on the shared
+  // MATERIALS.shadow would make every other phenomenon's shadow double-sided
+  // too, which is the exact bug caught in the ship's sail at Task 6.
+  const mat = MATERIALS.shadow.clone();
+  mat.side = THREE.DoubleSide;
+  const mesh = new THREE.Mesh(new THREE.CircleGeometry(MOON_RADIUS_KM * 2.6, 96), mat);
+  mesh.userData.ownsMaterial = true;
   return mesh;
+}
+
+const CAM_DIR = new THREE.Vector3();
+
+/**
+ * Keep the shadow on the camera's side of the moon and facing the viewer.
+ * The moon sits at the origin, so the camera's position doubles as the
+ * moon→camera direction. Without this the shadow has a fixed +Z normal and
+ * disappears — edge-on, then culled, then occluded by the moon — as soon as
+ * the user orbits away from the starting view, taking the module's entire
+ * circle-versus-ellipse claim with it on BOTH panes at once (linkCameras).
+ */
+function placeShadow(shadow, camera, offset) {
+  CAM_DIR.copy(camera.position).normalize();
+  shadow.position.copy(CAM_DIR).multiplyScalar(MOON_RADIUS_KM * 1.05);
+  shadow.lookAt(camera.position);
+  shadow.translateX(offset);   // local X after lookAt = screen-horizontal
 }
 
 export default {
@@ -72,13 +101,16 @@ export default {
     const sphere = sphereShadowAxesKm();
     const norm = axes => ({ x: axes.a / R_EARTH_KM, y: axes.b / R_EARTH_KM });
 
+    // No clamp on the minor axis. The slider's 85° bound is what keeps it
+    // meaningful (0.087 at 85°); a floor would silently understate the
+    // flattening at exactly the extreme this module exists to show.
     const f = norm(disc), g = norm(sphere);
-    flatShadow.scale.set(f.x, Math.max(0.02, f.y), 1);
+    flatShadow.scale.set(f.x, f.y, 1);
     globeShadow.scale.set(g.x, g.y, 1);
 
     const offset = state.progress * MOON_RADIUS_KM * 2;
-    flatShadow.position.x = offset;
-    globeShadow.position.x = offset;
+    placeShadow(flatShadow, flatRig.camera, offset);
+    placeShadow(globeShadow, globeRig.camera, offset);
   },
 
   readout(state) {
