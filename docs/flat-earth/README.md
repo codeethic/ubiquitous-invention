@@ -13,7 +13,7 @@ Open http://localhost:8000
 
 ## Tests
 
-    node --test docs/flat-earth/test/
+    node --test "docs/flat-earth/test/**/*.test.js"
 
 Covers `js/physics/` only — pure math, no browser required.
 
@@ -22,6 +22,8 @@ Covers `js/physics/` only — pure math, no browser required.
 Vendored in `third-party/` as two files, both pinned to **r185** (0.185.1):
 - `three.module.js` (650 KB) — entry point with renderer and utilities
 - `three.core.js` (1.4 MB) — core library (Scene, Camera, Geometry, etc.)
+
+`three.module.js` re-exports the entire API and is the only import entry point; `three.core.js` is never imported directly by application code.
 
 These files form a complete import graph: `three.module.js` imports from
 `three.core.js`, and `three.core.js` has no further external dependencies.
