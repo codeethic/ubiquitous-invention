@@ -99,8 +99,9 @@ export default {
   },
 
   dispose() {
-    flatRig.dispose(); globeRig.dispose();
-    disposeTree(flatRoot); disposeTree(globeRoot);
+    flatRig?.dispose(); globeRig?.dispose();
+    if (flatRoot) disposeTree(flatRoot);
+    if (globeRoot) disposeTree(globeRoot);
     flatRoot = globeRoot = flatRig = globeRig = flatStars = globeStars = null;
     spin = 0;
   },

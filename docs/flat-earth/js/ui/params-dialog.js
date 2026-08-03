@@ -9,6 +9,8 @@ const PARAMS = [
   ['Cruise speed for flight times', '900 km/h'],
   ['Atmospheric refraction', 'Excluded from all calculations'],
   ['Time zone offsets', 'Standard time; daylight saving ignored'],
+  ['Solar position', 'Mean sun; equation of time (±16 min) ignored'],
+  ['Sunrise / sunset', 'Geometric horizon; solar semidiameter and refraction ignored'],
 ];
 
 export function renderParamsDialog(dialogEl, buttonEl) {

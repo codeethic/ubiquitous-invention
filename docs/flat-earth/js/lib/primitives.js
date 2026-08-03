@@ -95,6 +95,9 @@ export function makeGnomon(heightKm, shadowLengthKm) {
     new THREE.PlaneGeometry(heightKm * 0.1, Math.max(1e-6, shadowLengthKm)),
     MATERIALS.shadow);
   shadow.rotation.x = -Math.PI / 2;
+  // Lifted off the disc/globe surface so it is not exactly coplanar with it —
+  // otherwise near/far depth precision decides which one wins the z-test.
+  shadow.position.y = heightKm * 0.01;
   shadow.position.z = shadowLengthKm / 2;
   g.add(stick, shadow);
   g.userData.setShadow = len => {

@@ -89,6 +89,7 @@ export default {
     const decl = solarDeclinationDeg(state.dayOfYear);
     const rAB = globeRadiusFromPairKm(state.latA, state.latB, decl);
     const rBC = globeRadiusFromPairKm(state.latB, state.latC, decl);
+    const globeSpread = 100 * Math.abs(rAB - rBC) / Math.max(rAB, rBC);
     const hAB = flatSunAltitudeFromPairKm(state.latA, state.latB, decl);
     const hBC = flatSunAltitudeFromPairKm(state.latB, state.latC, decl);
     const spread = 100 * Math.abs(hAB - hBC) / Math.max(hAB, hBC);
@@ -102,7 +103,7 @@ export default {
       globe: [
         { label: 'Earth radius from A·B', value: `${rAB.toFixed(0)} km` },
         { label: 'Earth radius from B·C', value: `${rBC.toFixed(0)} km` },
-        { label: 'Disagreement', value: '0%' },
+        { label: 'Disagreement', value: `${globeSpread.toFixed(0)}%` },
       ],
       observed:
         'Every pair of observers yields the same Earth radius, 6371 km. The flat ' +
@@ -112,8 +113,9 @@ export default {
   },
 
   dispose() {
-    flatRig.dispose(); globeRig.dispose();
-    disposeTree(flatRoot); disposeTree(globeRoot);
+    flatRig?.dispose(); globeRig?.dispose();
+    if (flatRoot) disposeTree(flatRoot);
+    if (globeRoot) disposeTree(globeRoot);
     flatRoot = globeRoot = flatRig = globeRig = flatGnomons = globeGnomons = null;
   },
 };

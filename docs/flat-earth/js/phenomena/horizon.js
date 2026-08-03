@@ -5,6 +5,11 @@ import { makeOcean, makeGlobeCap, makeShip, disposeTree } from '../lib/primitive
 
 const SHIP_HEIGHT_KM = 0.04;   // 40 m mast-top — a schematic tall ship
 const CAP_EXTENT_KM = 60;
+// 1.5°, not a natural eye FOV — this is a telephoto view, which is exactly
+// how ship-over-horizon observations are actually made. At a natural FOV
+// the 3.8 m hidden height is under a pixel and the module's central claim
+// cannot be seen at all.
+const VIEW_FOV_DEG = 1.5;
 
 let flatRoot, globeRoot, flatShip, globeShip, flatCam, globeCam;
 
@@ -42,8 +47,8 @@ export default {
     // Both cameras sit at the observer's eye, looking along +Z toward the ship.
     // Fixed cameras, not rigs: update() positions them directly every frame,
     // and no pointer routing or linking applies (rig: null below).
-    flatCam = new THREE.PerspectiveCamera(12, 1, 0.001, 5000);
-    globeCam = new THREE.PerspectiveCamera(12, 1, 0.001, 5000);
+    flatCam = new THREE.PerspectiveCamera(VIEW_FOV_DEG, 1, 0.001, 5000);
+    globeCam = new THREE.PerspectiveCamera(VIEW_FOV_DEG, 1, 0.001, 5000);
 
     return {
       flat: { root: flatRoot, camera: flatCam, rig: null },
@@ -96,7 +101,8 @@ export default {
   },
 
   dispose() {
-    disposeTree(flatRoot); disposeTree(globeRoot);
+    if (flatRoot) disposeTree(flatRoot);
+    if (globeRoot) disposeTree(globeRoot);
     flatRoot = globeRoot = flatShip = globeShip = flatCam = globeCam = null;
   },
 };

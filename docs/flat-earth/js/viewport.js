@@ -9,6 +9,7 @@ export function createDualViewport(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setScissorTest(true);
+  renderer.setClearColor(0x0b0e13, 1);
 
   const flatScene = new THREE.Scene();
   const globeScene = new THREE.Scene();

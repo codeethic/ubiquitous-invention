@@ -29,3 +29,4 @@ exclude:
   # not named "vendor", so the bare `vendor` entry above cannot swallow it.
   - flat-earth/test
   - flat-earth/package.json
+  - flat-earth/README.md

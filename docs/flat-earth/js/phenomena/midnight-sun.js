@@ -58,7 +58,10 @@ export default {
 
   update(state, dt) {
     clock = (clock + dt * 0.15) % 1;              // one full day per ~6.7 s
-    const hourAngle = clock * Math.PI * 2;
+    // Negated: the sun must move westward (time-zones' subsolarPoint moves
+    // lon = -15(u-12), i.e. westward), and an unnegated hourAngle drove this
+    // module's sun eastward instead, disagreeing with time-zones.
+    const hourAngle = -(clock * Math.PI * 2);
     const decl = solarDeclinationDeg(state.dayOfYear);
 
     // Flat pane: sun circles above the disc at the subsolar AE radius.
@@ -117,8 +120,9 @@ export default {
   },
 
   dispose() {
-    flatRig.dispose(); globeRig.dispose();
-    disposeTree(flatRoot); disposeTree(globeRoot);
+    flatRig?.dispose(); globeRig?.dispose();
+    if (flatRoot) disposeTree(flatRoot);
+    if (globeRoot) disposeTree(globeRoot);
     flatRoot = globeRoot = flatRig = globeRig = null;
     flatSun = globeSun = flatObs = globeObs = null;
     clock = 0;

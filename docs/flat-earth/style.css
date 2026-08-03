@@ -6,14 +6,15 @@ body { margin:0; background:var(--bg); color:var(--fg);
               padding:.75rem 1rem; border-bottom:1px solid var(--rule); }
 #app-header h1 { font-size:1rem; letter-spacing:.18em; margin:0; }
 #stage { position:relative; height:60vh; min-height:320px; }
-#scene-canvas { width:100%; height:100%; display:block; }
-#pane-labels { position:absolute; inset:0 0 auto 0; display:flex;
+#scene-canvas { width:100%; height:100%; display:block; touch-action:none; }
+#pane-labels { position:absolute; inset:0; display:flex;
                pointer-events:none; z-index:2; }
 #pane-labels span { flex:1; padding:.5rem 1rem; color:var(--dim);
                     letter-spacing:.16em; font-size:.75rem; }
 #control-strip, #readout-panel { padding:1rem; border-top:1px solid var(--rule); }
 #loading-screen { position:fixed; inset:0; background:var(--bg); z-index:10;
                   display:grid; place-items:center; }
+#canvas-error { position:absolute; inset:0; display:grid; place-items:center; }
 .error-card { border:1px solid var(--warn); color:var(--warn);
               padding:1rem; margin:1rem; }
 .control { display:grid; grid-template-columns:9rem 1fr 7rem;

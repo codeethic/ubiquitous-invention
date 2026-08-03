@@ -25,7 +25,7 @@ export function renderControls(el, controls, state) {
         const opt = document.createElement('option');
         opt.value = String(o.value);
         opt.textContent = o.label;
-        if (o.value === current[c.id]) opt.selected = true;
+        if (String(o.value) === String(current[c.id])) opt.selected = true;
         input.append(opt);
       }
       value.textContent = '';

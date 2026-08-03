@@ -139,8 +139,9 @@ export default {
   },
 
   dispose() {
-    flatRig.dispose(); globeRig.dispose();
-    disposeTree(flatRoot); disposeTree(globeRoot);
+    flatRig?.dispose(); globeRig?.dispose();
+    if (flatRoot) disposeTree(flatRoot);
+    if (globeRoot) disposeTree(globeRoot);
     flatRoot = globeRoot = flatRig = globeRig = null;
     flatMoon = globeMoon = flatShadow = globeShadow = flatEarth = null;
   },

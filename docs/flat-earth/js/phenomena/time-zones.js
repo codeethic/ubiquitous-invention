@@ -171,16 +171,18 @@ export default {
       ],
       observed:
         'Exactly half the Earth is lit at any instant, and the boundary is a great '
-        + 'circle. The disc\'s spotlight is sized here to light half the map\'s area '
-        + 'and still lights places that are demonstrably in the dark. '
+        + 'circle. The disc\'s spotlight radius is chosen so a centred circle would '
+        + 'cover half the disc; in operation it overhangs the rim and still lights '
+        + 'places that are demonstrably in the dark. '
         + 'Offsets are standard time; daylight saving is ignored.',
     };
   },
 
   dispose() {
-    flatRig.dispose(); globeRig.dispose();
+    flatRig?.dispose(); globeRig?.dispose();
     // Correction 2: Remove manual material disposal. disposeTree handles it via ownsMaterial flag.
-    disposeTree(flatRoot); disposeTree(globeRoot);
+    if (flatRoot) disposeTree(flatRoot);
+    if (globeRoot) disposeTree(globeRoot);
     flatRoot = globeRoot = flatRig = globeRig = spotlight = terminator = null;
     cityDots = [];
     globeCityDots = [];

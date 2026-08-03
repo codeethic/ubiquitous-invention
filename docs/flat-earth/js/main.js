@@ -30,7 +30,10 @@ function teardown() {
   moduleFaulted = false;
 }
 
+let activationSeq = 0;
+
 async function activate(id) {
+  const seq = ++activationSeq;
   teardown();
   const module = getModule(id);
   state.reset({ ...module.defaults });
@@ -38,6 +41,11 @@ async function activate(id) {
 
   try {
     if (module.load) await module.load();
+    // A phenomenon switch during load() would otherwise resume here with a
+    // stale module: building into the live scenes behind the new one,
+    // installing the wrong cameras, and orphaning roots that teardown can
+    // no longer reach.
+    if (seq !== activationSeq) return;
     // Guarded on `viewport`: when WebGL is unavailable, boot() already showed
     // an accurate "WebGL unavailable" card, and blindly touching
     // viewport.flatScene here would throw, overwriting it with a misleading
@@ -56,6 +64,10 @@ async function activate(id) {
       clearErrorCard(canvasError);
     }
   } catch (err) {
+    if (built && viewport) {
+      viewport.flatScene.remove(built.flat.root);
+      viewport.globeScene.remove(built.globe.root);
+    }
     built = null;
     showErrorCard(canvasError, `${module.title} is unavailable`,
       `${err.message} — other phenomena are unaffected.`);
@@ -106,14 +118,17 @@ function installPointerControls() {
     lastX = e.clientX; lastY = e.clientY;
   });
   window.addEventListener('pointerup', () => { activeRig = null; });
+  window.addEventListener('pointercancel', () => { activeRig = null; });
   window.addEventListener('pointermove', e => {
     if (!activeRig) return;
     activeRig.orbit(e.clientX - lastX, e.clientY - lastY);
     lastX = e.clientX; lastY = e.clientY;
   });
   canvas.addEventListener('wheel', e => {
+    const rig = rigAt(e);
+    if (!rig) return;
     e.preventDefault();
-    rigAt(e)?.zoom(e.deltaY);
+    rig.zoom(e.deltaY);
   }, { passive: false });
 }
 

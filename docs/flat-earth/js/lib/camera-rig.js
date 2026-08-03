@@ -13,14 +13,32 @@ import * as THREE from 'three';
  * setLinked(other) makes drags on this rig drive the other rig too.
  */
 export function createOrbitRig({
-  fov = 50, near = 0.01, far = 1e9,
+  fov = 50, near, far,
   distance = 10, target = new THREE.Vector3(0, 0, 0),
-  minDistance = 0.1, maxDistance = 1e8,
+  minDistance = 0.1, maxDistance,
   polar = Math.PI / 2.4, azimuth = 0,
 } = {}) {
-  const camera = new THREE.PerspectiveCamera(fov, 1, near, far);
+  const explicitNear = near !== undefined;
+  const explicitFar = far !== undefined;
+  const camera = new THREE.PerspectiveCamera(
+    fov, 1, explicitNear ? near : distance / 1e4, explicitFar ? far : distance * 20);
   const state = { distance, polar, azimuth, target: target.clone() };
+  // Default clamp so zooming out cannot push all geometry past the far
+  // plane, which is itself derived from distance below.
+  maxDistance = maxDistance ?? distance * 15;
   let linked = null;
+
+  // Derived from the rig distance, not fixed. A hard near = 0.01 against
+  // far = 1e6 gives a 1e8 ratio, where the depth increment at the camera
+  // exceeds the offset of every overlay in this app — they currently survive
+  // only because MATERIALS.ocean happens to hold the lowest material id and
+  // so draws first. Deriving the planes makes that independent of
+  // declaration order.
+  function applyPlanes() {
+    if (!explicitNear) camera.near = state.distance / 1e4;
+    if (!explicitFar) camera.far = state.distance * 20;
+    camera.updateProjectionMatrix();
+  }
 
   function apply() {
     const sp = Math.sin(state.polar), cp = Math.cos(state.polar);
@@ -30,6 +48,7 @@ export function createOrbitRig({
       state.target.z + state.distance * sp * Math.cos(state.azimuth),
     );
     camera.lookAt(state.target);
+    applyPlanes();
   }
 
   function orbit(dx, dy, propagate = true) {

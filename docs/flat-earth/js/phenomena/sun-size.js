@@ -146,7 +146,8 @@ export default {
   },
 
   dispose() {
-    disposeTree(flatRoot); disposeTree(globeRoot);
+    if (flatRoot) disposeTree(flatRoot);
+    if (globeRoot) disposeTree(globeRoot);
     flatRoot = globeRoot = flatCam = globeCam = flatSun = globeSun = null;
   },
 };
