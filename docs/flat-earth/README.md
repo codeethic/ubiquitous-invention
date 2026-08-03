@@ -49,6 +49,51 @@ one file will break the import graph.
 The directory is named `third-party/`, not `vendor/`, because
 `docs/_config.yml` excludes `vendor` from the Jekyll build.
 
+## Coastline data
+
+`data/coastlines.json` is derived from **Natural Earth 4.1.0 `ne_110m_land`**,
+which is public domain: "No permission is needed to use Natural Earth."
+128 rings, 5,143 points, ~70 KB.
+
+Regenerate with:
+
+    curl -o /tmp/ne.zip https://naciscdn.org/naturalearth/110m/physical/ne_110m_land.zip
+    python -m zipfile -e /tmp/ne.zip /tmp/ne/
+    node tools/build-coastlines.mjs /tmp/ne/ne_110m_land.shp data/coastlines.json
+
+Real coastlines rather than procedural ones because `flight-routes` draws
+Sydney→Santiago and `time-zones` labels ten real cities. Invented continents
+under real city names would be a picture disagreeing with a readout — the exact
+defect class this app exists to avoid.
+
+The disc's map is projected through `azimuthalEquidistantXY()`, the same
+function `flight-routes` uses for its distances, so the map and the number
+above it cannot disagree.
+
+**Known limitation:** at 110m resolution Ross Island is not resolved, so
+McMurdo Station (77.85°S, 166.67°E) falls in open water on the generated land
+mask. This was checked against independently-parsed, unrounded source
+coordinates, so it is a limitation of the source dataset's resolution, not a
+parsing or rounding bug in `tools/build-coastlines.mjs`. `time-zones` labels
+McMurdo, so its marker will appear to sit in the ocean on both panes — this is
+expected and not a regression.
+
+## The signal budget
+
+`js/lib/signal-budget.js` declares, per module, the magnitude of the effect
+being measured and the ceiling on any visual detail placed near it.
+`test/signal-budget.test.js` enforces a 10× separation.
+
+This is why the ocean has a normal map and **exactly zero** vertical
+displacement: waves of even a metre or two would be comparable to the 3.79 m of
+hidden hull the horizon module exists to measure. For the same reason there is
+no cloud layer (it would cover the terminator), no bloom on the sun (it would
+blur the edge whose angular size is the measurement), and no limb haze.
+
+The test locks the declared numbers. It cannot verify the renderer honours them
+— nothing headless can, which is why the manual visual checklist below still
+runs.
+
 ## Manual visual checklist
 
 Rendering has no headless GL path, so these are checked by hand after any
@@ -105,6 +150,36 @@ number next to a wrong picture is a failing item.
       is wrong for **3** (London, Reykjavik, McMurdo); globe lights **5 of
       10** and is wrong for **0**. Picture: both panes show city markers, and
       on the globe pane the night side visibly faces away from the sun.
+- [ ] **Textures and geography** — the globe is recognisably Earth with
+      continents in the correct places, and the disc shows the flat-earth map
+      with the north pole centred and Antarctica around the rim. Spot-check
+      three: Australia is an island, Antarctica surrounds the disc's edge
+      rather than sitting as a blob, and the Americas are west of Africa.
+- [ ] **The ocean has no waves.** Surface texture and shading detail only. Any
+      visible vertical relief on the sea means displacement crept in and the
+      horizon module's 3.79 m signal is compromised.
+- [ ] **Eratosthenes shadows are drawn identically as data on both panes, and
+      only the globe pane's are also cast.** Both readouts' three shadow
+      lengths — 174.09 / 301.32 / 522.26 km at the defaults — are the same
+      `STICK_KM * tan(|lat − decl|)` values on both panes; this is the
+      observation, not a claim either model gets to author. Confirm the globe
+      pane's shadows are genuinely *cast*, not drawn: change the day-of-year
+      or an observer's latitude and watch the shadow move and rescale as the
+      `DirectionalLight`'s angle changes, cast by Three.js's own shadow
+      mapping from a light placed at the solar declination. The flat pane has
+      no light and never will: a forward-simulated flat sun would be
+      tautologically self-consistent and could only draw tidy, agreeing
+      shadows, hiding the very contradiction this module exists to show (that
+      is what the two disagreeing inferred sun altitudes in the flat readout
+      report). Do not "fix" the flat pane by giving it a light — that would
+      remove the module's argument, not complete it.
+- [ ] **The solar disc has a sharp edge** with no halo, bloom or flare —
+      `sun-size` measures that edge.
+- [ ] **Boot stays under 400 ms of texture generation.** The console logs
+      `[flat-earth] textures generated in NNN ms` and warns above budget.
+- [ ] **Degradation:** rename `data/coastlines.json` and reload. The app must
+      boot fully with untextured surfaces, all eight phenomena working and no
+      error card. Restore it afterwards.
 - [ ] **Camera linking behaves per module**, verified against
       `linkCameras` in each phenomenon file, not assumed from the module
       name:
