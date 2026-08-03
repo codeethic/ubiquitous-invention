@@ -30,3 +30,5 @@ exclude:
   - flat-earth/test
   - flat-earth/package.json
   - flat-earth/README.md
+  # Local dev server; the published site is served by GitHub Pages.
+  - flat-earth/serve.py
