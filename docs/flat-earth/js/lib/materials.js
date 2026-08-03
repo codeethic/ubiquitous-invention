@@ -16,7 +16,6 @@ export const MATERIALS = {
   deck:      new THREE.MeshStandardMaterial({ color: 0x6b4f2a, roughness: 0.85 }),
   sail:      new THREE.MeshStandardMaterial({ color: 0xe6e6e6, roughness: 0.8 }),
   sunGlow:   new THREE.MeshBasicMaterial({ color: 0xffd27f }),
-  moon:      new THREE.MeshStandardMaterial({ color: 0xb9b9b4, roughness: 1.0 }),
   domeGlass: new THREE.MeshBasicMaterial({
     color: 0x4a6fa5, transparent: true, opacity: 0.12, side: THREE.BackSide,
   }),
@@ -35,7 +34,14 @@ export const MATERIALS = {
   sunSprite: new THREE.SpriteMaterial({ color: 0xffd27f }),
 };
 
-/** Per-surface material used where a textured globe/disc map is wanted. */
+/**
+ * Per-surface material used where a textured globe/disc map is wanted.
+ *
+ * 0x11314f is the UNTEXTURED FALLBACK colour — a deep ocean blue for the case
+ * where texture generation failed and these materials are all the surface has.
+ * It is set here, in the constructor, and NOT left in place once a map is
+ * attached; see the warning in applyMaterials().
+ */
 export const SURFACE = {
   globe: new THREE.MeshStandardMaterial({ color: 0x11314f, roughness: 0.85 }),
   disc:  new THREE.MeshStandardMaterial({ color: 0x11314f, roughness: 0.85 }),
@@ -49,11 +55,25 @@ export const SURFACE = {
 export function applyMaterials() {
   if (!TEXTURES.ready) return;
 
+  // COLOUR MULTIPLIES MAP. This is the trap that made the entire geography
+  // feature invisible once already: MeshStandardMaterial's fragment shader
+  // computes `diffuse = color * texture2D(map, uv)`, so leaving the dark
+  // 0x11314f fallback in place multiplies a texture of mean RGB (47,78,98)
+  // by (17,49,79)/255 and renders it essentially black. White is the identity
+  // for that multiply and is the only correct value once a map exists.
+  //
+  // Set HERE rather than in the constructor above, because the constructor's
+  // dark colour is still needed on the no-texture path — this function
+  // returns early in that case and the fallback survives. Whoever next feels
+  // the urge to "restore the nice blue" on these two materials: that blue is
+  // a tint over the map, not a base colour.
+  SURFACE.globe.color.setHex(0xffffff);
   SURFACE.globe.map = TEXTURES.earth;
   SURFACE.globe.normalMap = TEXTURES.earthNormal;
   SURFACE.globe.normalScale = new THREE.Vector2(0.6, 0.6);
   SURFACE.globe.needsUpdate = true;
 
+  SURFACE.disc.color.setHex(0xffffff);
   SURFACE.disc.map = TEXTURES.disc;
   SURFACE.disc.normalMap = TEXTURES.discNormal;
   SURFACE.disc.normalScale = new THREE.Vector2(0.6, 0.6);
@@ -61,13 +81,15 @@ export function applyMaterials() {
 
   // Shading detail only. The ocean geometry stays perfectly flat; see
   // OCEAN_DISPLACEMENT_M in signal-budget.js.
+  //
+  // The tile count lives on the texture (OCEAN_TILE_REPEAT in textures.js),
+  // not here, because RepeatWrapping without a repeat is just a single
+  // stretched copy — the two settings are one decision and must not drift
+  // apart in two files.
   MATERIALS.ocean.normalMap = TEXTURES.oceanNormal;
   MATERIALS.ocean.normalScale = new THREE.Vector2(0.35, 0.35);
   MATERIALS.ocean.roughness = 0.45;
   MATERIALS.ocean.needsUpdate = true;
-
-  MATERIALS.moon.map = TEXTURES.moon;
-  MATERIALS.moon.needsUpdate = true;
 
   // NOT MATERIALS.sunGlow: that material is also used by makeObserverMarker's
   // cap (a SphereGeometry) and by makeSun's own no-texture fallback sphere.
