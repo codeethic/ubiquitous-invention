@@ -1,14 +1,17 @@
 import * as THREE from 'three';
 
 /**
- * Lighting rigs whose TYPE encodes the model being tested.
+ * Lighting rig for the globe pane.
  *
- * Eratosthenes' argument is entirely about ray divergence: the flat model
- * needs a nearby sun so that rays strike observers at different latitudes at
- * different angles, and the globe model has a sun 1 AU away whose rays are
- * parallel. Using a DirectionalLight for both panes would silently give the
- * flat model the globe's geometry and destroy the comparison. The light type
- * is therefore load-bearing, not a rendering detail.
+ * Eratosthenes' module puts the globe's sun 1 AU away, so its rays are
+ * effectively parallel: a DirectionalLight is the physically correct choice,
+ * and it is the only light this module still provides. A local, diverging
+ * source for the flat pane (`makeLocalSun`, previously here) was removed in
+ * a fix round: the flat pane no longer casts a shadow at all, it draws one
+ * as data (see eratosthenes.js), so no flat-pane light type is needed. See
+ * that file's `update()` comment for why a forward-simulated light there
+ * would tautologically hide the exact contradiction the module exists to
+ * show, independent of the cone-angle bug that also motivated removing it.
  */
 
 /**
@@ -29,23 +32,6 @@ export function makeParallelSun(spanKm) {
   cam.updateProjectionMatrix();
   // normalBias, not constant bias: it scales with surface orientation, which
   // is what a 300 km stick standing on a 6,371 km sphere needs.
-  light.shadow.normalBias = spanKm * 1e-3;
-  return light;
-}
-
-/**
- * Diverging-ray sun for the flat pane, at the flat model's own stated sun
- * altitude. Gnomon sites sit at AE radii of roughly 5,000-7,200 km, so the
- * frustum spans ~10,000 km: 4.9 km per texel at 2048, a 60x margin against a
- * 300 km shadow.
- */
-export function makeLocalSun(altitudeKm, spanKm) {
-  const half = Math.atan2(spanKm / 2, altitudeKm);
-  const light = new THREE.SpotLight(0xfff4e0, 2.4, 0, Math.min(half * 1.2, 1.4), 0.15, 0);
-  light.castShadow = true;
-  light.shadow.mapSize.set(2048, 2048);
-  light.shadow.camera.near = altitudeKm * 0.05;
-  light.shadow.camera.far = altitudeKm * 4;
   light.shadow.normalBias = spanKm * 1e-3;
   return light;
 }

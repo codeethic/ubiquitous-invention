@@ -1,17 +1,19 @@
 import * as THREE from 'three';
-import { R_EARTH_KM, FLAT_DISC_RADIUS_KM, DEG, ERATOSTHENES_MIN_LAT_DEG, FLAT_SUN_ALTITUDE_KM } from '../physics/constants.js';
+import { R_EARTH_KM, FLAT_DISC_RADIUS_KM, DEG, ERATOSTHENES_MIN_LAT_DEG } from '../physics/constants.js';
 import {
   solarDeclinationDeg, globeRadiusFromPairKm, flatSunAltitudeFromPairKm,
 } from '../physics/solar.js';
 import { azimuthalEquidistantRadiusKm } from '../physics/geodesy.js';
 import { makeDisc, makeGlobeOcean, makeGnomon, disposeTree } from '../lib/primitives.js';
 import { createOrbitRig } from '../lib/camera-rig.js';
-import { makeParallelSun, makeLocalSun } from '../lib/world.js';
+import { makeParallelSun } from '../lib/world.js';
 
 const STICK_KM = 300;   // exaggerated so the shadow is visible at world scale
 
 let flatRoot, globeRoot, flatRig, globeRig, flatGnomons, globeGnomons;
-let flatSun, globeSun, flatSunTarget, globeSunTarget;
+let globeSun, globeSunTarget;
+
+const shadowLength = (stickKm, zenithDeg) => stickKm * Math.tan(zenithDeg * DEG);
 
 export default {
   id: 'eratosthenes',
@@ -46,25 +48,24 @@ export default {
     flatGnomons = [];
     globeGnomons = [];
     for (let i = 0; i < 3; i += 1) {
-      const f = makeGnomon(STICK_KM);
+      // Flat pane: shadows are drawn as observed data (see update()).
+      // Globe pane: shadows are cast by a real light (see below).
+      const f = makeGnomon(STICK_KM, { drawnShadow: true });
       const g = makeGnomon(STICK_KM);
       flatGnomons.push(f); globeGnomons.push(g);
       flatRoot.add(f); globeRoot.add(g);
     }
 
-    // The flat model's sun is 5,000 km up, so its rays DIVERGE and strike each
-    // observer at a different angle. The globe's sun is 1 AU away, so its rays
-    // are parallel. That difference is the entire argument of this module, so
-    // each pane gets the light type its model actually claims.
-    // Span half the disc radius: gnomon sites sit at AE radii of roughly
-    // 5,000-7,200 km and the subsolar point between ~4,500 and ~8,900 km, so
-    // a +/-5,000 km frustum covers every reachable configuration at 4.9 km per
-    // texel — a 60x margin against a 300 km shadow.
-    flatSun = makeLocalSun(FLAT_SUN_ALTITUDE_KM, FLAT_DISC_RADIUS_KM / 2);
-    flatSunTarget = new THREE.Object3D();
-    flatSun.target = flatSunTarget;
-    flatRoot.add(flatSun, flatSunTarget);
-
+    // The globe's sun is 1 AU away, so its rays are parallel: a real
+    // DirectionalLight casts the globe pane's shadows, and their length falls
+    // out of the renderer's own shadow math as a consequence of geometry (see
+    // the derivation in update()) rather than being an authored value. A
+    // matching local, diverging light for the flat pane was tried and removed
+    // in a fix round: forward-simulating a single flat sun is tautologically
+    // self-consistent, so it can only ever draw shadows that agree with
+    // themselves and can never show the contradiction this module exists to
+    // demonstrate. The flat pane instead draws the same observed shadow
+    // lengths as data — see update() for the full reasoning.
     globeSun = makeParallelSun(R_EARTH_KM * 0.5);
     globeSunTarget = new THREE.Object3D();
     globeSun.target = globeSunTarget;
@@ -95,17 +96,47 @@ export default {
       globeGnomons[i].position.copy(pos);
       globeGnomons[i].lookAt(pos.clone().multiplyScalar(2));
       globeGnomons[i].rotateX(Math.PI / 2);
+
+      // The shadow drawn here is the OBSERVATION, not a model's prediction: a
+      // stick of height STICK_KM at zenith angle |lat - decl| casts a shadow
+      // STICK_KM * tan(|lat - decl|) long. This is the same length the globe
+      // pane's real light produces (see the derivation below), because both
+      // panes are showing the same measured fact. The flat pane draws it by
+      // hand instead of casting it because the model's failure is precisely
+      // that no single sun height, forward-simulated, reproduces all three
+      // observed lengths at once (that is what readout()'s
+      // flatSunAltitudeFromPairKm disagreement shows) — a real light here
+      // would be internally consistent by construction and could never
+      // expose that contradiction. Only inferring a height FROM the fixed
+      // data can fail to agree with itself; simulating forward from an
+      // assumed height cannot.
+      const len = shadowLength(STICK_KM, Math.abs(lat - decl));
+      flatGnomons[i].userData.setShadow(len);
     });
 
-    // Both suns are placed from `decl` — the same value readout() feeds to
-    // globeRadiusFromPairKm and flatSunAltitudeFromPairKm. The shadows on
-    // screen and the numbers in the panel therefore share one input, so the
-    // picture can be checked against the readout instead of merely illustrating
-    // it. shadowLength() is gone: nothing draws a shadow any more.
-    const subsolarR = azimuthalEquidistantRadiusKm(decl);
-    flatSun.position.set(0, FLAT_SUN_ALTITUDE_KM, subsolarR);
-    flatSunTarget.position.set(0, 0, subsolarR);
-
+    // The globe sun is placed from `decl` — the same value readout() feeds to
+    // globeRadiusFromPairKm and flatSunAltitudeFromPairKm, and the same value
+    // used just above for the flat pane's drawn shadow lengths. All three
+    // numbers on screen therefore share one input.
+    //
+    // Derivation that the globe's CAST shadow reproduces
+    // STICK_KM * tan(|lat - decl|) as a consequence of geometry, not as an
+    // authored number: the light sits at (0, sin(d), cos(d)) * 4 R_EARTH_KM
+    // and targets the origin, so its rays travel in the fixed direction
+    // -(0, sin(d), cos(d)) everywhere (a DirectionalLight's rays don't
+    // depend on position — that's what "1 AU away" buys the globe model).
+    // The direction FROM the surface TOWARD the sun is therefore
+    // (0, sin(d), cos(d)): the local vertical at latitude `decl`, i.e. the
+    // subsolar point. A gnomon at latitude `lat` stands along ITS OWN local
+    // vertical, (0, sin(phi), cos(phi)). Both are unit vectors in the same
+    // y-z plane, so the angle between "straight up" and "toward the sun" at
+    // that gnomon is exactly |lat - decl| — the zenith angle. A stick of
+    // height STICK_KM standing at zenith angle |lat - decl| casts a shadow
+    // of length STICK_KM * tan(|lat - decl|) across the local horizontal
+    // plane by ordinary shadow geometry, which is exactly what
+    // shadowLength() computes by hand above for the flat pane. Here it falls
+    // out of the renderer's shadow-mapping math instead of being written
+    // down: the globe pane proves its own number.
     const d = decl * DEG;
     globeSun.position.set(
       0, Math.sin(d) * R_EARTH_KM * 4, Math.cos(d) * R_EARTH_KM * 4);
@@ -144,6 +175,6 @@ export default {
     if (flatRoot) disposeTree(flatRoot);
     if (globeRoot) disposeTree(globeRoot);
     flatRoot = globeRoot = flatRig = globeRig = flatGnomons = globeGnomons = null;
-    flatSun = globeSun = flatSunTarget = globeSunTarget = null;
+    globeSun = globeSunTarget = null;
   },
 };

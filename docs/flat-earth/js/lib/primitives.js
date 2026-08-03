@@ -154,25 +154,53 @@ export function disposeTree(root) {
 }
 
 /**
- * Vertical stick that CASTS a real shadow.
+ * Vertical stick, in one of two modes depending on which pane it stands in.
  *
- * The old version drew its own shadow: a black plane whose length physics
- * computed and wrote via `userData.setShadow`. That made the picture an
- * illustration of the number rather than evidence for it. The shadow is now
- * cast by the light, so a disagreement between the rendered shadow and the
- * reported sun angle would be visible instead of impossible.
+ * Default (`drawnShadow: false`): the stick CASTS a real shadow and draws
+ * none of its own. Used by the globe pane, where the demonstration's whole
+ * point is that the rendered shadow is a *consequence* of a light placed
+ * from the same solar declination the readout uses — geometry produces the
+ * number instead of illustrating it.
  *
- * The old second parameter (shadowLengthKm) is gone with the plane it sized.
+ * `drawnShadow: true`: the stick instead draws its own shadow, a plane whose
+ * length is written by hand via `userData.setShadow`, and does not cast a
+ * real one. This is for the flat pane, which shows *observed* shadow data,
+ * not a forward simulation — see the comment in eratosthenes.js `update()`
+ * for why a real light there could only ever hide the model's contradiction.
+ * Restores the pre-shadow-casting drawn-shadow mechanism, scoped to just
+ * this mode so the globe pane keeps its real shadow.
  */
-export function makeGnomon(heightKm) {
+export function makeGnomon(heightKm, { drawnShadow = false } = {}) {
   const g = new THREE.Group();
   const stick = new THREE.Mesh(
     new THREE.CylinderGeometry(heightKm * 0.04, heightKm * 0.05, heightKm, 12),
     MATERIALS.sail);
   stick.position.y = heightKm / 2;
-  stick.castShadow = true;
-  stick.receiveShadow = true;
   g.add(stick);
+
+  if (drawnShadow) {
+    // Base length is arbitrary and nonzero; userData.setShadow rescales it to
+    // whatever length the caller reports, so the base itself carries no
+    // meaning beyond avoiding a zero-size plane before the first update().
+    const base = heightKm;
+    const shadow = new THREE.Mesh(
+      new THREE.PlaneGeometry(heightKm * 0.1, base),
+      MATERIALS.shadow);
+    shadow.rotation.x = -Math.PI / 2;
+    // Lifted off the disc surface so it is not exactly coplanar with it —
+    // otherwise near/far depth precision decides which one wins the z-test.
+    shadow.position.y = heightKm * 0.01;
+    shadow.position.z = base / 2;
+    g.add(shadow);
+    g.userData.setShadow = len => {
+      shadow.scale.y = Math.max(1e-6, len) / base;
+      shadow.position.z = len / 2;
+    };
+  } else {
+    stick.castShadow = true;
+    stick.receiveShadow = true;
+  }
+
   return g;
 }
 
