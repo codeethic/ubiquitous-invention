@@ -75,13 +75,47 @@ js/viewport.js    EDIT  color space, tone mapping, shadow maps; the hard-coded
 
 ### Texture lifetime
 
-Textures generate **once at boot**, behind the loading screen that already
-exists, into a shared `TEXTURES` cache that is never disposed.
+Textures generate **once**, into a shared `TEXTURES` cache that is never
+disposed.
 
 This is deliberately the same lifetime rule `MATERIALS` already follows, so
 `disposeTree`'s `userData.ownsMaterial` logic keeps working unchanged. No
 texture is ever freed out from under a live scene, and switching phenomena 20
 times allocates nothing.
+
+**Amended after measurement (final fix wave).** This section originally said
+"once at boot, behind the loading screen that already exists". That is no
+longer what happens, and the change is worth recording because the reason is a
+falsified assumption rather than a preference.
+
+Generation measures **~1,735 ms** in the browser, against the ≤400 ms this
+document assumed. The assumption cannot be recovered by the lever this document
+nominated: see Budget below. Rather than degrade the maps to fit a boot budget,
+generation moved **off the boot path entirely**. `boot()` reaches
+`setLoading(false)` with no network I/O and no texture work at all — exactly as
+it did before this branch — and `main.js` starts generation from a
+`setTimeout` inside a `requestAnimationFrame`, i.e. after the first frame has
+actually been painted rather than merely scheduled. The maps then swap into the
+live scene with no rebuild.
+
+That last part is nearly free **because of the lifetime rule above**:
+`applyMaterials()` mutates the shared material singletons in place instead of
+replacing them, so every mesh already built is holding the exact object that
+gains the map. The property was chosen so `disposeTree` kept working, and it
+paid for itself somewhere else entirely.
+
+Two consequences, both deliberate and both documented at their call sites:
+
+- `TEXTURES.ready` is now false for the first ~1.7 s of a **healthy** session,
+  not only after a failure. `makeSun` branches on it at build time, so a
+  phenomenon built inside that window keeps the untextured fallback sphere
+  until it is next rebuilt. Accepted: `horizon` is the default module and has
+  no sun; the fallback is an exact circle at the same apparent diameter, so
+  `sun-size`'s measurement is untouched; and re-activating a module to fix it
+  would reset the user's controls and camera 1.7 s into a working session.
+- Every stage of the deferred sequence is guarded, because it now runs while
+  the user is already looking at a working app. The blank-page prohibition
+  below applies to it with more force, not less.
 
 ### The light must become the sun
 
@@ -160,9 +194,26 @@ so the **shapes are real and only the texture is invented**.
 
 ### Budget
 
-1024×512 equirect, 1024×1024 disc, **≤400 ms total generation** on a mid
-laptop. If measurement exceeds the ceiling, octave count drops before
-resolution does.
+1024×512 equirect, 1024×1024 disc.
+
+**This section's original claim was wrong and is retained with its correction.**
+It said "**≤400 ms total generation** on a mid laptop. If measurement exceeds
+the ceiling, octave count drops before resolution does."
+
+Measured: **2,483 ms** on first implementation. Octave reduction (land 5→4,
+ridge 4→3, sea 4→3, ocean 4→3) plus de-allocating the per-pixel loops brought
+it to **~1,735 ms**. The nominated lever is then exhausted — collapsing *every*
+`fbm` and `ridge` call in the app to a **single octave**, which is no longer
+fractal noise at all, still floors at **~376 ms of pure arithmetic before a
+single canvas call**. The cost is 1.6 M per-pixel evaluations across the two
+maps, not the octaves inside each one, so 400 ms was never reachable at these
+resolutions by dropping octaves.
+
+The remaining levers were resolution (halving the disc to 512² removes roughly
+half the total) and timing. **Timing was chosen**: see Texture lifetime above.
+The 400 ms constant is gone from the code. What remains is a 2,600 ms
+regression tripwire — about 1.5× the measured cost — which gates nothing and
+exists only so a future doubling of resolution or octaves is noticed.
 
 ### The ocean constraint
 
@@ -293,9 +344,9 @@ That failure mode already cost one shipped bug (PR #19).
 
 | Risk | Mitigation |
 |---|---|
-| Boot time exceeds 400 ms | Drop fbm octaves before resolution |
+| Boot time exceeds 400 ms | ~~Drop fbm octaves before resolution~~ — **occurred, and the mitigation failed.** Measured 2,483 ms; octaves got it to ~1,735 ms and no further. Resolved by moving generation off the boot path after first paint, so boot costs nothing and the maps swap in live. See Texture lifetime. |
 | ACES degrades horizon limb contrast | Drop tone mapping; measurement outranks look |
-| Texture memory on low-end devices | Fixed budget; textures generated once, never per-module |
+| Texture memory on low-end devices | Fixed resolutions; textures generated once, never per-module |
 | Shadow acne at km scale | 200× texel margin measured; `normalBias` |
 
 ## Out of scope

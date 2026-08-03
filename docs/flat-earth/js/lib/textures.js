@@ -3,11 +3,20 @@
  * reachable from `node --test` — everything testable was pushed down into
  * noise.js and map-projection.js on purpose.
  *
- * Lifetime: generated once at boot, cached in TEXTURES, NEVER disposed. This
- * is deliberately the same rule MATERIALS follows, so disposeTree's
+ * Lifetime: generated ONCE, cached in TEXTURES, NEVER disposed. This is
+ * deliberately the same rule MATERIALS follows, so disposeTree's
  * `userData.ownsMaterial` logic keeps working untouched and no texture is ever
  * freed out from under a live scene. Switching phenomena 20 times allocates
  * nothing.
+ *
+ * Timing: that "once" is NOT during boot. generateTextures() is called from
+ * main.js's scheduleTextureUpgrade(), after the first frame has been painted,
+ * because generation costs ~1.7 s and nothing in the app needs it — every
+ * readout comes from js/physics/ and every surface has a flat fallback colour.
+ * applyMaterials() then upgrades the live scene in place. Consequences worth
+ * knowing: TEXTURES.ready is false for the first ~1.7 s of a perfectly healthy
+ * session, not only after a failure (see makeSun in primitives.js), and this
+ * module must never be imported for its side effects.
  *
  * Failure policy: generateTextures() never throws. Every field stays null and
  * primitives.js falls back to flat colour — the app then looks exactly as it
@@ -44,8 +53,22 @@ const OCEAN_RIPPLE_OCTAVES = 3;
  */
 const OCEAN_TILE_REPEAT = 8;
 
-/** Timing ceiling for generateTextures(), milliseconds. See the note there. */
-const BUDGET_MS = 400;
+/**
+ * Regression tripwire for generateTextures(), milliseconds. NOT a boot budget.
+ *
+ * Generation used to run behind the loading screen, where every millisecond
+ * was a millisecond the user spent looking at an overlay, and the design set a
+ * 400 ms ceiling on it. It no longer runs there: main.js starts it after the
+ * first frame has been painted, so this time is spent on an app the user is
+ * already using and it gates nothing. Measured cost in-browser: ~1,735 ms.
+ *
+ * 2,600 ms is about 1.5x that — high enough not to cry wolf on a machine
+ * slower than the one it was measured on, low enough that a real regression
+ * (an octave count restored, a resolution doubled, an accidental O(n^2)) still
+ * trips it. The number worth comparing against is the PREVIOUS run, which is
+ * why the measured time is logged unconditionally either way.
+ */
+const SLOW_GENERATION_MS = 2600;
 
 /** How long the coastline fetch may stall before we give up and go on without it. */
 const COASTLINE_FETCH_TIMEOUT_MS = 5000;
@@ -409,24 +432,24 @@ export async function generateTextures() {
     TEXTURES.ready = false;
   }
   const ms = Math.round(performance.now() - started);
-  console.info(`[flat-earth] textures generated in ${ms} ms`);
-  // The 400 ms ceiling is currently NOT met, and the warning is left to fire
-  // on purpose rather than being widened to hide it.
-  //
-  // Measured (Node, this machine, canvas overhead excluded — see
-  // final-fix-report.md): the arithmetic alone cost 1,388 ms at the original
-  // settings and 739 ms after this pass, against a browser-measured 2,483 ms
-  // before. The remainder is not octaves. Dropping EVERY fbm and ridge call
-  // in the app to a single octave — which is no longer fractal noise at all —
-  // still floors at 376 ms of pure arithmetic before a single canvas call,
-  // because the cost is dominated by 1.6 million per-pixel evaluations at
-  // 1024x512 plus 1024x1024, not by the octaves inside each one. 400 ms is
-  // therefore not reachable at these resolutions by the stated lever, and the
-  // honest next move is to drop the disc from 1024 to 512 (roughly half the
-  // total) or to accept a higher ceiling — both are visual-quality decisions
-  // for a human, not something to silently paper over here.
-  if (ms > BUDGET_MS) {
-    console.warn(`[flat-earth] texture budget exceeded: ${ms} ms > ${BUDGET_MS} ms. ` +
-      'Octave reduction is exhausted; the next lever is disc resolution.');
+  // Deliberately not called a "budget". This runs after first paint, on an app
+  // that is already interactive, so the number is a cost to watch rather than
+  // a promise to keep. History, so nobody re-derives it: the design assumed
+  // <=400 ms behind the loading screen; measurement said 2,483 ms; octave
+  // reduction and de-allocating the per-pixel loops brought it to ~1,735 ms;
+  // and 400 ms turned out to be unreachable by the stated lever, because
+  // collapsing every fbm and ridge in the app to ONE octave still floors at
+  // ~376 ms of pure arithmetic before a single canvas call. The cost is 1.6
+  // million per-pixel evaluations across 1024x512 plus 1024x1024, not the
+  // octaves inside them. Rather than degrade the maps, generation moved off
+  // the critical path entirely.
+  console.info(
+    `[flat-earth] textures generated in ${ms} ms (deferred; app was already interactive)`);
+  if (ms > SLOW_GENERATION_MS) {
+    console.warn(
+      `[flat-earth] texture generation took ${ms} ms, well over the ~1735 ms ` +
+      `baseline (tripwire ${SLOW_GENERATION_MS} ms). Nothing blocked on it, but ` +
+      'this is long enough to be a regression — check octave counts and ' +
+      'resolutions before assuming it is just a slow machine.');
   }
 }

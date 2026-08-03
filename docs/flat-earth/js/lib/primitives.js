@@ -266,6 +266,41 @@ export function makeDisc(radiusKm) {
  * assigned but before ready flips true, leaving .sun truthy with no map
  * ever applied.
  *
+ * DEFERRED GENERATION MAKES THE FALLBACK REACHABLE ON THE HAPPY PATH. Textures
+ * are now built after first paint (see scheduleTextureUpgrade in main.js), so
+ * for the ~1.7 s before they land TEXTURES.ready is false during NORMAL,
+ * SUCCESSFUL operation and not only after a failure. A module built inside
+ * that window gets the fallback sphere and keeps it until it is next rebuilt,
+ * while the disc and globe around it upgrade themselves — those are materials
+ * mutated in place, this is a build-time branch.
+ *
+ * That is accepted deliberately rather than papered over:
+ *
+ *  - The exposure is small and the fallback is not a degradation. `horizon` is
+ *    MODULES[0] and has no sun, so the default path never sees it; only
+ *    midnight-sun and sun-size call makeSun at all. A sphere's silhouette is
+ *    an exact circle from every angle, at the same apparent diameter the
+ *    sprite was scaled to reproduce, so sun-size's measurement and its
+ *    declared maxDetail: 0 are unaffected. What is missing is limb darkening
+ *    — decoration.
+ *
+ *  - Re-activating the module when textures land would cost more than it
+ *    buys. activate() resets state to the module's defaults and rebuilds both
+ *    camera rigs, so a user who had already moved a slider or orbited the view
+ *    would watch both snap back 1.7 s in, on an app that was working. It would
+ *    also give a spontaneous build the chance to raise an error card over a
+ *    healthy page. That is a bad trade for limb darkening.
+ *
+ *  - Generating just the cheap 256 px sun disc eagerly (~4 ms; it needs no
+ *    coastlines and none of the expensive paint loops) would close the window
+ *    entirely, but only by adding a second readiness flag alongside
+ *    TEXTURES.ready. A split source of truth between makeSun and
+ *    applyMaterials is precisely the bug Task 6's second fix round existed to
+ *    eliminate, and it is not worth reopening for this.
+ *
+ * It is self-healing: makeSun re-reads TEXTURES.ready on every build, so the
+ * next switch into the module gives it the sprite.
+ *
  * Before this, both scenes lit from a DirectionalLight hard-coded at (1,1,1)
  * while the sun mesh was moved independently by physics. The glowing sphere
  * and the illumination already disagreed; nothing cast shadows, so it never

@@ -214,22 +214,38 @@ number next to a wrong picture is a failing item.
       brighter, the fill in `eratosthenes.js` is the dial.
 - [ ] **The solar disc has a sharp edge** with no halo, bloom or flare —
       `sun-size` measures that edge.
-- [ ] **Texture generation time is logged, and the warning above 400 ms is
-      currently EXPECTED.** The console logs `[flat-earth] textures generated
-      in NNN ms`. The 400 ms ceiling is not met and the warning is left firing
-      deliberately rather than widened away. Octave reduction — the design's
-      stated first lever — has been taken as far as it goes: even collapsing
-      every `fbm`/`ridge` call in the app to a single octave, which is no
-      longer fractal noise at all, floors at ~376 ms of pure arithmetic before
-      a single canvas call, because the cost is 1.6 M per-pixel evaluations
-      across 1024×512 plus 1024×1024, not the octaves inside each one. The
-      remaining lever is resolution (halving the disc to 512² removes roughly
-      half the total), which is a visual-quality decision. What this item
-      checks is that the number is being logged and has not *regressed*:
-      compare it against the previous run rather than against 400.
+- [ ] **The app is interactive immediately, and the textures arrive after
+      it.** Generation costs ~1.7 s and is deliberately **not** on the boot
+      path: it runs after the first frame is painted, and the maps swap
+      themselves into the live scene because `applyMaterials()` mutates the
+      shared material singletons in place rather than replacing them. On a
+      hard reload with the cache disabled, confirm in this order — the loading
+      overlay clears **at once**, with no perceptible pause; the selector,
+      sliders and readout all respond **before** any geography appears; then
+      the continents and surface detail appear, **with no error card**, with
+      no jump in the picture, and with no control, camera angle or readout
+      value resetting as they land. The console logs `[flat-earth] textures
+      generated in NNN ms (deferred; …)`. There is no 400 ms budget any more
+      and no warning is expected; compare `NNN` against the previous run
+      rather than against a target. The warning now fires only past 2600 ms,
+      as a regression tripwire.
+- [ ] **Switch to Midnight sun or Sun size inside the first second of a
+      reload.** Their suns render as plain bright spheres rather than
+      limb-darkened discs — `makeSun` branches on texture readiness at build
+      time, so a module built before the textures land keeps the fallback.
+      Expected and documented, not a bug: the sphere is an exact circle from
+      every angle at the same apparent diameter, so `sun-size`'s reading is
+      unaffected. Switching away and back must upgrade it to the sprite, and
+      waiting ~2 s before switching must give the sprite first time.
 - [ ] **Degradation:** rename `data/coastlines.json` and reload. The app must
-      boot fully with untextured surfaces, all eight phenomena working and no
-      error card. Restore it afterwards.
+      boot fully and immediately, with all eight phenomena working and **no
+      error card at any point** — including a few seconds later, once the
+      deferred fetch has failed. A console warning is expected; a visible
+      failure is not. The surfaces still texture: a missing ring file yields a
+      valid landless *ocean* texture, not a fallback to flat colour (that path
+      is reached only by a genuine `generateTextures()` throw). So the correct
+      result is a plausible waterworld with no continents anywhere, on both
+      panes. Restore the file afterwards.
 - [ ] **Camera linking behaves per module**, verified against
       `linkCameras` in each phenomenon file, not assumed from the module
       name:
