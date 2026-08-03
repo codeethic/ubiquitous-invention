@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { MATERIALS, SURFACE } from './materials.js';
+import { GLOBE_TEXTURE_ROTATION_Y } from './map-projection.js';
 import { OCEAN_DISPLACEMENT_M } from './signal-budget.js';
 import { TEXTURES } from './textures.js';
 
@@ -23,10 +24,24 @@ export function makeOcean(sizeKm) {
   return mesh;
 }
 
-/** Whole sphere of radius radiusKm centred at the origin. For whole-globe views. */
+/**
+ * Whole sphere of radius radiusKm centred at the origin. For whole-globe views.
+ *
+ * The Y rotation is LOAD-BEARING, not a cosmetic tweak: SphereGeometry's UV
+ * seam and this app's longitude convention disagree by a uniform 90°, so
+ * without it every coastline on the globe sits 90° east of where every marker,
+ * route and terminator says it should be. The full derivation, and why the
+ * fix belongs on the mesh rather than in equirectUV, is on
+ * GLOBE_TEXTURE_ROTATION_Y in map-projection.js. test/map-projection.test.js
+ * asserts it against a real SphereGeometry.
+ *
+ * Only the surface mesh is rotated. Callers add markers to the enclosing
+ * Group, never to this mesh, so nothing else moves with it.
+ */
 export function makeGlobeOcean(radiusKm) {
   const geo = new THREE.SphereGeometry(radiusKm, 96, 64);
   const mesh = new THREE.Mesh(geo, SURFACE.globe);
+  mesh.rotation.y = GLOBE_TEXTURE_ROTATION_Y;
   mesh.receiveShadow = true;
   return mesh;
 }
@@ -40,6 +55,14 @@ export function makeGlobeOcean(radiusKm) {
  * arc, with a 1,919 m sagitta. Any effect smaller than that (the horizon module's
  * hidden height is 3.8 m) is swallowed entirely and the globe renders flat. A
  * 60 km cap at 160 radial bands gives 375 m bands and a 2.8 mm sagitta instead.
+ *
+ * Deliberately NOT given makeGlobeOcean's GLOBE_TEXTURE_ROTATION_Y. It is the
+ * same SphereGeometry and so has the same 90° UV offset, but nothing
+ * geographic is ever painted on it: it wears MATERIALS.ocean, whose only
+ * texture is the tiling ocean-ripple NORMAL map. That map is isotropic noise
+ * with no longitude in it, so rotating it would change nothing observable —
+ * and its sole consumer, `horizon`, sits at a nameless point on an open ocean
+ * whose readout depends on the limb's shape, not on which sea it is.
  */
 export function makeGlobeCap(radiusKm, extentKm, radialSegments = 160, angularSegments = 96) {
   const thetaLength = extentKm / radiusKm;
@@ -58,6 +81,12 @@ export function makeGlobeCap(radiusKm, extentKm, radialSegments = 160, angularSe
  * occlusion depends on the hull's silhouette against the limb, not on how the
  * hull is shaded. A more convincing ship makes the disappearing-hull effect
  * easier to read, not harder.
+ *
+ * No castShadow flags here. The ship's only consumer, `horizon`, contains no
+ * shadow-casting light at all (only viewport.js's ambient + hemisphere fill),
+ * so the five flags this used to carry were dead configuration that read as
+ * if shadows were expected. If a caster is ever added to a scene holding a
+ * ship, set them then — deliberately, with the sizes checked.
  */
 export function makeShip(scaleKm) {
   const group = new THREE.Group();
@@ -71,19 +100,16 @@ export function makeShip(scaleKm) {
   hull.rotation.y = Math.PI / 4;
   hull.scale.set(1.5, 1, 0.55);
   hull.position.y = hullH / 2;
-  hull.castShadow = true;
 
   const deck = new THREE.Mesh(
     new THREE.BoxGeometry(scaleKm * 0.78, scaleKm * 0.03, scaleKm * 0.24),
     MATERIALS.deck);
   deck.position.y = hullH;
-  deck.castShadow = true;
 
   const mast = new THREE.Mesh(
     new THREE.CylinderGeometry(scaleKm * 0.015, scaleKm * 0.022, scaleKm * 0.75, 8),
     MATERIALS.deck);
   mast.position.y = hullH + scaleKm * 0.375;
-  mast.castShadow = true;
 
   const boom = new THREE.Mesh(
     new THREE.CylinderGeometry(scaleKm * 0.01, scaleKm * 0.01, scaleKm * 0.34, 6),
@@ -101,13 +127,11 @@ export function makeShip(scaleKm) {
   const main = new THREE.Mesh(
     new THREE.PlaneGeometry(scaleKm * 0.34, scaleKm * 0.46), sailMat);
   main.position.set(scaleKm * 0.10, hullH + scaleKm * 0.36, 0);
-  main.castShadow = true;
   main.userData.ownsMaterial = true;
 
   const jib = new THREE.Mesh(
     new THREE.PlaneGeometry(scaleKm * 0.22, scaleKm * 0.32), sailMat);
   jib.position.set(scaleKm * -0.16, hullH + scaleKm * 0.30, 0);
-  jib.castShadow = true;
 
   group.add(hull, deck, mast, boom, main, jib);
   return group;
@@ -127,7 +151,6 @@ export function makeObserverMarker(scaleKm = 200) {
     new THREE.CylinderGeometry(scaleKm * 0.06, scaleKm * 0.06, scaleKm, 8),
     MATERIALS.sail);
   post.position.y = scaleKm / 2;
-  post.castShadow = true;
   const cap = new THREE.Mesh(
     new THREE.SphereGeometry(scaleKm * 0.16, 12, 8), MATERIALS.marker);
   cap.position.y = scaleKm;
@@ -145,11 +168,22 @@ export function makeObserverMarker(scaleKm = 200) {
  * implemented, not something we opted into). Disposing it here would free
  * that shared geometry on the very first module switch and permanently break
  * every sprite created afterwards, app-wide. Do not "simplify" this away.
+ *
+ * Lights in the subtree are disposed too. A shadow-casting light owns a
+ * render target — eratosthenes' sun holds a 2048x2048 depth map, 16 MB of
+ * VRAM — and geometry.dispose() does not touch it, so every rebuild orphaned
+ * a fresh one. Handled HERE rather than in each module's dispose() on
+ * purpose: this kills the whole class of leak, so a future module that adds a
+ * caster cannot reintroduce it by forgetting. Safe for the app's other lights
+ * — makeSun's DirectionalLight never casts, so its shadow has no map and
+ * dispose() is a no-op, and the ambient/hemisphere fills live on the scene in
+ * viewport.js, outside every module root, so disposeTree never reaches them.
  */
 export function disposeTree(root) {
   root.traverse(obj => {
     if (obj.geometry && !obj.isSprite) obj.geometry.dispose();
     if (obj.userData?.ownsMaterial && obj.material) obj.material.dispose();
+    if (obj.isLight) obj.dispose();
   });
 }
 
