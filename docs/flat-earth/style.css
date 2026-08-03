@@ -33,3 +33,16 @@ body { margin:0; background:var(--bg); color:var(--fg);
   #pane-labels { flex-direction:column; }
   #stage { height:70vh; }
 }
+#params-dialog { background:var(--bg); color:var(--fg);
+                 border:1px solid var(--rule); max-width:34rem; }
+#params-dialog h2 { font-size:.8rem; letter-spacing:.16em; }
+#params-dialog dl { display:grid; grid-template-columns:1fr 1fr; gap:.25rem 1rem; }
+#params-dialog dt { color:var(--dim); }
+#params-dialog dd { margin:0; }
+#params-button { background:none; color:var(--dim);
+                 border:1px solid var(--rule); border-radius:50%;
+                 width:1.6rem; height:1.6rem; cursor:pointer; }
+@media (max-width: 900px) {
+  #app-header { flex-wrap:wrap; }
+  #params-dialog dl { grid-template-columns:1fr; }
+}

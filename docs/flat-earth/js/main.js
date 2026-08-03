@@ -6,6 +6,7 @@ import { renderControls } from './ui/controls.js';
 import { renderReadout } from './ui/readout.js';
 import { showErrorCard, clearErrorCard } from './ui/error-card.js';
 import { setLoading } from './ui/loading.js';
+import { renderParamsDialog } from './ui/params-dialog.js';
 
 const canvas = document.getElementById('scene-canvas');
 const canvasError = document.getElementById('canvas-error');
@@ -19,7 +20,7 @@ let moduleFaulted = false;
 function teardown() {
   if (!active) return;
   if (built) for (const side of [built.flat, built.globe]) side.rig?.setLinked(null);
-  if (built) {
+  if (built && viewport) {
     viewport.flatScene.remove(built.flat.root);
     viewport.globeScene.remove(built.globe.root);
   }
@@ -128,6 +129,9 @@ async function boot() {
 
   renderSelector(document.getElementById('phenomenon-select'),
     MODULES, MODULES[0].id, activate);
+
+  renderParamsDialog(document.getElementById('params-dialog'),
+    document.getElementById('params-button'));
 
   state.subscribe(v => {
     if (active && built) {
