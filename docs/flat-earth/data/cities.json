@@ -1,0 +1,12 @@
+[
+  { "id": "syd", "name": "Sydney",       "lat": -33.8688, "lon": 151.2093,  "utcOffset": 10 },
+  { "id": "scl", "name": "Santiago",     "lat": -33.4489, "lon": -70.6693,  "utcOffset": -4 },
+  { "id": "jnb", "name": "Johannesburg", "lat": -26.1367, "lon": 28.2411,   "utcOffset": 2 },
+  { "id": "per", "name": "Perth",        "lat": -31.9403, "lon": 115.9669,  "utcOffset": 8 },
+  { "id": "lhr", "name": "London",       "lat": 51.5074,  "lon": -0.1278,   "utcOffset": 0 },
+  { "id": "nyc", "name": "New York",     "lat": 40.7128,  "lon": -74.0060,  "utcOffset": -5 },
+  { "id": "lax", "name": "Los Angeles",  "lat": 34.0522,  "lon": -118.2437, "utcOffset": -8 },
+  { "id": "tyo", "name": "Tokyo",        "lat": 35.6762,  "lon": 139.6503,  "utcOffset": 9 },
+  { "id": "rkv", "name": "Reykjavik",    "lat": 64.1466,  "lon": -21.9426,  "utcOffset": 0 },
+  { "id": "mcm", "name": "McMurdo",      "lat": -77.8419, "lon": 166.6863,  "utcOffset": 13 }
+]
