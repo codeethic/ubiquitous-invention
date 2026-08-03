@@ -3156,7 +3156,13 @@ const PARAMS = [
   ['Flat disc radius', '20 015 km (pole to −90° rim)'],
   ['Flat sun altitude', '5000 km'],
   ['Flat sun diameter', 'Derived — sized to subtend the observed 0.533° overhead'],
-  ['Flat spotlight radius', '14 153 km — lights exactly half the disc by area'],
+  // Describes how the radius was DERIVED, not what happens on screen. A
+  // concentric circle of this radius covers exactly half the disc's area, which
+  // is why the value was chosen — but the spotlight is centred on the subsolar
+  // point, 7,400–12,600 km off the pole, so it always overhangs the rim and the
+  // lit fraction is never exactly a half. Claiming otherwise would overstate
+  // precision in the one panel whose job is letting a reader audit precision.
+  ['Flat spotlight radius', '14 153 km — chosen so a centred circle would cover half the disc'],
   ['Cruise speed for flight times', '900 km/h'],
   ['Atmospheric refraction', 'Excluded from all calculations'],
   ['Time zone offsets', 'Standard time; daylight saving ignored'],
