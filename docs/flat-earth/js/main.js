@@ -136,6 +136,20 @@ function installPointerControls() {
 
 async function boot() {
   try {
+    await bootSteps();
+  } finally {
+    // The LAST line of defence, and the reason it is a finally rather than the
+    // end of a happy path: `#loading-screen` is a full-screen opaque overlay,
+    // so anything that escapes bootSteps() hides an app that may be perfectly
+    // usable — every readout is computed from js/physics/ and needs no
+    // rendering at all. Individual steps are still guarded where a sensible
+    // local recovery exists; this catches whatever nobody thought of.
+    setLoading(false);
+  }
+}
+
+async function bootSteps() {
+  try {
     viewport = createDualViewport(canvas);
     installPointerControls();
   } catch (err) {
@@ -148,13 +162,30 @@ async function boot() {
   // coastlines.json must not take the app down: seven of the eight modules
   // need no geography at all, and the eighth degrades to an untextured globe
   // with every readout intact. Nothing here may add a new way to go blank.
+  //
+  // The whole block is guarded, applyMaterials() included. It was previously
+  // the one bare call in boot(): it walks a dozen shared materials, and any
+  // throw inside it skipped the selector, the rAF loop and setLoading(false)
+  // in one go — a blank page behind the loading overlay, caused by a purely
+  // cosmetic step.
+  //
+  // loadCoastlines() carries its own 5 s abort timeout (see textures.js). A
+  // fetch that REJECTS was already handled here; one that simply never
+  // settles — captive portal, proxy that accepts and never answers — would
+  // otherwise leave this await pending forever with setLoading(false)
+  // downstream of it, which is the same class of bug this app has shipped
+  // once already. Nothing on the path to setLoading(false) may be unbounded.
   try {
     await loadCoastlines();
   } catch (err) {
     console.warn('Coastline data unavailable; surfaces render without land.', err);
   }
-  await generateTextures();
-  applyMaterials();
+  try {
+    await generateTextures();
+    applyMaterials();
+  } catch (err) {
+    console.warn('Surface textures unavailable; rendering with flat colour.', err);
+  }
 
   renderSelector(document.getElementById('phenomenon-select'),
     MODULES, MODULES[0].id, activate);
@@ -202,8 +233,6 @@ async function boot() {
       requestAnimationFrame(loop);
     })(last);
   }
-
-  setLoading(false);
 }
 
 boot();
