@@ -32,3 +32,5 @@ exclude:
   - flat-earth/README.md
   # Local dev server; the published site is served by GitHub Pages.
   - flat-earth/serve.py
+  # Coastline build tool; its output (data/coastlines.json) does publish.
+  - flat-earth/tools

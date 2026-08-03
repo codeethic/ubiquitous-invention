@@ -7,6 +7,8 @@ import { renderReadout } from './ui/readout.js';
 import { showErrorCard, clearErrorCard } from './ui/error-card.js';
 import { setLoading } from './ui/loading.js';
 import { renderParamsDialog } from './ui/params-dialog.js';
+import { loadCoastlines, generateTextures } from './lib/textures.js';
+import { applyMaterials } from './lib/materials.js';
 
 const canvas = document.getElementById('scene-canvas');
 const canvasError = document.getElementById('canvas-error');
@@ -134,6 +136,20 @@ function installPointerControls() {
 
 async function boot() {
   try {
+    await bootSteps();
+  } finally {
+    // The LAST line of defence, and the reason it is a finally rather than the
+    // end of a happy path: `#loading-screen` is a full-screen opaque overlay,
+    // so anything that escapes bootSteps() hides an app that may be perfectly
+    // usable — every readout is computed from js/physics/ and needs no
+    // rendering at all. Individual steps are still guarded where a sensible
+    // local recovery exists; this catches whatever nobody thought of.
+    setLoading(false);
+  }
+}
+
+async function bootSteps() {
+  try {
     viewport = createDualViewport(canvas);
     installPointerControls();
   } catch (err) {
@@ -141,6 +157,12 @@ async function boot() {
       `${err.message} — the numeric readouts below still work.`);
     canvas.hidden = true;
   }
+
+  // NOTHING between here and setLoading(false) does network I/O or texture
+  // work. Boot is back to what it was before the realistic-rendering branch:
+  // create the renderer, render the UI, activate the first phenomenon, start
+  // the loop. Coastlines and textures are handled by
+  // scheduleTextureUpgrade() below, after the user already has a working app.
 
   renderSelector(document.getElementById('phenomenon-select'),
     MODULES, MODULES[0].id, activate);
@@ -189,7 +211,80 @@ async function boot() {
     })(last);
   }
 
-  setLoading(false);
+  scheduleTextureUpgrade();
+}
+
+/**
+ * Generate the procedural textures AFTER the app is up, and let them swap
+ * themselves in.
+ *
+ * Why this is off the boot path at all: generation measures ~1,735 ms in the
+ * browser, and no amount of octave reduction gets it near the 400 ms the
+ * design once assumed (a single octave everywhere — no longer fractal noise —
+ * still floors at ~376 ms of pure arithmetic before any canvas call). That is
+ * 1.7 seconds of an opaque loading screen over an app that needs none of it:
+ * every readout comes from js/physics/, and every surface has a perfectly
+ * good flat colour to render with meanwhile.
+ *
+ * Why it is nearly free to do: applyMaterials() MUTATES the shared material
+ * singletons in place rather than replacing them. Meshes already built are
+ * holding references to those exact objects, so attaching the maps here
+ * upgrades every live surface with no rebuild, no re-activation, and no
+ * phenomenon needing to know textures arrived. That property was chosen so
+ * disposeTree's ownsMaterial rule kept working; it pays for itself here.
+ *
+ * Why rAF THEN setTimeout, and not either alone. A requestAnimationFrame
+ * callback runs just BEFORE the browser paints that frame, so work started
+ * inside one still blocks the first paint — scheduling from rAF is not the
+ * same as running after it. Yielding to a macrotask from inside the callback
+ * lands after the frame's rendering steps have finished, so the pixels are on
+ * screen before the long block begins. A nested rAF would also be post-paint,
+ * but it executes at the head of the NEXT frame's callback list, ahead of the
+ * render loop's own callback — guaranteeing the second frame is dropped. The
+ * macrotask does not take that priority.
+ *
+ * Skipped entirely without a viewport: textures exist to be rendered, and
+ * when WebGL is unavailable the canvas is hidden and nothing would ever
+ * sample them. Spending 1.7 s of main thread on them would only make the
+ * readouts-only fallback worse.
+ */
+function scheduleTextureUpgrade() {
+  if (!viewport) return;
+  requestAnimationFrame(() => setTimeout(async () => {
+    // Belt and braces. Each stage is guarded individually below, because each
+    // has a distinct correct recovery; this outer catch exists so that a
+    // throw from somewhere nobody anticipated cannot become an unhandled
+    // rejection. NOTHING here may take down a page the user is already using:
+    // it is fully interactive by the time this runs, and every failure path
+    // must leave it exactly as it is, with every readout intact and no error
+    // card. Textures are an enhancement; a page the user is looking at is not.
+    try {
+      try {
+        // 5 s abort timeout lives in loadCoastlines(). It matters less than it
+        // did when this blocked boot, but a stalled fetch would still pin a
+        // connection and silently leave the world without continents.
+        await loadCoastlines();
+      } catch (err) {
+        // Not fatal to the textures: generation continues with a null mask and
+        // produces a valid landless OCEAN, which is why the fallback-to-flat-
+        // colour path below is reached only by a genuine generation failure.
+        console.warn('Coastline data unavailable; surfaces render without land.', err);
+      }
+      // generateTextures() is documented never to throw; guarded anyway, since
+      // the cost of being wrong is the whole app rather than a flat-coloured
+      // globe. applyMaterials() follows it across a microtask boundary only —
+      // DOM events cannot run at a microtask checkpoint, so no phenomenon
+      // switch can interleave between textures becoming ready and the maps
+      // being attached.
+      await generateTextures();
+      applyMaterials();
+    } catch (err) {
+      console.warn('Surface textures unavailable; rendering with flat colour.', err);
+    }
+    // A phenomenon built before this point kept makeSun's untextured fallback
+    // sphere, and keeps it until that module is next rebuilt. Deliberate — see
+    // the note on makeSun in js/lib/primitives.js.
+  }, 0));
 }
 
 boot();

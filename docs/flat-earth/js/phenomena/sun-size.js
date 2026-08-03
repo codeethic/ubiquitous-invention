@@ -69,10 +69,12 @@ export default {
     flatRoot = new THREE.Group();
     flatSun = makeSun(flatSunDiameterKm());          // TRUE derived diameter
     flatRoot.add(flatSun);
+    flatSun.userData.light.target = flatRoot;
 
     globeRoot = new THREE.Group();
     globeSun = makeSun(1);                           // rescaled per frame
     globeRoot.add(globeSun);
+    globeSun.userData.light.target = globeRoot;
 
     flatCam = new THREE.PerspectiveCamera(VIEW_FOV_DEG, 1, 0.001, 1e6);
     globeCam = new THREE.PerspectiveCamera(VIEW_FOV_DEG, 1, 0.001, 1e7);

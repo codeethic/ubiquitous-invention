@@ -36,16 +36,19 @@ export default {
     flatRoot = new THREE.Group();
     flatRoot.add(makeDisc(FLAT_DISC_RADIUS_KM));
     flatSun = makeSun(SUN_DRAW_KM);
-    flatObs = makeObserverMarker();
-    flatObs.scale.setScalar(600);
+    flatObs = makeObserverMarker(R_EARTH_KM * 0.04);
     flatRoot.add(flatSun, flatObs);
+    // Aim the sun's light at the world origin. Three.js aims a DirectionalLight
+    // at a default target that is never added to any scene, so without this the
+    // sun glows but illuminates nothing.
+    flatSun.userData.light.target = flatRoot;
 
     globeRoot = new THREE.Group();
     globeRoot.add(makeGlobeOcean(R_EARTH_KM));
     globeSun = makeSun(SUN_DRAW_KM * 4);
-    globeObs = makeObserverMarker();
-    globeObs.scale.setScalar(600);
+    globeObs = makeObserverMarker(R_EARTH_KM * 0.04);
     globeRoot.add(globeSun, globeObs);
+    globeSun.userData.light.target = globeRoot;
 
     flatRig = createOrbitRig({ distance: FLAT_DISC_RADIUS_KM * 1.8, far: 1e6, polar: 0.9 });
     globeRig = createOrbitRig({ distance: R_EARTH_KM * 4, far: 1e6, polar: 1.2 });

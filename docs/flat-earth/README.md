@@ -27,7 +27,24 @@ This affects local serving only. GitHub Pages sends the correct
 
     node --test "docs/flat-earth/test/**/*.test.js"
 
-Covers `js/physics/` only — pure math, no browser required.
+No browser required. Covers `js/physics/` — the pure math behind every readout
+— plus `js/lib/noise.js`, `js/lib/map-projection.js`, `js/lib/signal-budget.js`,
+`js/lib/fetch-json.js`, `js/app-state.js` and the contents of
+`data/coastlines.json`.
+
+`test/fetch-json.test.js` stubs the global `fetch` to cover the one network
+failure nobody can reproduce by hand: a connection that neither resolves nor
+rejects. Both stall tests carry an explicit per-test timeout, because removing
+the guard they cover turns them from failing into hanging.
+
+`test/projection-vs-geometry.test.js` goes one step further and imports the
+vendored Three.js by relative path (Node has no import map, so it cannot use
+the bare `three` specifier the app uses), building real `SphereGeometry` and
+`CircleGeometry` to check each projection against the UVs the geometry that
+consumes it actually carries. That is a different question from
+`map-projection.test.js`, which only checks each projection against itself: a
+map can be internally perfect and still painted onto the wrong part of the
+mesh, which is exactly what happened to both surfaces.
 
 ## Three.js
 
@@ -48,6 +65,51 @@ one file will break the import graph.
 
 The directory is named `third-party/`, not `vendor/`, because
 `docs/_config.yml` excludes `vendor` from the Jekyll build.
+
+## Coastline data
+
+`data/coastlines.json` is derived from **Natural Earth 4.1.0 `ne_110m_land`**,
+which is public domain: "No permission is needed to use Natural Earth."
+128 rings, 5,143 points, ~70 KB.
+
+Regenerate with:
+
+    curl -o /tmp/ne.zip https://naciscdn.org/naturalearth/110m/physical/ne_110m_land.zip
+    python -m zipfile -e /tmp/ne.zip /tmp/ne/
+    node tools/build-coastlines.mjs /tmp/ne/ne_110m_land.shp data/coastlines.json
+
+Real coastlines rather than procedural ones because `flight-routes` draws
+Sydney→Santiago and `time-zones` labels ten real cities. Invented continents
+under real city names would be a picture disagreeing with a readout — the exact
+defect class this app exists to avoid.
+
+The disc's map is projected through `azimuthalEquidistantXY()`, the same
+function `flight-routes` uses for its distances, so the map and the number
+above it cannot disagree.
+
+**Known limitation:** at 110m resolution Ross Island is not resolved, so
+McMurdo Station (77.85°S, 166.67°E) falls in open water on the generated land
+mask. This was checked against independently-parsed, unrounded source
+coordinates, so it is a limitation of the source dataset's resolution, not a
+parsing or rounding bug in `tools/build-coastlines.mjs`. `time-zones` labels
+McMurdo, so its marker will appear to sit in the ocean on both panes — this is
+expected and not a regression.
+
+## The signal budget
+
+`js/lib/signal-budget.js` declares, per module, the magnitude of the effect
+being measured and the ceiling on any visual detail placed near it.
+`test/signal-budget.test.js` enforces a 10× separation.
+
+This is why the ocean has a normal map and **exactly zero** vertical
+displacement: waves of even a metre or two would be comparable to the 3.79 m of
+hidden hull the horizon module exists to measure. For the same reason there is
+no cloud layer (it would cover the terminator), no bloom on the sun (it would
+blur the edge whose angular size is the measurement), and no limb haze.
+
+The test locks the declared numbers. It cannot verify the renderer honours them
+— nothing headless can, which is why the manual visual checklist below still
+runs.
 
 ## Manual visual checklist
 
@@ -105,6 +167,91 @@ number next to a wrong picture is a failing item.
       is wrong for **3** (London, Reykjavik, McMurdo); globe lights **5 of
       10** and is wrong for **0**. Picture: both panes show city markers, and
       on the globe pane the night side visibly faces away from the sun.
+- [ ] **Textures and geography** — the globe is recognisably Earth with
+      continents in the correct places, and the disc shows the flat-earth map
+      with the north pole centred and Antarctica around the rim. Spot-check
+      three: Australia is an island, Antarctica surrounds the disc's edge
+      rather than sitting as a blob, and the Americas are west of Africa.
+- [ ] **The map is registered to the markers, not merely present.** The check
+      above cannot see a *uniform* longitude offset: a globe rotated bodily by
+      90° still has every continent the right shape, the right size and in the
+      right order, and still looks entirely correct. Test the registration
+      instead, with a marker whose longitude the app computes independently of
+      the texture. In **Time zones**, set day 172 / UTC 12 and confirm the
+      **London** marker sits on the south-east coast of Great Britain, with
+      the Atlantic to its west and mainland Europe to its east — not out in
+      open ocean and not over central Asia. Then confirm the lit hemisphere at
+      that hour is centred on **Africa and Europe**, not on the Americas. The
+      globe's map was 90° out in longitude for the whole of the realistic-
+      rendering branch and every general "do the continents look right?" check
+      passed. (**Sydney** in **Flight routes** is the equivalent southern
+      check: the SYD end of the arc must touch the south-east corner of
+      Australia.) Note that **McMurdo** genuinely falls in water — Natural
+      Earth 110m does not resolve Ross Island — so it is not evidence of an
+      offset either way.
+- [ ] **The ocean has no waves.** Surface texture and shading detail only. Any
+      visible vertical relief on the sea means displacement crept in and the
+      horizon module's 3.79 m signal is compromised.
+- [ ] **Eratosthenes shadows are drawn identically as data on both panes, and
+      only the globe pane's are also cast.** Both readouts' three shadow
+      lengths — 174.09 / 301.32 / 522.26 km at the defaults — are the same
+      `STICK_KM * tan(|lat − decl|)` values on both panes; this is the
+      observation, not a claim either model gets to author. Confirm the globe
+      pane's shadows are genuinely *cast*, not drawn: change the day-of-year
+      or an observer's latitude and watch the shadow move and rescale as the
+      `DirectionalLight`'s angle changes, cast by Three.js's own shadow
+      mapping from a light placed at the solar declination. The flat pane has
+      no *sun* and never will: a forward-simulated flat sun would be
+      tautologically self-consistent and could only draw tidy, agreeing
+      shadows, hiding the very contradiction this module exists to show (that
+      is what the two disagreeing inferred sun altitudes in the flat readout
+      report). Do not "fix" the flat pane by giving it a shadow-casting light
+      — that would remove the module's argument, not complete it. It does
+      carry a fixed, non-shadow-casting fill so the two panes read at
+      comparable brightness; confirm that the flat pane's shadows still move
+      only in response to the readout's numbers, and that changing the day of
+      year never changes the *fill's* direction.
+- [ ] **The two Eratosthenes panes are comparably bright.** They are shown
+      side by side to be compared, so a large brightness difference between
+      them is itself a defect. The globe pane's shadow-casting sun is at
+      intensity 2.4 and the flat pane's fill at 1.8; the mismatch is
+      deliberate (a flat plane facing the light head-on averages far more of
+      its peak than a sphere does). If one pane still reads as obviously the
+      brighter, the fill in `eratosthenes.js` is the dial.
+- [ ] **The solar disc has a sharp edge** with no halo, bloom or flare —
+      `sun-size` measures that edge.
+- [ ] **The app is interactive immediately, and the textures arrive after
+      it.** Generation costs ~1.7 s and is deliberately **not** on the boot
+      path: it runs after the first frame is painted, and the maps swap
+      themselves into the live scene because `applyMaterials()` mutates the
+      shared material singletons in place rather than replacing them. On a
+      hard reload with the cache disabled, confirm in this order — the loading
+      overlay clears **at once**, with no perceptible pause; the selector,
+      sliders and readout all respond **before** any geography appears; then
+      the continents and surface detail appear, **with no error card**, with
+      no jump in the picture, and with no control, camera angle or readout
+      value resetting as they land. The console logs `[flat-earth] textures
+      generated in NNN ms (deferred; …)`. There is no 400 ms budget any more
+      and no warning is expected; compare `NNN` against the previous run
+      rather than against a target. The warning now fires only past 2600 ms,
+      as a regression tripwire.
+- [ ] **Switch to Midnight sun or Sun size inside the first second of a
+      reload.** Their suns render as plain bright spheres rather than
+      limb-darkened discs — `makeSun` branches on texture readiness at build
+      time, so a module built before the textures land keeps the fallback.
+      Expected and documented, not a bug: the sphere is an exact circle from
+      every angle at the same apparent diameter, so `sun-size`'s reading is
+      unaffected. Switching away and back must upgrade it to the sprite, and
+      waiting ~2 s before switching must give the sprite first time.
+- [ ] **Degradation:** rename `data/coastlines.json` and reload. The app must
+      boot fully and immediately, with all eight phenomena working and **no
+      error card at any point** — including a few seconds later, once the
+      deferred fetch has failed. A console warning is expected; a visible
+      failure is not. The surfaces still texture: a missing ring file yields a
+      valid landless *ocean* texture, not a fallback to flat colour (that path
+      is reached only by a genuine `generateTextures()` throw). So the correct
+      result is a plausible waterworld with no continents anywhere, on both
+      panes. Restore the file afterwards.
 - [ ] **Camera linking behaves per module**, verified against
       `linkCameras` in each phenomenon file, not assumed from the module
       name:
