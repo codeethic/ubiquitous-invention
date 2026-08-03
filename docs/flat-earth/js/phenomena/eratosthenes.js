@@ -6,12 +6,12 @@ import {
 import { azimuthalEquidistantRadiusKm } from '../physics/geodesy.js';
 import { makeDisc, makeGlobeOcean, makeGnomon, disposeTree } from '../lib/primitives.js';
 import { createOrbitRig } from '../lib/camera-rig.js';
-import { makeParallelSun } from '../lib/world.js';
+import { makeParallelSun, makeFillSun } from '../lib/world.js';
 
 const STICK_KM = 300;   // exaggerated so the shadow is visible at world scale
 
 let flatRoot, globeRoot, flatRig, globeRig, flatGnomons, globeGnomons;
-let globeSun, globeSunTarget;
+let globeSun, globeSunTarget, flatFill, flatFillTarget;
 
 const shadowLength = (stickKm, zenithDeg) => stickKm * Math.tan(zenithDeg * DEG);
 
@@ -66,10 +66,42 @@ export default {
     // themselves and can never show the contradiction this module exists to
     // demonstrate. The flat pane instead draws the same observed shadow
     // lengths as data — see update() for the full reasoning.
-    globeSun = makeParallelSun(R_EARTH_KM * 0.5);
+    //
+    // The span must contain the LIT HEMISPHERE, not the shadows: the
+    // orthographic shadow frustum is centred on the light's target at the
+    // origin, and the gnomons stand out on the surface, thousands of km off
+    // that axis. See makeParallelSun for the arithmetic and for what the
+    // previous, too-small value silently did (nothing — no shadow at all).
+    globeSun = makeParallelSun(R_EARTH_KM * 2.1);
     globeSunTarget = new THREE.Object3D();
     globeSun.target = globeSunTarget;
     globeRoot.add(globeSun, globeSunTarget);
+    // globeSun's 2048x2048 depth target is freed by disposeTree() in
+    // dispose(), which disposes lights as well as geometry — see primitives.js.
+
+    // The flat pane has no sun of its own and must not get one: a
+    // forward-simulated flat sun is the tautology this module exists to
+    // refute (see update()). But with nothing but viewport.js's fill it also
+    // rendered at roughly a third of the globe pane's brightness, and two
+    // panes whose entire purpose is side-by-side comparison cannot differ
+    // that much for a reason the viewer cannot see. So: a parallel FILL that
+    // casts nothing and predicts nothing.
+    //
+    // Intensity 1.8 against the globe's 2.4. Not equal on purpose — the flat
+    // disc is one plane facing the light almost head-on, so it sits at a
+    // near-uniform 1.8 * 0.95 = 1.71, whereas a Lambertian sphere lit
+    // head-on averages 2/3 of its peak over the visible disc, 2.4 * 0.67 =
+    // 1.6. Matching the MEANS is what makes the two panes read alike;
+    // matching the peaks would leave the flat pane visibly the brighter one.
+    //
+    // Direction is up-and-inward, agreeing in sense with the shadows the flat
+    // gnomons draw (which run outward, away from the disc centre). It is a
+    // fixed direction and makes no claim about where a flat sun would be.
+    flatFill = makeFillSun(1.8);
+    flatFillTarget = new THREE.Object3D();
+    flatFill.position.set(0, FLAT_DISC_RADIUS_KM * 3, -FLAT_DISC_RADIUS_KM);
+    flatFill.target = flatFillTarget;
+    flatRoot.add(flatFill, flatFillTarget);
 
     flatRig = createOrbitRig({ distance: FLAT_DISC_RADIUS_KM * 1.6, far: 1e6 });
     globeRig = createOrbitRig({ distance: R_EARTH_KM * 3.2, far: 1e6 });
@@ -172,9 +204,13 @@ export default {
 
   dispose() {
     flatRig?.dispose(); globeRig?.dispose();
+    // disposeTree frees globeSun's 2048x2048 shadow map along with the
+    // geometry: it disposes every light it walks. Without that, each build of
+    // this module orphaned another 16 MB depth target on the GPU, once per
+    // phenomenon switch, for the life of the page.
     if (flatRoot) disposeTree(flatRoot);
     if (globeRoot) disposeTree(globeRoot);
     flatRoot = globeRoot = flatRig = globeRig = flatGnomons = globeGnomons = null;
-    globeSun = globeSunTarget = null;
+    globeSun = globeSunTarget = flatFill = flatFillTarget = null;
   },
 };

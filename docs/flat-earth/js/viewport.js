@@ -21,17 +21,36 @@ export function createDualViewport(canvas) {
 
   const flatScene = new THREE.Scene();
   const globeScene = new THREE.Scene();
-  // Ambient plus a weak hemisphere fill only.
+  // Ambient plus a hemisphere fill only.
   //
-  // The old fixed DirectionalLight at (1,1,1) is deliberately gone: it lit
-  // every scene from a corner that had nothing to do with where the sun was,
-  // which was invisible while nothing cast shadows and becomes a contradiction
-  // the moment something does. Modules that have a sun now bring their own
-  // light with it (see makeSun); modules that do not are lit by this fill,
-  // which is intentionally too weak to cast anything.
+  // The old fixed DirectionalLight at (1,1,1) is deliberately gone and is NOT
+  // coming back: it lit every scene from a corner that had nothing to do with
+  // where the sun was, which was invisible while nothing cast shadows and
+  // becomes a contradiction the moment something does. Modules that have a sun
+  // bring their own light with it (see makeSun); modules that do not are lit
+  // by this fill, which casts nothing.
+  //
+  // Levels. Five modules — horizon, lunar-eclipse, time-zones, flight-routes,
+  // and eratosthenes' flat pane — have no sun at all and see ONLY these two
+  // numbers, through ACES tone mapping. At 0.28 + 0.45 their brightest
+  // possible surface reached 0.73 where the pre-branch rig (ambient 0.35 plus
+  // a 1.1 directional) reached 1.45, and they were correspondingly murky.
+  //
+  // 0.35 + 0.85 restores the old floor exactly (an unlit, downward-facing
+  // surface still gets 0.35) and brings an up-facing one to 1.20, just under
+  // the old peak. The extra brightness is put in the HEMISPHERE rather than
+  // the ambient on purpose: ambient is direction-independent and flattens
+  // form, whereas the hemisphere term scales with how much sky a surface
+  // faces. That distinction is load-bearing for `horizon`, whose whole claim
+  // is read from a dark hull silhouetted against a bright limb: the sea is
+  // sky-facing and the hull is near-vertical, so raising the hemisphere lifts
+  // the background more than the subject and the silhouette gets CRISPER, not
+  // washed out. 1.20 also stays below the knee where ACES starts compressing
+  // hard, so that contrast survives tone mapping. Do not push these higher
+  // without re-checking the hull against the limb.
   for (const scene of [flatScene, globeScene]) {
-    scene.add(new THREE.AmbientLight(0xffffff, 0.28));
-    scene.add(new THREE.HemisphereLight(0x93b4d8, 0x0b0e13, 0.45));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+    scene.add(new THREE.HemisphereLight(0x93b4d8, 0x0b0e13, 0.85));
   }
 
   let flatCam = null, globeCam = null;
