@@ -35,8 +35,13 @@ export function createOrbitRig({
   // so draws first. Deriving the planes makes that independent of
   // declaration order.
   function applyPlanes() {
-    if (!explicitNear) camera.near = state.distance / 1e4;
     if (!explicitFar) camera.far = state.distance * 20;
+    // Bounded by BOTH: a pure distance/1e4 derivation assumes far scales with
+    // distance, which holds for the world-scale modules but not for
+    // southern-stars (distance 1 inside a radius-1000 star sphere, far 4000),
+    // where it produced a 4e7 ratio — worse than the fixed near it replaced.
+    // Taking the max against far/1e5 caps the ratio at 1e5 everywhere.
+    if (!explicitNear) camera.near = Math.max(state.distance / 1e4, camera.far / 1e5);
     camera.updateProjectionMatrix();
   }
 
