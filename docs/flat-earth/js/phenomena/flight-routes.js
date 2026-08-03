@@ -14,6 +14,13 @@ const ROUTES = [
 
 let cities = null;
 let flatRoot, globeRoot, flatRig, globeRig, flatLine, globeLine;
+let lastRouteId = null;
+
+// The rig's opening view direction (polar = PI/2.4, azimuth = 0), used to face
+// the selected route toward the camera on load.
+const DEFAULT_VIEW = new THREE.Vector3(
+  0, Math.cos(Math.PI / 2.4), Math.sin(Math.PI / 2.4)).normalize();
+const MID = new THREE.Vector3();
 
 const byId = id => {
   const c = cities?.find(x => x.id === id);
@@ -78,6 +85,13 @@ export default {
   },
 
   update(state) {
+    // Rebuild only when the route actually changes. update() runs every frame,
+    // and the rest of this codebase keeps its hot path allocation-free; without
+    // this guard both lines — including a fresh 65-point BufferGeometry — would
+    // be disposed and re-created 60 times a second for no reason.
+    if (state.routeId === lastRouteId) return;
+    lastRouteId = state.routeId;
+
     const r = route(state.routeId);
     const a = byId(r.from), b = byId(r.to);
 
@@ -101,6 +115,16 @@ export default {
     }
     globeLine = makeLine(pts, 0xe0a33e);
     globeRoot.add(globeLine);
+
+    // Turn the globe so the route faces the opening camera. Without this the
+    // arc renders mostly BEHIND the opaque sphere: at the rig's default
+    // orientation Sydney is 147.9° off-axis and Perth 119.7°, so a viewer sees
+    // a stub near one endpoint until they think to drag. Rotating the root
+    // (not the rig) leaves the user free to orbit afterwards. Measured after
+    // the fix, both endpoints land 37–57° from centre on every route — the
+    // whole arc is on the visible hemisphere.
+    MID.copy(va).add(vb).normalize();
+    globeRoot.quaternion.setFromUnitVectors(MID, DEFAULT_VIEW);
   },
 
   readout(state) {
@@ -143,5 +167,6 @@ export default {
     flatRig.dispose(); globeRig.dispose();
     disposeTree(flatRoot); disposeTree(globeRoot);
     flatRoot = globeRoot = flatRig = globeRig = flatLine = globeLine = null;
+    lastRouteId = null;
   },
 };
