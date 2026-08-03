@@ -1,5 +1,14 @@
 :root { --bg:#0b0e13; --fg:#d7dee8; --dim:#8a97a8; --rule:#232a35; --warn:#e0a33e; }
 * { box-sizing: border-box; }
+
+/* The HTML `hidden` attribute works through the UA stylesheet's
+   `[hidden] { display: none }`, which ANY author rule with an id selector
+   outranks. #loading-screen and #canvas-error both set `display: grid`, so
+   setting `.hidden = true` on them did nothing: the loading screen covered the
+   whole working app at z-index 10 forever, and the empty error card sat over
+   the canvas swallowing drags. Every DOM assertion passed the whole time —
+   the attribute really was set. This rule makes `hidden` mean hidden. */
+[hidden] { display: none !important; }
 body { margin:0; background:var(--bg); color:var(--fg);
        font:14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
 #app-header { display:flex; gap:1rem; align-items:center;
