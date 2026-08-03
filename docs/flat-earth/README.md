@@ -29,7 +29,13 @@ This affects local serving only. GitHub Pages sends the correct
 
 No browser required. Covers `js/physics/` — the pure math behind every readout
 — plus `js/lib/noise.js`, `js/lib/map-projection.js`, `js/lib/signal-budget.js`,
-`js/app-state.js` and the contents of `data/coastlines.json`.
+`js/lib/fetch-json.js`, `js/app-state.js` and the contents of
+`data/coastlines.json`.
+
+`test/fetch-json.test.js` stubs the global `fetch` to cover the one network
+failure nobody can reproduce by hand: a connection that neither resolves nor
+rejects. Both stall tests carry an explicit per-test timeout, because removing
+the guard they cover turns them from failing into hanging.
 
 `test/projection-vs-geometry.test.js` goes one step further and imports the
 vendored Three.js by relative path (Node has no import map, so it cannot use

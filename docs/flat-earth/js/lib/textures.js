@@ -28,6 +28,7 @@ import { fbm, ridge, clamp01, smoothstep } from './noise.js';
 import {
   equirectUV, discUV, densifyRing, EQUIRECT_FLIP_Y, DISC_FLIP_Y,
 } from './map-projection.js';
+import { fetchJson } from './fetch-json.js';
 
 const EQUIRECT_W = 1024, EQUIRECT_H = 512;
 const DISC_SIZE = 1024;
@@ -70,9 +71,6 @@ const OCEAN_TILE_REPEAT = 8;
  */
 const SLOW_GENERATION_MS = 2600;
 
-/** How long the coastline fetch may stall before we give up and go on without it. */
-const COASTLINE_FETCH_TIMEOUT_MS = 5000;
-
 export const TEXTURES = {
   ready: false,
   earth: null, earthNormal: null,
@@ -87,36 +85,18 @@ let rings = null;
  * Fetch the coastline rings. Throws on failure; the caller decides what that
  * means.
  *
- * The AbortController is not decoration. A REJECTING fetch (offline, 404) is
- * easy and boot() already handles it; a STALLED one — a captive portal or a
- * proxy that accepts the connection and never answers — never settles at all,
- * and this call sits on the path to setLoading(false). Without the timeout
- * that leaves the full-screen loading overlay covering an app that is
- * otherwise completely working, which is the exact failure this project has
- * already shipped once.
+ * Bounded by fetchJson, which is where the reasoning about STALLED versus
+ * rejecting connections lives. This call used to sit on the path to
+ * setLoading(false); it now runs after first paint, but an unbounded stall
+ * would still pin a connection and leave the world without continents and
+ * nothing on the console to say why.
  */
 export async function loadCoastlines() {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), COASTLINE_FETCH_TIMEOUT_MS);
-  try {
-    const res = await fetch('./data/coastlines.json', { signal: ctrl.signal });
-    if (!res.ok) throw new Error(`coastlines.json returned HTTP ${res.status}`);
-    // Inside the timeout too: a response whose BODY stalls mid-stream hangs
-    // here just as effectively as one whose headers never arrive.
-    const data = await res.json();
-    if (!Array.isArray(data?.rings) || data.rings.length === 0) {
-      throw new Error('coastlines.json contained no rings');
-    }
-    rings = data.rings;
-  } catch (err) {
-    if (err?.name === 'AbortError') {
-      throw new Error(
-        `coastlines.json did not respond within ${COASTLINE_FETCH_TIMEOUT_MS} ms`);
-    }
-    throw err;
-  } finally {
-    clearTimeout(timer);
+  const data = await fetchJson('./data/coastlines.json', { label: 'coastlines.json' });
+  if (!Array.isArray(data?.rings) || data.rings.length === 0) {
+    throw new Error('coastlines.json contained no rings');
   }
+  rings = data.rings;
 }
 
 function canvas2d(w, h) {
