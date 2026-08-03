@@ -260,6 +260,16 @@ export async function generateTextures() {
     TEXTURES.ready = true;
   } catch (err) {
     console.warn('Texture generation failed; falling back to flat colour.', err);
+    // Null out EVERY field, not just ready: a throw partway through the try
+    // block above leaves every field assigned before the throw point still
+    // populated. Partial texture state is indistinguishable from success to
+    // a consumer that only checks its own field (e.g. makeSun checking
+    // TEXTURES.sun) instead of TEXTURES.ready, so a half-populated cache is
+    // as dangerous as a wrongly-flagged one.
+    TEXTURES.earth = null; TEXTURES.earthNormal = null;
+    TEXTURES.disc = null; TEXTURES.discNormal = null;
+    TEXTURES.oceanNormal = null;
+    TEXTURES.sun = null; TEXTURES.moon = null;
     TEXTURES.ready = false;
   }
   const ms = Math.round(performance.now() - started);

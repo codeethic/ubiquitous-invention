@@ -196,8 +196,13 @@ export function makeDisc(radiusKm) {
  * corrupting exactly the silhouette sun-size measures.
  *
  * Falls back to the old plain emissive sphere when texture generation failed
- * (TEXTURES.sun is null): an untextured SpriteMaterial renders as a bright
- * SQUARE, which would be a regression from the sphere this replaces.
+ * (TEXTURES.ready is false): an untextured SpriteMaterial renders as a
+ * bright SQUARE, which would be a regression from the sphere this replaces.
+ * Gated on TEXTURES.ready rather than TEXTURES.sun directly, so this branch
+ * and applyMaterials()'s decision to populate sunSprite's map can never
+ * disagree — generateTextures() can otherwise throw after TEXTURES.sun is
+ * assigned but before ready flips true, leaving .sun truthy with no map
+ * ever applied.
  *
  * Before this, both scenes lit from a DirectionalLight hard-coded at (1,1,1)
  * while the sun mesh was moved independently by physics. The glowing sphere
@@ -212,7 +217,7 @@ export function makeDisc(radiusKm) {
 export function makeSun(diameterKm) {
   const g = new THREE.Group();
   let visual;
-  if (TEXTURES.sun) {
+  if (TEXTURES.ready) {
     visual = new THREE.Sprite(MATERIALS.sunSprite);
     visual.scale.set(diameterKm, diameterKm, 1);
   } else {
