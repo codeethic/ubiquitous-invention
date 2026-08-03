@@ -46,10 +46,20 @@ export default {
     spin += dt * 0.25;
     const tilt = (90 - Math.abs(state.latDeg)) * DEG;
 
-    // Flat: one dome, always pivoting about the disc's centre, so the tilt is
-    // fixed to the northern pole regardless of where the observer stands.
+    // Flat: one dome on one pivot, turning the same way for every observer.
+    //
+    // The tilt uses |latDeg|, NOT the signed value. With the signed value the
+    // flat tilt becomes (180° − globeTilt) for southern latitudes, and the
+    // resulting angular-velocity vector is *exactly equal* to the globe's
+    // southern one — verified: at −35° both are (−0.819, −0.574, 0). The two
+    // panes would then spin identically while the readout claimed they differ,
+    // which is the module's entire argument.
+    //
+    // Note the panes SHOULD look identical for northern latitudes: there the
+    // readout says both are CCW, because the flat model genuinely does agree in
+    // the north. Only the southern half must diverge.
     flatStars.rotation.set(0, 0, 0);
-    flatStars.rotateZ((90 - state.latDeg) * DEG);
+    flatStars.rotateZ((90 - Math.abs(state.latDeg)) * DEG);
     flatStars.rotateY(spin);
 
     // Globe: the pole the observer sees flips with hemisphere, and so does the
