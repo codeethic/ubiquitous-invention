@@ -52,19 +52,30 @@ number next to a wrong picture is a failing item.
       globe **3.8 m** hidden, flat **0.0 m**. Picture: on the globe pane the
       ship's hull is progressively occluded from the bottom as distance
       increases; on the flat pane the ship only shrinks with distance and its
-      full hull stays visible at every range.
+      full hull stays visible at every range. The globe's horizon line must
+      read as a smooth curve, not a faceted polygon edge, and the hull must
+      disappear continuously rather than in visible steps — the original
+      defect was a facet spanning 313 km across a 3.8 m effect, so the
+      surface looked flat.
 - [ ] **Eratosthenes** — the readout gives a globe radius of **6371 km** from
       both gnomon pairs, and flat sun altitudes that disagree by over 20%
       between the two sites. Picture: three gnomons stand upright and cast
       shadows in each pane.
 - [ ] **Midnight sun** — at the defaults (latitude −70°, day 355) the readout
       reads flat **7.0 h** vs globe **24.0 h**. At (70°, day 172) both read
-      **24.0 h** and the on-screen text says the flat model agrees with
-      observation at that combination.
+      **24.0 h** and the on-screen text says the flat model agrees there —
+      that concession is deliberate, not a bug. Picture: the observer marker
+      must stand OUT from the surface along the local vertical in both
+      panes, at every latitude tested — at −70° it previously pointed into
+      the globe. The sun must visibly circle without setting in the globe
+      pane at the default, and visibly dip below the horizon in the flat
+      pane.
 - [ ] **Sun size** — at noon both panes read ≈**0.533°** and the two rendered
-      suns look the same apparent size. Moving to 18:00, the flat figure
-      falls to ≈**33%** of the noon value and the flat pane's sun disc must
-      visibly shrink to match; the globe pane's sun does not change size.
+      suns look the same apparent size. Moving to 18:00 **on the default day
+      81**, the flat figure falls to ≈**33%** of the noon value (it ranges
+      27–43% across the year, so check at the default date) and the flat
+      pane's sun disc must visibly shrink to match; the globe pane's sun
+      does not change size.
 - [ ] **Lunar eclipse** — at 55° the flat pane's shadow renders as a visibly
       flattened ellipse; at 85° it collapses toward a near-linear sliver. The
       globe pane's shadow stays circular at both angles. Picture: orbiting
@@ -92,11 +103,24 @@ number next to a wrong picture is a failing item.
   - Fixed-camera (no orbit at all, dragging does nothing): horizon, sun
     size — their readouts assert a claim that only holds from one specific
     eye position, so the camera must not move.
-- [ ] Switching phenomena repeatedly does not slow the app down or increase
-      the camera drag rate (listener leak check) — drag responsiveness after
-      20+ switches should feel identical to the first load.
+- [ ] Switching phenomena repeatedly does not slow the app down. After 20+
+      switches, dragging still moves the camera by the same amount per pixel
+      as it did before switching — a doubled rate means listeners
+      accumulated (listener leak check).
 - [ ] Below 900 px viewport width, the two panes stack vertically with the
       **flat pane on top**, and nothing scrolls sideways at any width.
+
+## Outstanding: verify the published site after merge
+
+The Jekyll publish check could not be run locally (no Ruby toolchain).
+After the first deploy, confirm on the live site:
+
+- [ ] `/flat-earth/` loads and both panes render
+- [ ] `/flat-earth/third-party/three.module.js` and `three.core.js` both
+      return 200 — if either 404s the app is blank, and nothing else on
+      this list will work
+- [ ] `/superpowers/` is NOT published (design docs are excluded)
+- [ ] `/flat-earth/test/` is NOT published
 
 ## Module contract (frozen at Task 7)
 
