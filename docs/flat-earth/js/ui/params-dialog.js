@@ -5,7 +5,7 @@ const PARAMS = [
   ['Flat disc radius', '20 015 km (pole to −90° rim)'],
   ['Flat sun altitude', '5000 km'],
   ['Flat sun diameter', 'Derived — sized to subtend the observed 0.533° overhead'],
-  ['Flat spotlight radius', '14 153 km — lights exactly half the disc by area'],
+  ['Flat spotlight radius', '14 153 km — chosen so a centred circle would cover half the disc'],
   ['Cruise speed for flight times', '900 km/h'],
   ['Atmospheric refraction', 'Excluded from all calculations'],
   ['Time zone offsets', 'Standard time; daylight saving ignored'],
