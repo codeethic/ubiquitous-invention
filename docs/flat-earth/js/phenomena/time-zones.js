@@ -9,7 +9,12 @@ import { MATERIALS } from '../lib/materials.js';
 import { createOrbitRig } from '../lib/camera-rig.js';
 
 let cities = null;
-let flatRoot, globeRoot, flatRig, globeRig, spotlight, terminator, cityDots = [];
+let flatRoot, globeRoot, flatRig, globeRig, spotlight, terminator, cityDots = [], globeCityDots = [];
+
+// The half-sphere's patch is centred on its local +Z; this vector rotates onto
+// the antisolar direction to place night on the correct side of the globe.
+const PATCH_AXIS = new THREE.Vector3(0, 0, 1);
+const ANTISOLAR = new THREE.Vector3();
 
 const localHour = (city, utcHours) => ((utcHours + city.utcOffset) % 24 + 24) % 24;
 
@@ -42,6 +47,8 @@ export default {
       new THREE.MeshBasicMaterial({ color: 0xffd27f, transparent: true, opacity: 0.18 }));
     spotlight.rotation.x = -Math.PI / 2;
     spotlight.position.y = 20;
+    // Fix 4a: Flag the spotlight material so disposeTree frees it
+    spotlight.userData.ownsMaterial = true;
     flatRoot.add(spotlight);
 
     globeRoot = new THREE.Group();
@@ -61,6 +68,16 @@ export default {
       return dot;
     });
 
+    // Fix 3: Create city dots for the globe pane so both panes show cities
+    globeCityDots = cities.map(() => {
+      const dot = new THREE.Mesh(
+        new THREE.SphereGeometry(120, 12, 8),
+        new THREE.MeshBasicMaterial({ color: 0xffffff }));
+      dot.userData.ownsMaterial = true;
+      globeRoot.add(dot);
+      return dot;
+    });
+
     flatRig = createOrbitRig({ distance: FLAT_DISC_RADIUS_KM * 1.7, far: 1e6, polar: 0.35 });
     globeRig = createOrbitRig({ distance: R_EARTH_KM * 3.5, far: 1e6 });
 
@@ -75,14 +92,41 @@ export default {
     const p = azimuthalEquidistantXY(sub);
     spotlight.position.set(p.x, 20, p.y);
 
-    // The night hemisphere faces away from the subsolar point.
-    terminator.rotation.set(0, -(sub.lon + 90) * DEG, 0);
+    // Fix 1: Point the dark hemisphere at the antisolar direction.
+    //
+    // Do NOT hand-compose a Y-rotation. The half-sphere's patch is centred on
+    // its own local +Z, and an earlier `rotation.set(0, -(sub.lon + 90)*DEG, 0)`
+    // put that centre at (−cos L, 0, −sin L) when the antisolar direction is
+    // (−sin L, 0, −cos L). Those agree only at UTC 9 and 21: the boundary was
+    // 90° off at UTC 0, 6, 12 and 18, and fully inverted at UTC 3 — day and
+    // night on the wrong sides, at the module's own default hour, while every
+    // readout number stayed correct.
+    //
+    // A quaternion from the patch axis also carries solar declination, so the
+    // boundary now tilts with the seasons instead of staying a fixed vertical
+    // great circle through the poles.
+    const dRad = sub.lat * DEG, lRad = sub.lon * DEG;
+    ANTISOLAR.set(
+      -Math.cos(dRad) * Math.sin(lRad),
+      -Math.sin(dRad),
+      -Math.cos(dRad) * Math.cos(lRad)).normalize();
+    terminator.quaternion.setFromUnitVectors(PATCH_AXIS, ANTISOLAR);
 
     cities.forEach((c, i) => {
       const q = azimuthalEquidistantXY(c);
       cityDots[i].position.set(q.x, 60, q.y);
       const lit = isDaylitFlat(c, state.dayOfYear, state.utcHours);
       cityDots[i].material.color.set(lit ? 0xffd27f : 0x44506a);
+
+      // Fix 3: Position and colour globe city dots using 3D cartesian coords
+      const phi = c.lat * DEG, lam = c.lon * DEG;
+      const rr = R_EARTH_KM * 1.01;
+      globeCityDots[i].position.set(
+        rr * Math.cos(phi) * Math.sin(lam),
+        rr * Math.sin(phi),
+        rr * Math.cos(phi) * Math.cos(lam));
+      const litG = isDaylitGlobe(c, state.dayOfYear, state.utcHours);
+      globeCityDots[i].material.color.set(litG ? 0xffd27f : 0x44506a);
     });
   },
 
@@ -104,8 +148,14 @@ export default {
     const litFlat = cities.filter(c => isDaylitFlat(c, state.dayOfYear, state.utcHours));
     const litGlobe = cities.filter(c => isDaylitGlobe(c, state.dayOfYear, state.utcHours));
 
+    // Fix 4b: Format local time with minutes, not just hours
     const sample = mismatches.slice(0, 3)
-      .map(c => `${c.name} ${String(Math.floor(localHour(c, state.utcHours))).padStart(2, '0')}:00`)
+      .map(c => {
+        const h = localHour(c, state.utcHours);
+        const hh = String(Math.floor(h)).padStart(2, '0');
+        const mm = String(Math.round((h % 1) * 60)).padStart(2, '0');
+        return `${c.name} ${hh}:${mm}`;
+      })
       .join(', ');
 
     return {
@@ -133,5 +183,6 @@ export default {
     disposeTree(flatRoot); disposeTree(globeRoot);
     flatRoot = globeRoot = flatRig = globeRig = spotlight = terminator = null;
     cityDots = [];
+    globeCityDots = [];
   },
 };
