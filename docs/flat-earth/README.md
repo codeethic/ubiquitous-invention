@@ -7,9 +7,21 @@ against observation. Design spec:
 ## Run locally
 
     cd docs/flat-earth
-    python -m http.server
+    python serve.py
 
 Open http://localhost:8000
+
+Use `serve.py`, **not** `python -m http.server`. Python's `mimetypes` seeds
+itself from the Windows registry, and on many Windows machines
+`HKEY_CLASSES_ROOT\.js` carries `Content Type = text/plain`. `http.server`
+then serves every module as text/plain and the browser refuses the whole
+import graph under strict MIME checking — a blank page whose only symptom is
+`Expected a JavaScript-or-Wasm module script but the server responded with a
+MIME type of "text/plain"`. Nothing is wrong with the app when this happens.
+`serve.py` pins the types it serves instead of trusting the host registry.
+
+This affects local serving only. GitHub Pages sends the correct
+`text/javascript`, so the published site is unaffected.
 
 ## Tests
 
