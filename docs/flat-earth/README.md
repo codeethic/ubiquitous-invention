@@ -27,7 +27,18 @@ This affects local serving only. GitHub Pages sends the correct
 
     node --test "docs/flat-earth/test/**/*.test.js"
 
-Covers `js/physics/` only — pure math, no browser required.
+No browser required. Covers `js/physics/` — the pure math behind every readout
+— plus `js/lib/noise.js`, `js/lib/map-projection.js`, `js/lib/signal-budget.js`,
+`js/app-state.js` and the contents of `data/coastlines.json`.
+
+`test/projection-vs-geometry.test.js` goes one step further and imports the
+vendored Three.js by relative path (Node has no import map, so it cannot use
+the bare `three` specifier the app uses), building real `SphereGeometry` and
+`CircleGeometry` to check each projection against the UVs the geometry that
+consumes it actually carries. That is a different question from
+`map-projection.test.js`, which only checks each projection against itself: a
+map can be internally perfect and still painted onto the wrong part of the
+mesh, which is exactly what happened to both surfaces.
 
 ## Three.js
 
@@ -155,6 +166,23 @@ number next to a wrong picture is a failing item.
       with the north pole centred and Antarctica around the rim. Spot-check
       three: Australia is an island, Antarctica surrounds the disc's edge
       rather than sitting as a blob, and the Americas are west of Africa.
+- [ ] **The map is registered to the markers, not merely present.** The check
+      above cannot see a *uniform* longitude offset: a globe rotated bodily by
+      90° still has every continent the right shape, the right size and in the
+      right order, and still looks entirely correct. Test the registration
+      instead, with a marker whose longitude the app computes independently of
+      the texture. In **Time zones**, set day 172 / UTC 12 and confirm the
+      **London** marker sits on the south-east coast of Great Britain, with
+      the Atlantic to its west and mainland Europe to its east — not out in
+      open ocean and not over central Asia. Then confirm the lit hemisphere at
+      that hour is centred on **Africa and Europe**, not on the Americas. The
+      globe's map was 90° out in longitude for the whole of the realistic-
+      rendering branch and every general "do the continents look right?" check
+      passed. (**Sydney** in **Flight routes** is the equivalent southern
+      check: the SYD end of the arc must touch the south-east corner of
+      Australia.) Note that **McMurdo** genuinely falls in water — Natural
+      Earth 110m does not resolve Ross Island — so it is not evidence of an
+      offset either way.
 - [ ] **The ocean has no waves.** Surface texture and shading detail only. Any
       visible vertical relief on the sea means displacement crept in and the
       horizon module's 3.79 m signal is compromised.
@@ -167,16 +195,38 @@ number next to a wrong picture is a failing item.
       or an observer's latitude and watch the shadow move and rescale as the
       `DirectionalLight`'s angle changes, cast by Three.js's own shadow
       mapping from a light placed at the solar declination. The flat pane has
-      no light and never will: a forward-simulated flat sun would be
+      no *sun* and never will: a forward-simulated flat sun would be
       tautologically self-consistent and could only draw tidy, agreeing
       shadows, hiding the very contradiction this module exists to show (that
       is what the two disagreeing inferred sun altitudes in the flat readout
-      report). Do not "fix" the flat pane by giving it a light — that would
-      remove the module's argument, not complete it.
+      report). Do not "fix" the flat pane by giving it a shadow-casting light
+      — that would remove the module's argument, not complete it. It does
+      carry a fixed, non-shadow-casting fill so the two panes read at
+      comparable brightness; confirm that the flat pane's shadows still move
+      only in response to the readout's numbers, and that changing the day of
+      year never changes the *fill's* direction.
+- [ ] **The two Eratosthenes panes are comparably bright.** They are shown
+      side by side to be compared, so a large brightness difference between
+      them is itself a defect. The globe pane's shadow-casting sun is at
+      intensity 2.4 and the flat pane's fill at 1.8; the mismatch is
+      deliberate (a flat plane facing the light head-on averages far more of
+      its peak than a sphere does). If one pane still reads as obviously the
+      brighter, the fill in `eratosthenes.js` is the dial.
 - [ ] **The solar disc has a sharp edge** with no halo, bloom or flare —
       `sun-size` measures that edge.
-- [ ] **Boot stays under 400 ms of texture generation.** The console logs
-      `[flat-earth] textures generated in NNN ms` and warns above budget.
+- [ ] **Texture generation time is logged, and the warning above 400 ms is
+      currently EXPECTED.** The console logs `[flat-earth] textures generated
+      in NNN ms`. The 400 ms ceiling is not met and the warning is left firing
+      deliberately rather than widened away. Octave reduction — the design's
+      stated first lever — has been taken as far as it goes: even collapsing
+      every `fbm`/`ridge` call in the app to a single octave, which is no
+      longer fractal noise at all, floors at ~376 ms of pure arithmetic before
+      a single canvas call, because the cost is 1.6 M per-pixel evaluations
+      across 1024×512 plus 1024×1024, not the octaves inside each one. The
+      remaining lever is resolution (halving the disc to 512² removes roughly
+      half the total), which is a visual-quality decision. What this item
+      checks is that the number is being logged and has not *regressed*:
+      compare it against the previous run rather than against 400.
 - [ ] **Degradation:** rename `data/coastlines.json` and reload. The app must
       boot fully with untextured surfaces, all eight phenomena working and no
       error card. Restore it afterwards.
