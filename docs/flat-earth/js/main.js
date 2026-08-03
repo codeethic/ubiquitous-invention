@@ -7,6 +7,7 @@ import { renderReadout } from './ui/readout.js';
 import { showErrorCard, clearErrorCard } from './ui/error-card.js';
 import { setLoading } from './ui/loading.js';
 import { renderParamsDialog } from './ui/params-dialog.js';
+import { loadCoastlines, generateTextures } from './lib/textures.js';
 
 const canvas = document.getElementById('scene-canvas');
 const canvasError = document.getElementById('canvas-error');
@@ -141,6 +142,17 @@ async function boot() {
       `${err.message} — the numeric readouts below still work.`);
     canvas.hidden = true;
   }
+
+  // Textures are an enhancement, never a dependency. A missing or malformed
+  // coastlines.json must not take the app down: seven of the eight modules
+  // need no geography at all, and the eighth degrades to an untextured globe
+  // with every readout intact. Nothing here may add a new way to go blank.
+  try {
+    await loadCoastlines();
+  } catch (err) {
+    console.warn('Coastline data unavailable; surfaces render without land.', err);
+  }
+  await generateTextures();
 
   renderSelector(document.getElementById('phenomenon-select'),
     MODULES, MODULES[0].id, activate);
