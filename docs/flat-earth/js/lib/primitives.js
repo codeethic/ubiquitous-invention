@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { MATERIALS, SURFACE } from './materials.js';
 import { OCEAN_DISPLACEMENT_M } from './signal-budget.js';
+import { TEXTURES } from './textures.js';
 
 /**
  * Flat ocean plane, sizeKm across, lying in the XZ plane at y = 0.
@@ -128,7 +129,7 @@ export function makeObserverMarker(scaleKm = 200) {
   post.position.y = scaleKm / 2;
   post.castShadow = true;
   const cap = new THREE.Mesh(
-    new THREE.SphereGeometry(scaleKm * 0.16, 12, 8), MATERIALS.sunGlow);
+    new THREE.SphereGeometry(scaleKm * 0.16, 12, 8), MATERIALS.marker);
   cap.position.y = scaleKm;
   g.add(post, cap);
   return g;
@@ -138,10 +139,16 @@ export function makeObserverMarker(scaleKm = 200) {
  * Recursively free geometry owned by a subtree. Shared MATERIALS are never
  * freed — only materials a mesh explicitly owns, flagged with
  * `userData.ownsMaterial` (e.g. the ship's cloned double-sided sail).
+ *
+ * `THREE.Sprite` is deliberately skipped: every Sprite in the app shares ONE
+ * module-level BufferGeometry internal to Three.js (it's how Sprite is
+ * implemented, not something we opted into). Disposing it here would free
+ * that shared geometry on the very first module switch and permanently break
+ * every sprite created afterwards, app-wide. Do not "simplify" this away.
  */
 export function disposeTree(root) {
   root.traverse(obj => {
-    if (obj.geometry) obj.geometry.dispose();
+    if (obj.geometry && !obj.isSprite) obj.geometry.dispose();
     if (obj.userData?.ownsMaterial && obj.material) obj.material.dispose();
   });
 }
@@ -178,7 +185,19 @@ export function makeDisc(radiusKm) {
 }
 
 /**
- * Emissive sun sphere of the given diameter, WITH its light attached.
+ * Emissive sun of the given diameter, WITH its light attached.
+ *
+ * Renders as a camera-facing Sprite when the procedural sun-disc texture is
+ * available: a sprite is an exact circle from every angle, which preserves
+ * limb darkening and gives sun-size a clean silhouette to measure the sun's
+ * apparent angular diameter against. A SphereGeometry cannot be used with
+ * this texture — the disc texture's alpha-0 corners (outside its circular
+ * disc) wrap onto the sphere's equirectangular UVs and punch holes in it,
+ * corrupting exactly the silhouette sun-size measures.
+ *
+ * Falls back to the old plain emissive sphere when texture generation failed
+ * (TEXTURES.sun is null): an untextured SpriteMaterial renders as a bright
+ * SQUARE, which would be a regression from the sphere this replaces.
  *
  * Before this, both scenes lit from a DirectionalLight hard-coded at (1,1,1)
  * while the sun mesh was moved independently by physics. The glowing sphere
@@ -192,11 +211,17 @@ export function makeDisc(radiusKm) {
  */
 export function makeSun(diameterKm) {
   const g = new THREE.Group();
-  const mesh = new THREE.Mesh(
-    new THREE.SphereGeometry(diameterKm / 2, 48, 32), MATERIALS.sunGlow);
+  let visual;
+  if (TEXTURES.sun) {
+    visual = new THREE.Sprite(MATERIALS.sunSprite);
+    visual.scale.set(diameterKm, diameterKm, 1);
+  } else {
+    visual = new THREE.Mesh(
+      new THREE.SphereGeometry(diameterKm / 2, 48, 32), MATERIALS.sunGlow);
+  }
   const light = new THREE.DirectionalLight(0xfff4e0, 2.2);
-  g.add(mesh, light);
+  g.add(visual, light);
   g.userData.light = light;
-  g.userData.mesh = mesh;
+  g.userData.mesh = visual;
   return g;
 }
