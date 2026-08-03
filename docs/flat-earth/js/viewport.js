@@ -10,14 +10,28 @@ export function createDualViewport(canvas) {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setScissorTest(true);
   renderer.setClearColor(0x0b0e13, 1);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  // ACES compresses highlights globally, and horizon reads hull occlusion
+  // against a bright limb. If that contrast measurably suffers, this comes
+  // back off: the measurement outranks the look.
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const flatScene = new THREE.Scene();
   const globeScene = new THREE.Scene();
+  // Ambient plus a weak hemisphere fill only.
+  //
+  // The old fixed DirectionalLight at (1,1,1) is deliberately gone: it lit
+  // every scene from a corner that had nothing to do with where the sun was,
+  // which was invisible while nothing cast shadows and becomes a contradiction
+  // the moment something does. Modules that have a sun now bring their own
+  // light with it (see makeSun); modules that do not are lit by this fill,
+  // which is intentionally too weak to cast anything.
   for (const scene of [flatScene, globeScene]) {
-    scene.add(new THREE.AmbientLight(0xffffff, 0.35));
-    const key = new THREE.DirectionalLight(0xffffff, 1.1);
-    key.position.set(1, 1, 1);
-    scene.add(key);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.28));
+    scene.add(new THREE.HemisphereLight(0x93b4d8, 0x0b0e13, 0.45));
   }
 
   let flatCam = null, globeCam = null;
