@@ -22,6 +22,11 @@ Pour something. Stay a while.
 
 Let's fuckin' go.
 
+## &gt; projects
+
+- [Flat Earth Lab](/flat-earth/) — split-screen simulator comparing flat and
+  globe models against observation.
+
 ## &gt; latest posts
 
 <ul class="posts">
