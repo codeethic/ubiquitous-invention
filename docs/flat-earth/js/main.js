@@ -8,6 +8,7 @@ import { showErrorCard, clearErrorCard } from './ui/error-card.js';
 import { setLoading } from './ui/loading.js';
 import { renderParamsDialog } from './ui/params-dialog.js';
 import { loadCoastlines, generateTextures } from './lib/textures.js';
+import { applyMaterials } from './lib/materials.js';
 
 const canvas = document.getElementById('scene-canvas');
 const canvasError = document.getElementById('canvas-error');
@@ -153,6 +154,7 @@ async function boot() {
     console.warn('Coastline data unavailable; surfaces render without land.', err);
   }
   await generateTextures();
+  applyMaterials();
 
   renderSelector(document.getElementById('phenomenon-select'),
     MODULES, MODULES[0].id, activate);
