@@ -20,6 +20,11 @@ export const FLAT_DISC_RADIUS_KM = R_EARTH_KM * Math.PI;
  */
 export const FLAT_SPOTLIGHT_RADIUS_KM = FLAT_DISC_RADIUS_KM / Math.SQRT2;
 
+/**
+ * Typical long-haul jet cruise speed, used to turn a route distance into an
+ * implied flight time. An assumption, not a measurement — the flight-routes
+ * module displays it on screen so the implied hours can be checked.
+ */
 export const CRUISE_SPEED_KMH = 900;
 
 export const DEG = Math.PI / 180;

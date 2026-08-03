@@ -53,6 +53,14 @@ export function azimuthalEquidistantKm(a, b) {
   return Math.hypot(p.x - q.x, p.y - q.y);
 }
 
+/**
+ * Flight time implied by a distance, at a stated cruise speed.
+ *
+ * The default is CRUISE_SPEED_KMH (900 km/h), a typical long-haul jet cruise.
+ * It is a MODEL ASSUMPTION, not a measurement: the flight-routes module puts
+ * the resulting hours on screen beside real airline schedules, so the speed
+ * behind them has to be stated there too or the comparison is unauditable.
+ */
 export function flightHours(distanceKm, speedKmh = CRUISE_SPEED_KMH) {
   return distanceKm / speedKmh;
 }

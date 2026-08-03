@@ -71,6 +71,23 @@ test('the north pole sits at the centre of the disc map', () => {
 });
 
 test('a point is zero distance from itself under both metrics', () => {
-  assert.equal(greatCircleKm(SYD, SYD), 0);
+  // Tolerance, not strict equality: the pre-clamp cosine argument only lands
+  // exactly on 1.0 for some latitudes. Other fixtures yield ~1e-4 km.
+  near(greatCircleKm(SYD, SYD), 0, 1e-3, 'great-circle self distance');
   near(azimuthalEquidistantKm(SYD, SYD), 0, 1e-6, 'AE self distance');
+});
+
+test('the disc map has a fixed orientation, not just the right scale', () => {
+  // Distances are rotation-invariant, so every other test here passes unchanged
+  // if sin and cos are swapped in azimuthalEquidistantXY — verified: SYD→SCL is
+  // byte-identical either way. Task 16 renders raw {x, y}, so a 90°-rotated map
+  // would ship silently. Pin the convention: longitude 0 lies along +Y,
+  // longitude 90°E along +X.
+  const atLon0 = azimuthalEquidistantXY({ lat: 0, lon: 0 });
+  near(atLon0.x, 0, 1e-6, 'lon 0 has no X component');
+  assert.ok(atLon0.y > 0, 'lon 0 must lie along +Y');
+
+  const atLon90 = azimuthalEquidistantXY({ lat: 0, lon: 90 });
+  assert.ok(atLon90.x > 0, 'lon 90E must lie along +X');
+  near(atLon90.y, 0, 1e-6, 'lon 90E has no Y component');
 });
