@@ -5,6 +5,7 @@ import {
 } from '../physics/geodesy.js';
 import { makeDisc, makeGlobeOcean, disposeTree } from '../lib/primitives.js';
 import { createOrbitRig } from '../lib/camera-rig.js';
+import { fetchJson } from '../lib/fetch-json.js';
 
 const ROUTES = [
   { id: 'syd-scl', from: 'syd', to: 'scl', scheduledHours: 12.6 },
@@ -61,10 +62,17 @@ export default {
   // A disc map and a globe are not at the same scale; linking would be nonsense.
   linkCameras: false,
 
+  /**
+   * Bounded by fetchJson rather than a bare fetch. `activate()` awaits this
+   * before build(), so a STALLED connection - a captive portal, or a proxy
+   * that accepts and never answers - would never reject and would leave the
+   * switch half-finished forever: an empty canvas under the controls of the
+   * phenomenon the user just left. Failing loudly after 5 s is strictly
+   * better, and the harness already knows what to do with a thrown Error
+   * (a per-module card; every other phenomenon stays selectable).
+   */
   async load() {
-    const res = await fetch('./data/cities.json');
-    if (!res.ok) throw new Error(`cities.json returned HTTP ${res.status}`);
-    cities = await res.json();
+    cities = await fetchJson('./data/cities.json', { label: 'cities.json' });
   },
 
   build() {
