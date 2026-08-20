@@ -1,0 +1,812 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Retirement Academy</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* ============================ TOKENS ============================ */
+:root{
+  color-scheme: light;
+  --paper:#eef0f4;
+  --plane:#e7e9ef;
+  --surface:#fbfcfd;
+  --surface-2:#f2f4f8;
+  --ink:#141b24;
+  --ink-soft:#48545f;
+  --ink-mute:#79838d;
+  --line:#d7dce3;
+  --line-soft:#e5e9ef;
+  --brand:#0c6e66;      /* teal — chrome, active, links */
+  --brand-deep:#084f49;
+  --brand-wash:#dff0ed;
+  --keep:#1a8a54;       /* money you keep */
+  --keep-wash:#dcefe3;
+  --tax:#c04327;        /* money to tax */
+  --tax-wash:#f6e2da;
+  --warn:#c98a06;       /* RMD / caution */
+  --warn-wash:#f6ebd2;
+  /* bracket sequential ramp (blue) */
+  --b1:#cfe0f4; --b2:#a9c8ec; --b3:#7aa9e0; --b4:#4f88d1; --b5:#356cb8; --b6:#274f8c; --b7:#1c3a66;
+  --shadow:0 1px 2px rgba(20,27,36,.06), 0 8px 24px -12px rgba(20,27,36,.18);
+  --shadow-lg:0 2px 4px rgba(20,27,36,.05), 0 24px 48px -20px rgba(20,27,36,.30);
+  --r:14px; --r-sm:9px;
+  --maxw:1080px;
+  --read:64ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --paper:#0d1218;
+    --plane:#090d12;
+    --surface:#151d26;
+    --surface-2:#1b242f;
+    --ink:#eef2f6;
+    --ink-soft:#b3bdc7;
+    --ink-mute:#7d8893;
+    --line:#28323d;
+    --line-soft:#20293350;
+    --brand:#3fb8ac;
+    --brand-deep:#7fd6cd;
+    --brand-wash:#123330;
+    --keep:#41c07e;
+    --keep-wash:#123526;
+    --tax:#e77a5c;
+    --tax-wash:#3a1f17;
+    --warn:#e6b13e;
+    --warn-wash:#33290f;
+    --b1:#20334d; --b2:#28466b; --b3:#345b8c; --b4:#4074ad; --b5:#5a8cc4; --b6:#84accd; --b7:#b6cfe6;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+    --shadow-lg:0 2px 6px rgba(0,0,0,.5), 0 28px 56px -22px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#0d1218; --plane:#090d12; --surface:#151d26; --surface-2:#1b242f;
+  --ink:#eef2f6; --ink-soft:#b3bdc7; --ink-mute:#7d8893;
+  --line:#28323d; --line-soft:#20293350;
+  --brand:#3fb8ac; --brand-deep:#7fd6cd; --brand-wash:#123330;
+  --keep:#41c07e; --keep-wash:#123526;
+  --tax:#e77a5c; --tax-wash:#3a1f17;
+  --warn:#e6b13e; --warn-wash:#33290f;
+  --b1:#20334d; --b2:#28466b; --b3:#345b8c; --b4:#4074ad; --b5:#5a8cc4; --b6:#84accd; --b7:#b6cfe6;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+  --shadow-lg:0 2px 6px rgba(0,0,0,.5), 0 28px 56px -22px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto} *{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:17px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+h1,h2,h3,h4{font-family:"Spectral",Georgia,"Times New Roman",serif;font-weight:600;line-height:1.12;text-wrap:balance;margin:0}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+a{color:var(--brand);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ============================ TOP BAR ============================ */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  background:color-mix(in srgb, var(--paper) 86%, transparent);
+  backdrop-filter:saturate(1.4) blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.topbar-in{max-width:var(--maxw);margin:0 auto;padding:.6rem 1.25rem;display:flex;align-items:center;gap:1rem}
+.brandmark{display:flex;align-items:center;gap:.6rem;font-family:"Spectral",serif;font-weight:600;font-size:1.06rem;letter-spacing:.01em;white-space:nowrap}
+.brandmark .glyph{width:26px;height:26px;flex:0 0 auto;display:grid;place-items:center;border-radius:7px;background:var(--brand);color:#fff;font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:.82rem}
+.progress-rail{flex:1;display:flex;align-items:center;gap:.5rem;min-width:0;justify-content:center}
+.pdot{display:flex;align-items:center;gap:.4rem;padding:.25rem .5rem;border-radius:999px;font-size:.72rem;color:var(--ink-mute);cursor:pointer;border:1px solid transparent;white-space:nowrap;background:none;font-family:inherit}
+.pdot:hover{color:var(--ink);background:var(--surface-2)}
+.pdot .ring{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--ink-mute)}
+.pdot[data-done="1"] .ring{background:var(--keep);border-color:var(--keep)}
+.pdot.active{color:var(--ink);font-weight:600}
+.pdot.active .ring{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-wash)}
+.pdot .lbl{display:none}
+@media(min-width:860px){.pdot .lbl{display:inline}}
+.theme-btn{flex:0 0 auto;width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;display:grid;place-items:center;font-size:1rem}
+.theme-btn:hover{border-color:var(--brand)}
+
+/* ============================ LAYOUT ============================ */
+main{max-width:var(--maxw);margin:0 auto;padding:0 1.25rem 5rem}
+.wrap{max-width:var(--maxw);margin:0 auto}
+.eyebrow{font-family:"IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.16em;font-size:.7rem;font-weight:500;color:var(--brand)}
+.lede{font-size:1.16rem;line-height:1.55;color:var(--ink-soft);max-width:var(--read)}
+p{max-width:var(--read)}
+
+/* ---- HERO ---- */
+.hero{padding:3.6rem 0 2.2rem;position:relative}
+.hero h1{font-size:clamp(2.5rem,6vw,4.3rem);letter-spacing:-.015em;margin:.8rem 0 .1rem}
+.hero h1 .accent{font-style:italic;color:var(--brand)}
+.hero .sub{font-size:clamp(1.05rem,2vw,1.28rem);color:var(--ink-soft);max-width:60ch;margin-top:1rem}
+.hero-cta{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1.8rem}
+.btn{font-family:inherit;font-size:.95rem;font-weight:600;padding:.7rem 1.25rem;border-radius:10px;border:1px solid transparent;cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;transition:transform .12s ease,box-shadow .12s ease}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--brand);color:#fff;box-shadow:var(--shadow)}
+.btn-primary:hover{box-shadow:var(--shadow-lg);text-decoration:none}
+.btn-ghost{background:var(--surface);color:var(--ink);border-color:var(--line)}
+.btn-ghost:hover{border-color:var(--brand);text-decoration:none}
+
+.hero-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:2.6rem}
+.hero-strip .cell{background:var(--surface);padding:1.1rem 1.15rem}
+.hero-strip .k{font-family:"Spectral",serif;font-size:1.9rem;font-weight:600;line-height:1}
+.hero-strip .k.keep{color:var(--keep)} .hero-strip .k.tax{color:var(--tax)} .hero-strip .k.warn{color:var(--warn)}
+.hero-strip .d{font-size:.82rem;color:var(--ink-mute);margin-top:.4rem}
+@media(max-width:640px){.hero-strip{grid-template-columns:1fr}}
+
+/* ---- MODULE ---- */
+.module{padding:3.4rem 0 1rem;border-top:1px solid var(--line);margin-top:2.4rem;scroll-margin-top:64px}
+.module-head{display:flex;gap:1.1rem;align-items:flex-start}
+.module-num{flex:0 0 auto;width:46px;height:46px;border-radius:12px;background:var(--brand-wash);color:var(--brand);display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:1.15rem;border:1px solid color-mix(in srgb,var(--brand) 25%,transparent)}
+.module h2{font-size:clamp(1.7rem,3.4vw,2.4rem);letter-spacing:-.01em}
+.module-head .eyebrow{margin-bottom:.35rem}
+.prose{margin-top:1.4rem}
+.prose p{margin:0 0 1rem}
+.prose strong{color:var(--ink);font-weight:600}
+.callout{border-left:3px solid var(--brand);background:var(--surface-2);padding:.85rem 1.1rem;border-radius:0 var(--r-sm) var(--r-sm) 0;margin:1.3rem 0;font-size:.96rem;max-width:var(--read)}
+.callout.warn{border-color:var(--warn);background:var(--warn-wash)}
+.callout .tag{font-family:"IBM Plex Mono",monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-mute);display:block;margin-bottom:.2rem}
+
+/* ---- PLAYGROUND CARD ---- */
+.play{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);margin:1.8rem 0;overflow:hidden}
+.play-head{padding:1rem 1.25rem;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.play-head .chip{font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;padding:.22rem .5rem;border-radius:6px;background:var(--brand-wash);color:var(--brand-deep);font-weight:500}
+.play-head h3{font-size:1.12rem}
+.play-body{padding:1.25rem}
+.controls{display:grid;gap:1.15rem}
+.ctl label{display:flex;justify-content:space-between;align-items:baseline;font-size:.86rem;color:var(--ink-soft);margin-bottom:.45rem;gap:1rem}
+.ctl label .val{font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink);font-size:.95rem}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:6px;background:var(--surface-2);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--brand);border:3px solid var(--surface);box-shadow:var(--shadow);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--brand);border:3px solid var(--surface);box-shadow:var(--shadow);cursor:pointer}
+input[type=range]:focus-visible{box-shadow:0 0 0 3px var(--brand-wash)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface-2)}
+.seg button{font-family:inherit;font-size:.82rem;font-weight:500;padding:.42rem .8rem;border:none;background:none;color:var(--ink-soft);cursor:pointer}
+.seg button.on{background:var(--brand);color:#fff}
+.readouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:var(--line-soft);border:1px solid var(--line-soft);border-radius:var(--r-sm);overflow:hidden;margin-top:.4rem}
+.ro{background:var(--surface);padding:.8rem .9rem}
+.ro .k{font-family:"Spectral",serif;font-size:1.5rem;font-weight:600;line-height:1}
+.ro .d{font-size:.74rem;color:var(--ink-mute);margin-top:.35rem;line-height:1.3}
+.ro .k.keep{color:var(--keep)} .ro .k.tax{color:var(--tax)} .ro .k.warn{color:var(--warn)} .ro .k.brand{color:var(--brand)}
+
+/* bracket vessel viz */
+.vessel{display:flex;flex-direction:column-reverse;border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;background:var(--surface-2)}
+.brk{position:relative;height:38px;display:flex;align-items:center;padding:0 .7rem;font-size:.78rem;border-top:1px solid var(--surface);overflow:hidden}
+.brk .fill{position:absolute;inset:0 auto 0 0;width:0;transition:width .35s cubic-bezier(.4,0,.2,1)}
+.brk .txt{position:relative;display:flex;justify-content:space-between;width:100%;z-index:1;font-family:"IBM Plex Mono",monospace}
+.brk .rate{font-weight:600}
+.brk .amt{color:var(--ink-soft)}
+.legend{display:flex;flex-wrap:wrap;gap:1rem;margin-top:.9rem;font-size:.8rem;color:var(--ink-soft)}
+.legend .li{display:flex;align-items:center;gap:.4rem}
+.legend .sw{width:13px;height:13px;border-radius:3px;flex:0 0 auto}
+
+canvas{display:block;width:100%;height:auto}
+.canvas-wrap{position:relative;margin-top:.4rem}
+
+/* ---- KNOWLEDGE CHECK ---- */
+.check{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:1.25rem 1.35rem;margin:1.8rem 0}
+.check .q{font-weight:600;font-size:1.02rem;margin-bottom:.9rem;display:flex;gap:.6rem;align-items:flex-start}
+.check .q .qm{font-family:"IBM Plex Mono",monospace;color:var(--brand);font-size:.85rem;flex:0 0 auto;padding-top:.15rem}
+.opts{display:grid;gap:.55rem}
+.opt{text-align:left;font-family:inherit;font-size:.94rem;padding:.7rem .9rem;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;transition:border-color .12s,background .12s;display:flex;gap:.6rem;align-items:flex-start}
+.opt:hover{border-color:var(--brand)}
+.opt .mk{flex:0 0 auto;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--ink-mute);display:grid;place-items:center;font-size:.72rem;color:transparent}
+.opt.correct{border-color:var(--keep);background:var(--keep-wash)}
+.opt.correct .mk{border-color:var(--keep);background:var(--keep);color:#fff}
+.opt.wrong{border-color:var(--tax);background:var(--tax-wash)}
+.opt.wrong .mk{border-color:var(--tax);background:var(--tax);color:#fff}
+.opt:disabled{cursor:default}
+.explain{margin-top:.9rem;font-size:.9rem;color:var(--ink-soft);padding:.75rem .9rem;background:var(--surface);border-radius:9px;border:1px solid var(--line-soft);display:none}
+.explain.show{display:block}
+.explain b{color:var(--ink)}
+
+/* ---- FINAL QUIZ ---- */
+.quiz-panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-lg);overflow:hidden}
+.quiz-score{padding:1.4rem 1.5rem;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.quiz-score .big{font-family:"Spectral",serif;font-size:2.4rem;font-weight:600;line-height:1}
+.quiz-meter{height:8px;border-radius:8px;background:var(--surface-2);overflow:hidden;flex:1;min-width:160px;max-width:340px}
+.quiz-meter .m{height:100%;width:0;background:var(--keep);transition:width .5s ease}
+.qitem{padding:1.3rem 1.5rem;border-bottom:1px solid var(--line-soft)}
+.qitem:last-child{border-bottom:none}
+
+/* ---- FOOTER ---- */
+.foot{border-top:1px solid var(--line);margin-top:3rem;padding-top:1.6rem;color:var(--ink-mute);font-size:.82rem}
+.foot .disc{max-width:var(--read);line-height:1.55}
+.foot .disc b{color:var(--ink-soft)}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
+@media(max-width:760px){.two-col{grid-template-columns:1fr}}
+.topic-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.4rem}
+@media(max-width:760px){.topic-grid{grid-template-columns:1fr}}
+.topic-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:1.2rem;cursor:pointer;transition:transform .14s,box-shadow .14s,border-color .14s;text-align:left;font-family:inherit;color:inherit}
+.topic-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--brand)}
+.topic-card .tn{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--brand);letter-spacing:.08em}
+.topic-card h4{font-size:1.12rem;margin:.5rem 0 .4rem}
+.topic-card p{font-size:.88rem;color:var(--ink-soft);margin:0}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-in">
+    <div class="brandmark"><span class="glyph">R</span><span>Retirement&nbsp;Academy</span></div>
+    <nav class="progress-rail" id="rail" aria-label="Module progress"></nav>
+    <button class="theme-btn" id="themeBtn" title="Toggle light / dark" aria-label="Toggle theme">◐</button>
+  </div>
+</div>
+
+<main>
+  <!-- ===================== HERO ===================== -->
+  <header class="hero wrap">
+    <div class="eyebrow">An explorable guide to retirement taxes</div>
+    <h1>Your money has a <span class="accent">second life</span> after you stop working.</h1>
+    <p class="sub">Three forces quietly decide how much of your nest egg you actually keep: the tax brackets your withdrawals fall into, the required distributions waiting at age 75, and the order in which good and bad market years happen to arrive. Play with each one below — no spreadsheets, no personal details, just the ideas.</p>
+    <div class="hero-cta">
+      <button class="btn btn-primary" onclick="go('m1')">Start the guided path →</button>
+      <button class="btn btn-ghost" onclick="go('quiz')">Jump to the quiz</button>
+    </div>
+    <div class="hero-strip">
+      <div class="cell"><div class="k keep">Brackets</div><div class="d">Why the same dollar can be taxed at 12% or 24% — and how to aim it.</div></div>
+      <div class="cell"><div class="k warn">The time-bomb</div><div class="d">How an untouched pre-tax account forces bigger taxable income every year after 75.</div></div>
+      <div class="cell"><div class="k tax">Sequence risk</div><div class="d">Why two retirees with identical average returns can end up worlds apart.</div></div>
+    </div>
+    <div class="topic-grid">
+      <button class="topic-card" onclick="go('m1')"><div class="tn">01 · PLAYGROUND</div><h4>Fill the buckets</h4><p>Drag income up and watch it pour through the brackets. Meet marginal vs. effective rates.</p></button>
+      <button class="topic-card" onclick="go('m2')"><div class="tn">02 · PLAYGROUND</div><h4>Defuse the bomb</h4><p>Grow a pre-tax balance to 75 and see the required withdrawals — then convert early and compare.</p></button>
+      <button class="topic-card" onclick="go('m3')"><div class="tn">03 · PLAYGROUND</div><h4>Shuffle the years</h4><p>Same returns, different order. Watch one portfolio survive and another run dry.</p></button>
+    </div>
+  </header>
+
+  <!-- ===================== MODULE 1 ===================== -->
+  <section class="module" id="m1">
+    <div class="module-head">
+      <div class="module-num">01</div>
+      <div>
+        <div class="eyebrow">Roth conversions &amp; brackets</div>
+        <h2>Income fills brackets like water fills a glass</h2>
+      </div>
+    </div>
+    <div class="prose">
+      <p>The U.S. uses a <strong>progressive</strong> income tax. That word gets misread constantly, so here is the whole idea in one sentence: your income is poured into a stack of buckets, each bucket has its own tax rate, and a dollar is taxed at the rate of whichever bucket it lands in — not the rate of the top bucket you reach.</p>
+      <p>Move the slider and watch the buckets fill. The <strong>marginal rate</strong> is the rate on your <em>next</em> dollar — the bucket the water is touching right now. The <strong>effective rate</strong> is the tax you actually pay divided by your whole income — always lower, because your first dollars were taxed cheaply.</p>
+    </div>
+
+    <div class="play">
+      <div class="play-head"><span class="chip">Interactive</span><h3>The bracket filler</h3></div>
+      <div class="play-body">
+        <div class="controls">
+          <div class="ctl">
+            <label for="m1-income"><span>Taxable income <span style="color:var(--ink-mute)">(after deductions)</span></span><span class="val" id="m1-income-v">$120,000</span></label>
+            <input type="range" id="m1-income" min="0" max="420000" step="1000" value="120000">
+          </div>
+          <div class="ctl">
+            <label for="m1-conv"><span>Roth conversion added on top <span style="color:var(--ink-mute)">(stacks above income)</span></span><span class="val" id="m1-conv-v">$0</span></label>
+            <input type="range" id="m1-conv" min="0" max="200000" step="1000" value="0">
+          </div>
+        </div>
+
+        <div style="margin-top:1.3rem">
+          <div class="vessel" id="m1-vessel"></div>
+          <div class="legend">
+            <div class="li"><span class="sw" style="background:var(--b4)"></span>Income taxed in this bracket</div>
+            <div class="li"><span class="sw" style="background:var(--warn);opacity:.85"></span>Roth conversion taxed here</div>
+            <div class="li"><span class="sw" style="background:var(--surface-2);border:1px solid var(--line)"></span>Empty room in the bracket</div>
+          </div>
+        </div>
+
+        <div class="readouts" style="margin-top:1.2rem">
+          <div class="ro"><div class="k brand" id="m1-marg">22%</div><div class="d">Marginal rate<br>(your next dollar)</div></div>
+          <div class="ro"><div class="k" id="m1-eff">—</div><div class="d">Effective rate<br>(what you actually pay)</div></div>
+          <div class="ro"><div class="k tax" id="m1-tax">—</div><div class="d">Total federal tax</div></div>
+          <div class="ro"><div class="k warn" id="m1-convtax">$0</div><div class="d">Tax on the conversion<br><span id="m1-convrate" class="mono" style="font-size:.7rem"></span></div></div>
+        </div>
+        <p style="font-size:.86rem;color:var(--ink-mute);margin-top:1rem;max-width:100%">Brackets shown are 2026 estimates, married filing jointly. Real returns are illustrative and simplified — this is a teaching model, not tax software.</p>
+      </div>
+    </div>
+
+    <div class="callout"><span class="tag">The insight</span>A Roth conversion is voluntarily filling a bucket <em>now</em>, at today's known rate, so that money (and all its future growth) is never taxed again. The art is choosing <strong>how much</strong> to convert: enough to top off a cheap bucket, but not so much that you spill into a pricier one.</div>
+
+    <div class="check" id="chk1" data-correct="1">
+      <div class="q"><span class="qm">Q</span><span>You're in the 22% bracket with $18,000 of room left before the 24% bracket begins. You convert $30,000 to Roth. How is that conversion taxed?</span></div>
+      <div class="opts">
+        <button class="opt" data-i="0"><span class="mk">✓</span><span>All $30,000 at 24%, because the conversion pushed you into the higher bracket.</span></button>
+        <button class="opt" data-i="1"><span class="mk">✓</span><span>The first $18,000 at 22%, and the remaining $12,000 at 24%.</span></button>
+        <button class="opt" data-i="2"><span class="mk">✓</span><span>All $30,000 at 22%, because that's the bracket you started in.</span></button>
+      </div>
+      <div class="explain" id="chk1-x"><b>Right — only the spillover is taxed higher.</b> Filling the remaining $18,000 of the 22% bucket costs 22%. Only the $12,000 that spills over is taxed at 24%. This is exactly why "convert up to the top of a bracket" is such a common strategy.</div>
+    </div>
+  </section>
+
+  <!-- ===================== MODULE 2 ===================== -->
+  <section class="module" id="m2">
+    <div class="module-head">
+      <div class="module-num">02</div>
+      <div>
+        <div class="eyebrow">RMDs &amp; the tax time-bomb</div>
+        <h2>The tax you deferred doesn't disappear — it compounds</h2>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Traditional 401(k)s and IRAs are a deal with the government: skip the tax today, pay it whenever you withdraw. For decades that feels like a gift. But the balance keeps growing, and eventually the IRS wants its share — so at <strong>age 75</strong> it starts <em>requiring</em> withdrawals whether you need the money or not. These are <strong>Required Minimum Distributions</strong>, and each one is ordinary taxable income.</p>
+      <p>The trap is compounding. A bigger balance forces a bigger RMD, which can push you into higher brackets, inflate the taxable portion of Social Security, and even raise your Medicare premiums. Grow the balance below and watch the required withdrawal — and the tax under it — swell year after year.</p>
+    </div>
+
+    <div class="play">
+      <div class="play-head"><span class="chip">Interactive</span><h3>The RMD escalator</h3></div>
+      <div class="play-body">
+        <div class="controls two-col">
+          <div class="ctl">
+            <label for="m2-bal"><span>Pre-tax balance today (age 65)</span><span class="val" id="m2-bal-v">$1,200,000</span></label>
+            <input type="range" id="m2-bal" min="200000" max="3000000" step="50000" value="1200000">
+          </div>
+          <div class="ctl">
+            <label for="m2-grow"><span>Assumed annual growth</span><span class="val" id="m2-grow-v">6%</span></label>
+            <input type="range" id="m2-grow" min="0" max="10" step="0.5" value="6">
+          </div>
+        </div>
+        <div class="ctl" style="margin-top:1.1rem">
+          <label style="margin-bottom:.55rem"><span>Strategy</span></label>
+          <div class="seg" id="m2-strat" role="group" aria-label="Strategy">
+            <button data-s="none" class="on">Do nothing</button>
+            <button data-s="convert">Convert $80k/yr from 65–74</button>
+          </div>
+        </div>
+
+        <div class="canvas-wrap" style="margin-top:1.3rem">
+          <canvas id="m2-canvas" width="900" height="380" role="img" aria-label="Chart of pre-tax balance and required minimum distributions by age"></canvas>
+        </div>
+        <div class="legend">
+          <div class="li"><span class="sw" style="background:var(--b5)"></span>Pre-tax balance</div>
+          <div class="li"><span class="sw" style="background:var(--warn)"></span>Required withdrawal (RMD)</div>
+          <div class="li"><span class="sw" style="background:var(--tax)"></span>Estimated tax on the RMD</div>
+        </div>
+
+        <div class="readouts" style="margin-top:1.2rem">
+          <div class="ro"><div class="k warn" id="m2-first">—</div><div class="d">First RMD at 75</div></div>
+          <div class="ro"><div class="k" id="m2-peak">—</div><div class="d">Largest single RMD (to age 90)</div></div>
+          <div class="ro"><div class="k tax" id="m2-lifetax">—</div><div class="d">Est. lifetime tax on RMDs<br>(75→90)</div></div>
+          <div class="ro"><div class="k keep" id="m2-saved">$0</div><div class="d">Saved vs. doing nothing</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout warn"><span class="tag">Why 75 matters</span>The first RMD divides your balance by about <b>24.6</b> — roughly 4%. But the divisor shrinks every year, so by your mid-80s you're forced to pull 6–7% annually, on a balance that may still be growing. Converting to Roth in your 60s and early 70s — the low-income "gap years" before RMDs and often before Social Security — shrinks the balance that gets hit.</div>
+
+    <div class="check" id="chk2" data-correct="2">
+      <div class="q"><span class="qm">Q</span><span>Why are the years between retiring and age 75 often the best time for Roth conversions?</span></div>
+      <div class="opts">
+        <button class="opt" data-i="0"><span class="mk">✓</span><span>Because conversion tax rates are legally lower before 75.</span></button>
+        <button class="opt" data-i="1"><span class="mk">✓</span><span>Because Roth conversions are only allowed before RMDs begin.</span></button>
+        <button class="opt" data-i="2"><span class="mk">✓</span><span>Because taxable income is often unusually low then, leaving cheap bracket space to fill before RMDs and Social Security stack on top.</span></button>
+      </div>
+      <div class="explain" id="chk2-x"><b>Exactly.</b> Those "gap years" frequently have little earned income and no RMDs yet, so the low brackets sit empty. Filling them with conversions is cheap — and it permanently shrinks the pre-tax balance that would otherwise drive ever-larger RMDs later.</div>
+    </div>
+  </section>
+
+  <!-- ===================== MODULE 3 ===================== -->
+  <section class="module" id="m3">
+    <div class="module-head">
+      <div class="module-num">03</div>
+      <div>
+        <div class="eyebrow">Sequence risk &amp; safe withdrawal</div>
+        <h2>The order of returns can matter more than the average</h2>
+      </div>
+    </div>
+    <div class="prose">
+      <p>While you're saving, the order of good and bad years barely matters — you're not touching the money, so it all averages out. The moment you start <strong>withdrawing</strong>, order becomes everything. A crash in your first few retirement years forces you to sell more shares at low prices to fund the same spending, and those shares aren't around to recover. This is <strong>sequence-of-returns risk</strong>.</p>
+      <p>Below are two retirees. They earn the <em>exact same</em> set of yearly returns and withdraw the same amount — one just gets the good years first, the other gets them last. Same average. Same withdrawals. Watch how differently they end up.</p>
+    </div>
+
+    <div class="play">
+      <div class="play-head"><span class="chip">Interactive</span><h3>Same returns, opposite order</h3></div>
+      <div class="play-body">
+        <div class="controls two-col">
+          <div class="ctl">
+            <label for="m3-start"><span>Starting portfolio</span><span class="val" id="m3-start-v">$1,000,000</span></label>
+            <input type="range" id="m3-start" min="250000" max="2500000" step="50000" value="1000000">
+          </div>
+          <div class="ctl">
+            <label for="m3-wd"><span>Annual withdrawal rate</span><span class="val" id="m3-wd-v">4.0%</span></label>
+            <input type="range" id="m3-wd" min="2" max="8" step="0.1" value="4">
+          </div>
+        </div>
+
+        <div class="canvas-wrap" style="margin-top:1.3rem">
+          <canvas id="m3-canvas" width="900" height="380" role="img" aria-label="Two portfolio balance paths over 30 years, good years first versus bad years first"></canvas>
+        </div>
+        <div class="legend">
+          <div class="li"><span class="sw" style="background:var(--keep)"></span>Lucky: good years first</div>
+          <div class="li"><span class="sw" style="background:var(--tax)"></span>Unlucky: bad years first</div>
+        </div>
+
+        <div class="readouts" style="margin-top:1.2rem">
+          <div class="ro"><div class="k keep" id="m3-lucky">—</div><div class="d">Lucky retiree after 30 yrs</div></div>
+          <div class="ro"><div class="k tax" id="m3-unlucky">—</div><div class="d">Unlucky retiree after 30 yrs</div></div>
+          <div class="ro"><div class="k brand" id="m3-avg">—</div><div class="d">Average annual return<br>(identical for both)</div></div>
+          <div class="ro"><div class="k" id="m3-verdict">—</div><div class="d">Unlucky outcome</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout"><span class="tag">Where "4%" comes from</span>The famous <b>4% rule</b> is a rough answer to sequence risk: start by withdrawing 4% of your portfolio, adjust that dollar amount for inflation each year, and history suggests it survives 30 years through most bad sequences. It's a starting point, not a guarantee — push the rate up and watch the unlucky path fail. Real defenses include holding a cash buffer for down years and trimming spending after a bad start.</div>
+
+    <div class="check" id="chk3" data-correct="1">
+      <div class="q"><span class="qm">Q</span><span>Two retirees experience the identical set of annual returns over 30 years and withdraw the same amounts. What most determines who ends up wealthier?</span></div>
+      <div class="opts">
+        <button class="opt" data-i="0"><span class="mk">✓</span><span>Nothing — identical returns and withdrawals must produce identical results.</span></button>
+        <button class="opt" data-i="1"><span class="mk">✓</span><span>Whoever happened to get the strong years early, before withdrawals had drained the balance.</span></button>
+        <button class="opt" data-i="2"><span class="mk">✓</span><span>Whoever had the higher average return over the full period.</span></button>
+      </div>
+      <div class="explain" id="chk3-x"><b>Correct.</b> Once you're withdrawing, timing dominates. Strong early years let the portfolio grow before withdrawals bite; a rough start sells shares cheaply that never come back. Same average, very different endings — that's sequence risk in one sentence.</div>
+    </div>
+  </section>
+
+  <!-- ===================== QUIZ ===================== -->
+  <section class="module" id="quiz">
+    <div class="module-head">
+      <div class="module-num">✓</div>
+      <div>
+        <div class="eyebrow">Knowledge check</div>
+        <h2>Put it together</h2>
+      </div>
+    </div>
+    <p class="prose" style="margin-top:1rem">Six questions spanning all three ideas. Pick an answer and you'll see why it's right or wrong immediately — your score updates as you go.</p>
+
+    <div class="quiz-panel" style="margin-top:1.6rem">
+      <div class="quiz-score">
+        <div><span class="big" id="qz-score">0</span><span style="color:var(--ink-mute);font-size:1.1rem"> / <span id="qz-total">6</span> correct</span></div>
+        <div class="quiz-meter"><div class="m" id="qz-meter"></div></div>
+      </div>
+      <div id="qz-items"></div>
+    </div>
+    <div style="margin-top:1.4rem" id="qz-done"></div>
+  </section>
+
+  <footer class="foot wrap">
+    <p class="disc"><b>Educational only — not financial, tax, or legal advice.</b> Every number here is illustrative and uses simplified, rounded assumptions (2026 estimated brackets, a flat tax approximation on RMDs, fixed return sequences) to make the ideas visible. Your real situation depends on details this tool deliberately ignores. Talk to a qualified professional before acting.</p>
+    <p class="disc" style="margin-top:.8rem;color:var(--ink-mute)">Built as an explorable companion to the Retirement Dashboard. Progress here isn't saved between visits.</p>
+  </footer>
+</main>
+
+<script>
+/* ============================ HELPERS ============================ */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
+const fmtK=n=>{const a=Math.abs(n);if(a>=1e6)return '$'+(n/1e6).toFixed(a>=1e7?1:2)+'M';if(a>=1e3)return '$'+Math.round(n/1e3)+'k';return '$'+Math.round(n);};
+const pct=(n,d=1)=>n.toFixed(d)+'%';
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* ============================ THEME ============================ */
+const tb=$('#themeBtn');
+function curTheme(){const s=document.documentElement.getAttribute('data-theme');if(s)return s;return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+tb.onclick=()=>{const n=curTheme()==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);drawAll();};
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(!document.documentElement.getAttribute('data-theme'))drawAll();});
+const cvar=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ============================ PROGRESS RAIL ============================ */
+const MODS=[['m1','Brackets'],['m2','RMDs'],['m3','Sequence'],['quiz','Quiz']];
+const done={};
+const rail=$('#rail');
+MODS.forEach(([id,label])=>{
+  const b=document.createElement('button');
+  b.className='pdot';b.dataset.id=id;
+  b.innerHTML=`<span class="ring"></span><span class="lbl">${label}</span>`;
+  b.onclick=()=>go(id);
+  rail.appendChild(b);
+});
+function go(id){const el=$('#'+id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+function markDone(id){done[id]=1;const d=rail.querySelector(`[data-id="${id}"]`);if(d)d.dataset.done='1';}
+// active-section highlight
+const secObs=new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting){$$('.pdot').forEach(p=>p.classList.toggle('active',p.dataset.id===e.target.id));}});
+},{rootMargin:'-45% 0px -50% 0px'});
+['m1','m2','m3','quiz'].forEach(id=>secObs.observe($('#'+id)));
+
+/* ============================ TAX MODEL ============================ */
+// 2026 (est.) MFJ ordinary brackets: [rate, lower, upper]
+const BR=[
+  [0.10,0,23850],[0.12,23850,96950],[0.22,96950,206700],
+  [0.24,206700,394600],[0.32,394600,501050],[0.35,501050,751600],[0.37,751600,Infinity]
+];
+const BCOL=['--b1','--b2','--b3','--b4','--b5','--b6','--b7'];
+function taxOn(income){ // tax on ordinary income
+  let t=0;for(const[r,lo,hi]of BR){if(income>lo)t+=(Math.min(income,hi)-lo)*r;else break;}return t;
+}
+function marginalRate(income){for(const[r,lo,hi]of BR){if(income>lo&&income<=hi)return r;}return income>0?0.37:0.10;}
+
+/* ============================ MODULE 1 ============================ */
+(function(){
+  const inc=$('#m1-income'),conv=$('#m1-conv'),vessel=$('#m1-vessel');
+  // build bracket rows once
+  BR.forEach((b,i)=>{
+    const row=document.createElement('div');row.className='brk';
+    const cap=b[2]===Infinity?'∞':fmtK(b[2]);
+    row.innerHTML=`<div class="fill" data-i="${i}"></div><div class="txt"><span class="rate">${Math.round(b[0]*100)}%</span><span class="amt">${fmtK(b[1])} – ${cap}</span></div>`;
+    vessel.appendChild(row);
+  });
+  function render(){
+    const I=+inc.value, C=+conv.value;
+    $('#m1-income-v').textContent=fmt(I);
+    $('#m1-conv-v').textContent=fmt(C);
+    const rows=$$('.brk',vessel);
+    // visible cap: infinite bracket rendered as a window ending a bit above the water line
+    const top=Math.max(I+C,40000);
+    const visCap=BR.map(b=>b[2]===Infinity?Math.max(top*1.05,BR[5][2]+50000):b[2]);
+    BR.forEach((b,i)=>{
+      const lo=b[1], hi=visCap[i], span=hi-lo;
+      const incFill=clamp((Math.min(I,hi)-lo),0,span);
+      const convLo=Math.max(lo,I), convHi=Math.min(I+C,hi);
+      const convFill=clamp(convHi-convLo,0,span);
+      const fillEl=rows[i].querySelector('.fill');
+      const incPct=span>0?incFill/span*100:0;
+      const convPct=span>0?convFill/span*100:0;
+      // layered gradient: income (bracket color) then conversion (amber) starting where income ends
+      const col=cvar(BCOL[i]);
+      fillEl.style.background=`linear-gradient(90deg, ${col} 0 ${incPct}%, ${cvar('--warn')} ${incPct}% ${incPct+convPct}%, transparent ${incPct+convPct}%)`;
+      fillEl.style.width='100%';
+      fillEl.style.opacity = (I+C>lo)?1:.25;
+    });
+    // stats
+    const taxI=taxOn(I);
+    const taxBoth=taxOn(I+C);
+    const convTax=taxBoth-taxI;
+    $('#m1-marg').textContent=Math.round(marginalRate(I+C)*100)+'%';
+    $('#m1-eff').textContent = I>0? pct(taxI/I*100):'0%';
+    $('#m1-tax').textContent=fmt(taxBoth);
+    $('#m1-convtax').textContent=fmt(convTax);
+    $('#m1-convrate').textContent = C>0? ('blended '+pct(convTax/C*100)+' on conversion'):'';
+    markDone('m1');
+  }
+  inc.oninput=render;conv.oninput=render;render();
+})();
+
+/* ============================ RMD MODEL ============================ */
+// Uniform Lifetime Table divisors, age->divisor (75..100)
+const ULT={75:24.6,76:23.7,77:22.9,78:22.0,79:21.1,80:20.2,81:19.4,82:18.5,83:17.7,84:16.8,85:16.0,86:15.2,87:14.4,88:13.7,89:12.9,90:12.2,91:11.5,92:10.8,93:10.1,94:9.5,95:8.9,96:8.4,97:7.8,98:7.3,99:6.8,100:6.4};
+// crude effective tax rate on an RMD stacked on ~$40k of other taxable income (single-ish retiree), MFJ-ish blend
+function rmdTaxRate(rmd){
+  const base=40000; // assumed other taxable income floor
+  return (taxOn(base+rmd)-taxOn(base))/Math.max(rmd,1);
+}
+
+let M2=null;
+(function(){
+  const bal=$('#m2-bal'),grow=$('#m2-grow'),cv=$('#m2-canvas');
+  let strat='none';
+  $$('#m2-strat button').forEach(b=>b.onclick=()=>{
+    $$('#m2-strat button').forEach(x=>x.classList.remove('on'));b.classList.add('on');strat=b.dataset.s;render();
+  });
+  function project(strategy){
+    // ages 65..90; grow annually; convert $80k/yr ages 65-74 if strategy=convert
+    const g=+grow.value/100; let b=+bal.value;
+    const series=[]; let lifeTax=0;
+    for(let age=65;age<=90;age++){
+      // start-of-year balance b
+      let rmd=0,tax=0;
+      if(strategy==='convert' && age<=74){ b=Math.max(0,b-80000); }
+      if(age>=75){ const div=ULT[age]||6; rmd=b/div; tax=rmd*rmdTaxRate(rmd); lifeTax+=tax; }
+      series.push({age,bal:b,rmd,tax});
+      // grow remaining (after RMD removed)
+      b=(b-rmd)*(1+g);
+    }
+    return {series,lifeTax};
+  }
+  function render(){
+    $('#m2-bal-v').textContent=fmt(+bal.value);
+    $('#m2-grow-v').textContent=(+grow.value)+'%';
+    const now=project(strat), base=project('none');
+    M2={now,base};
+    drawM2();
+    const rmds=now.series.filter(s=>s.rmd>0);
+    $('#m2-first').textContent = rmds.length? fmt(rmds[0].rmd):'—';
+    $('#m2-peak').textContent = rmds.length? fmt(Math.max(...rmds.map(s=>s.rmd))):'—';
+    $('#m2-lifetax').textContent=fmt(now.lifeTax);
+    const saved=base.lifeTax-now.lifeTax;
+    $('#m2-saved').textContent = strat==='convert'? fmt(Math.max(0,saved)) : '$0';
+    markDone('m2');
+  }
+  bal.oninput=render;grow.oninput=render;
+  render();
+})();
+
+function drawM2(){
+  const cv=$('#m2-canvas'); if(!cv||!M2)return;
+  const dpr=Math.min(devicePixelRatio||1,2);
+  const W=cv.clientWidth||900, H=380;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+'px';
+  const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
+  const s=M2.now.series;
+  const padL=64,padR=58,padT=18,padB=34;
+  const plotW=W-padL-padR, plotH=H-padT-padB;
+  const ages=s.map(d=>d.age);
+  const maxBal=Math.max(...s.map(d=>d.bal),...M2.base.series.map(d=>d.bal))*1.05;
+  const maxRmd=Math.max(...s.map(d=>d.rmd),1)*1.15;
+  const AX=a=>padL+(a-65)/(90-65)*plotW;
+  const BY=v=>padT+plotH-(v/maxBal)*plotH;
+  const RY=v=>padT+plotH-(v/maxRmd)*plotH;
+  const ink=cvar('--ink'),mute=cvar('--ink-mute'),line=cvar('--line'),soft=cvar('--line-soft');
+  // gridlines
+  x.strokeStyle=soft;x.lineWidth=1;x.fillStyle=mute;x.font='11px "IBM Plex Mono",monospace';x.textAlign='right';x.textBaseline='middle';
+  for(let i=0;i<=4;i++){const v=maxBal*i/4;const yy=BY(v);x.beginPath();x.moveTo(padL,yy);x.lineTo(W-padR,yy);x.stroke();x.fillText(fmtK(v),padL-8,yy);}
+  // x labels
+  x.textAlign='center';x.textBaseline='top';
+  [65,70,75,80,85,90].forEach(a=>{x.fillText(a,AX(a),H-padB+8);});
+  // age-75 marker
+  x.strokeStyle=cvar('--warn');x.setLineDash([4,4]);x.lineWidth=1.5;x.beginPath();x.moveTo(AX(75),padT);x.lineTo(AX(75),padT+plotH);x.stroke();x.setLineDash([]);
+  x.fillStyle=cvar('--warn');x.font='600 11px "IBM Plex Sans",sans-serif';x.textAlign='left';x.fillText('RMDs begin',AX(75)+5,padT+2);
+  // RMD bars + tax portion
+  const bw=Math.max(4,plotW/(90-65)*0.5);
+  s.forEach(d=>{if(d.rmd>0){
+    const xx=AX(d.age)-bw/2;
+    x.fillStyle=cvar('--warn');x.globalAlpha=.9;x.fillRect(xx,RY(d.rmd),bw,padT+plotH-RY(d.rmd));
+    x.fillStyle=cvar('--tax');x.fillRect(xx,RY(d.tax),bw,padT+plotH-RY(d.tax));x.globalAlpha=1;
+  }});
+  // right axis: RMD scale (bars use their own scale, labelled so it can't be mistaken for the balance axis)
+  x.fillStyle=cvar('--warn');x.font='11px "IBM Plex Mono",monospace';x.textAlign='left';x.textBaseline='middle';
+  for(let i=1;i<=2;i++){const v=maxRmd*i/3;x.fillText(fmtK(v),W-padR+8,RY(v));}
+  x.font='600 10px "IBM Plex Sans",sans-serif';x.textBaseline='top';x.fillText('RMD →',W-padR+8,padT-4);
+  // balance line (do-nothing faint if strategy differs)
+  function plotLine(series,color,w,dash){
+    x.strokeStyle=color;x.lineWidth=w;x.setLineDash(dash||[]);x.beginPath();
+    series.forEach((d,i)=>{const px=AX(d.age),py=BY(d.bal);i?x.lineTo(px,py):x.moveTo(px,py);});x.stroke();x.setLineDash([]);
+  }
+  // show "do nothing" as ghost when converting
+  const converting = M2.now!==M2.base && (M2.now.series[0].bal!==M2.base.series[0].bal || M2.now.lifeTax!==M2.base.lifeTax);
+  if(converting){plotLine(M2.base.series,cvar('--ink-mute'),1.5,[5,4]);}
+  plotLine(s,cvar('--b5'),2.5);
+  // endpoint dot
+  const last=s[s.length-1];x.fillStyle=cvar('--b5');x.beginPath();x.arc(AX(last.age),BY(last.bal),3.5,0,7);x.fill();
+}
+
+/* ============================ MODULE 3 : SEQUENCE RISK ============================ */
+// A fixed, realistic 30-year nominal return series (~8% mean). The SAME set is
+// played forward (good years early = "lucky") and reversed (bad years early =
+// "unlucky") — the classic same-returns-different-order demonstration.
+const RET=[0.19,0.15,0.12,0.18,0.08,0.14,0.21,0.10,0.16,0.06,0.13,0.09,0.20,-0.06,0.11,0.15,0.07,-0.11,0.10,0.17,-0.04,0.12,0.08,-0.18,0.14,0.05,-0.09,0.11,0.16,-0.15];
+const INFL=0.025;
+let M3=null;
+(function(){
+  const st=$('#m3-start'),wd=$('#m3-wd');
+  function run(seq,start,rate){
+    let bal=start, wdraw=start*rate, bals=[start]; let failAge=null;
+    for(let y=0;y<seq.length;y++){
+      bal=bal*(1+seq[y])-wdraw;
+      wdraw*=(1+INFL);
+      if(bal<=0 && failAge===null){bal=0;failAge=65+y+1;}
+      bal=Math.max(0,bal);
+      bals.push(bal);
+    }
+    return {bals,failAge};
+  }
+  function render(){
+    const start=+st.value, rate=+wd.value/100;
+    $('#m3-start-v').textContent=fmt(start);
+    $('#m3-wd-v').textContent=(+wd.value).toFixed(1)+'%';
+    const lucky=run(RET,start,rate), unlucky=run([...RET].reverse(),start,rate);
+    M3={lucky,unlucky,start};
+    drawM3();
+    $('#m3-lucky').textContent=fmt(lucky.bals[lucky.bals.length-1]);
+    $('#m3-unlucky').textContent=fmt(unlucky.bals[unlucky.bals.length-1]);
+    const avg=(RET.reduce((a,b)=>a+b,0)/RET.length)*100;
+    $('#m3-avg').textContent=pct(avg);
+    const v=$('#m3-verdict');
+    if(unlucky.failAge){v.textContent='ran dry';v.className='k tax';$('#m3-verdict').nextElementSibling.innerHTML='Ran out at age '+unlucky.failAge;}
+    else {v.textContent='survived';v.className='k keep';$('#m3-verdict').nextElementSibling.innerHTML='Survived 30 years';}
+    markDone('m3');
+  }
+  st.oninput=render;wd.oninput=render;render();
+})();
+
+function drawM3(){
+  const cv=$('#m3-canvas');if(!cv||!M3)return;
+  const dpr=Math.min(devicePixelRatio||1,2);
+  const W=cv.clientWidth||900,H=380;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+'px';
+  const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
+  const padL=64,padR=18,padT=18,padB=34,plotW=W-padL-padR,plotH=H-padT-padB;
+  const n=M3.lucky.bals.length;
+  const maxV=Math.max(...M3.lucky.bals,...M3.unlucky.bals,M3.start)*1.05;
+  const AX=i=>padL+i/(n-1)*plotW;
+  const Y=v=>padT+plotH-(v/maxV)*plotH;
+  const mute=cvar('--ink-mute'),soft=cvar('--line-soft');
+  x.strokeStyle=soft;x.lineWidth=1;x.fillStyle=mute;x.font='11px "IBM Plex Mono",monospace';x.textAlign='right';x.textBaseline='middle';
+  for(let i=0;i<=4;i++){const v=maxV*i/4;const yy=Y(v);x.beginPath();x.moveTo(padL,yy);x.lineTo(W-padR,yy);x.stroke();x.fillText(fmtK(v),padL-8,yy);}
+  x.textAlign='center';x.textBaseline='top';
+  [0,5,10,15,20,25,30].forEach(yr=>{x.fillText('Yr '+yr,AX(yr),H-padB+8);});
+  // zero line emphasis
+  function area(bals,color,alpha){
+    x.beginPath();x.moveTo(AX(0),Y(bals[0]));
+    bals.forEach((b,i)=>x.lineTo(AX(i),Y(b)));
+    x.lineTo(AX(bals.length-1),Y(0));x.lineTo(AX(0),Y(0));x.closePath();
+    x.globalAlpha=alpha;x.fillStyle=color;x.fill();x.globalAlpha=1;
+  }
+  function line(bals,color){x.strokeStyle=color;x.lineWidth=2.6;x.beginPath();bals.forEach((b,i)=>{i?x.lineTo(AX(i),Y(b)):x.moveTo(AX(i),Y(b));});x.stroke();}
+  area(M3.lucky.bals,cvar('--keep'),.10);
+  line(M3.lucky.bals,cvar('--keep'));
+  line(M3.unlucky.bals,cvar('--tax'));
+  // fail marker
+  if(M3.unlucky.failAge){const fi=M3.unlucky.failAge-65;x.strokeStyle=cvar('--tax');x.setLineDash([3,3]);x.beginPath();x.moveTo(AX(fi),padT);x.lineTo(AX(fi),padT+plotH);x.stroke();x.setLineDash([]);x.fillStyle=cvar('--tax');x.font='600 11px "IBM Plex Sans",sans-serif';x.textAlign='center';x.fillText('$0',AX(fi),Y(0)-14);}
+  // endpoint dots
+  [[M3.lucky.bals,'--keep'],[M3.unlucky.bals,'--tax']].forEach(([b,c])=>{x.fillStyle=cvar(c);x.beginPath();x.arc(AX(b.length-1),Y(b[b.length-1]),3.5,0,7);x.fill();});
+}
+
+function drawAll(){try{drawM2();drawM3();}catch(e){}}
+addEventListener('resize',()=>{clearTimeout(window._rz);window._rz=setTimeout(drawAll,120);});
+
+/* ============================ INLINE CHECKS ============================ */
+$$('.check').forEach(chk=>{
+  const correct=+chk.dataset.correct;
+  const opts=$$('.opt',chk);const x=$('.explain',chk);
+  opts.forEach(o=>o.onclick=()=>{
+    if(chk.dataset.answered)return;chk.dataset.answered='1';
+    const i=+o.dataset.i;
+    opts.forEach(oo=>oo.disabled=true);
+    if(i===correct){o.classList.add('correct');}
+    else{o.classList.add('wrong');opts[correct].classList.add('correct');}
+    x.classList.add('show');
+  });
+});
+
+/* ============================ FINAL QUIZ ============================ */
+const QUIZ=[
+  {q:"Your marginal tax rate is 24%. What does that tell you?",
+   a:["Your entire income is taxed at 24%.","Your next dollar of income (or conversion) would be taxed at 24%.","You paid 24% of your income in total tax."],c:1,
+   x:"Marginal = the rate on the <b>next</b> dollar. Your average (effective) rate is lower, because earlier dollars filled cheaper brackets."},
+  {q:"What's the main appeal of converting traditional funds to Roth during low-income years?",
+   a:["It avoids all future taxes on the entire account instantly.","You lock in a known, relatively low rate today and remove that money — and its growth — from future RMDs.","Roth accounts are legally protected from market losses."],c:1,
+   x:"Conversions are taxed now at today's rate. Doing it while brackets are cheap, then never paying tax on the growth again, is the core move — and it shrinks tomorrow's RMDs."},
+  {q:"Required Minimum Distributions from a traditional IRA generally begin at what age (under current rules)?",
+   a:["59½","65","75"],c:2,
+   x:"Under SECURE 2.0, RMDs start at <b>75</b> for those affected by the latest change. Each RMD is ordinary taxable income."},
+  {q:"Why can a large untouched pre-tax balance become a 'tax time-bomb'?",
+   a:["The account can be seized after age 75.","Growth keeps enlarging the balance, and shrinking RMD divisors force ever-bigger taxable withdrawals that can spill into higher brackets.","Traditional accounts lose their tax deferral at 75."],c:1,
+   x:"Bigger balance → bigger forced RMD → higher brackets, more taxable Social Security, and higher Medicare premiums. Compounding cuts both ways."},
+  {q:"Two retirees get the identical 30 years of returns and withdraw identically. One retires into an early crash. What happens?",
+   a:["They end with the same balance — the returns were identical.","The one who hit the early crash is typically far worse off, because withdrawals sold shares cheaply that never recovered.","The early-crash retiree does better by buying low."],c:1,
+   x:"This is sequence-of-returns risk: while withdrawing, the <b>order</b> of returns can matter more than the average."},
+  {q:"What is the '4% rule' really offering?",
+   a:["A guarantee your money lasts exactly 30 years.","A rough, historically-tested starting withdrawal rate meant to survive most bad sequences — not a promise.","The maximum the IRS lets you withdraw each year."],c:1,
+   x:"It's a rule of thumb for a sustainable starting rate (adjusted for inflation after). Higher rates raise the odds of running dry in a bad sequence."}
+];
+(function(){
+  const wrap=$('#qz-items');$('#qz-total').textContent=QUIZ.length;
+  let score=0, answered=0;
+  QUIZ.forEach((item,qi)=>{
+    const d=document.createElement('div');d.className='qitem';
+    d.innerHTML=`<div class="q" style="font-weight:600;font-size:1.02rem;margin-bottom:.85rem;display:flex;gap:.6rem;align-items:flex-start"><span class="qm mono" style="color:var(--brand);font-size:.85rem;padding-top:.15rem">${String(qi+1).padStart(2,'0')}</span><span>${item.q}</span></div>`;
+    const opts=document.createElement('div');opts.className='opts';
+    item.a.forEach((txt,ai)=>{
+      const b=document.createElement('button');b.className='opt';b.innerHTML=`<span class="mk">✓</span><span>${txt}</span>`;
+      b.onclick=()=>{
+        if(d.dataset.answered)return;d.dataset.answered='1';answered++;
+        $$('.opt',opts).forEach(o=>o.disabled=true);
+        if(ai===item.c){b.classList.add('correct');score++;}
+        else{b.classList.add('wrong');$$('.opt',opts)[item.c].classList.add('correct');}
+        const ex=document.createElement('div');ex.className='explain show';ex.innerHTML=item.x;d.appendChild(ex);
+        $('#qz-score').textContent=score;
+        $('#qz-meter').style.width=(score/QUIZ.length*100)+'%';
+        markDone('quiz');
+        if(answered===QUIZ.length){
+          const msg=score===QUIZ.length?"Perfect score — you've got the core mechanics of tax-smart retirement down.":score>=4?"Strong. You understand the big levers; revisit the ones you missed above.":"Good start — scroll back up and replay the playgrounds, then retry.";
+          $('#qz-done').innerHTML=`<div class="callout" style="border-color:var(--keep);background:var(--keep-wash)"><span class="tag">Your result</span><b>${score} / ${QUIZ.length}.</b> ${msg}</div>`;
+        }
+      };
+      opts.appendChild(b);
+    });
+    d.appendChild(opts);wrap.appendChild(d);
+  });
+})();
+</script>
+</body>
+</html>
