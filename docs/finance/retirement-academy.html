@@ -227,7 +227,8 @@ canvas{display:block;width:100%;height:auto}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
 @media(max-width:760px){.two-col{grid-template-columns:1fr}}
 .topic-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.4rem}
-@media(max-width:760px){.topic-grid{grid-template-columns:1fr}}
+@media(max-width:860px){.topic-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.topic-grid{grid-template-columns:1fr}}
 .topic-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:1.2rem;cursor:pointer;transition:transform .14s,box-shadow .14s,border-color .14s;text-align:left;font-family:inherit;color:inherit}
 .topic-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--brand)}
 .topic-card .tn{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--brand);letter-spacing:.08em}
@@ -235,6 +236,29 @@ canvas{display:block;width:100%;height:auto}
 .topic-card p{font-size:.88rem;color:var(--ink-soft);margin:0}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
 :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+/* tax-bucket matrix */
+.buckets{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:1.7rem 0}
+@media(max-width:760px){.buckets{grid-template-columns:1fr}}
+.bkt{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+.bkt-top{padding:1rem 1.1rem .9rem}
+.bkt-top .nm{font-family:"Spectral",serif;font-size:1.16rem;font-weight:600}
+.bkt-top .eg{font-size:.78rem;color:var(--ink-mute);margin-top:.25rem}
+.bkt-top.taxable{border-top:3px solid var(--brand)}
+.bkt-top.deferred{border-top:3px solid var(--warn)}
+.bkt-top.free{border-top:3px solid var(--keep)}
+.bkt-row{display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.68rem 1.1rem;border-top:1px solid var(--line-soft);font-size:.85rem}
+.bkt-row .stage{color:var(--ink-soft)}
+.badge{font-family:"IBM Plex Mono",monospace;font-size:.66rem;font-weight:600;letter-spacing:.03em;padding:.22rem .5rem;border-radius:6px;white-space:nowrap}
+.badge.good{background:var(--keep-wash);color:var(--keep)}
+.badge.tax{background:var(--tax-wash);color:var(--tax)}
+.badge.mix{background:var(--warn-wash);color:var(--warn)}
+.wbars{display:grid;gap:.7rem;margin-top:.3rem}
+.wbar{display:grid;grid-template-columns:150px 1fr;align-items:center;gap:.8rem}
+@media(max-width:520px){.wbar{grid-template-columns:1fr}}
+.wbar .wl{font-size:.85rem;color:var(--ink-soft)}
+.wbar .wt{position:relative;height:32px;background:var(--surface-2);border-radius:7px;overflow:hidden}
+.wbar .wf{position:absolute;inset:0 auto 0 0;border-radius:7px;display:flex;align-items:center;justify-content:flex-end;padding:0 .6rem;color:#fff;font-family:"IBM Plex Mono",monospace;font-size:.82rem;font-weight:600;transition:width .45s cubic-bezier(.4,0,.2,1);min-width:58px}
 </style>
 </head>
 <body>
@@ -262,16 +286,100 @@ canvas{display:block;width:100%;height:auto}
       <div class="cell"><div class="k tax">Sequence risk</div><div class="d">Why two retirees with identical average returns can end up worlds apart.</div></div>
     </div>
     <div class="topic-grid">
-      <button class="topic-card" onclick="go('m1')"><div class="tn">01 · PLAYGROUND</div><h4>Fill the buckets</h4><p>Drag income up and watch it pour through the brackets. Meet marginal vs. effective rates.</p></button>
-      <button class="topic-card" onclick="go('m2')"><div class="tn">02 · PLAYGROUND</div><h4>Defuse the bomb</h4><p>Grow a pre-tax balance to 75 and see the required withdrawals — then convert early and compare.</p></button>
-      <button class="topic-card" onclick="go('m3')"><div class="tn">03 · PLAYGROUND</div><h4>Shuffle the years</h4><p>Same returns, different order. Watch one portfolio survive and another run dry.</p></button>
+      <button class="topic-card" onclick="go('m0')"><div class="tn">01 · START HERE</div><h4>Meet the three buckets</h4><p>Taxable, tax-deferred, tax-free. See where this year's savings should go while you're still working.</p></button>
+      <button class="topic-card" onclick="go('m1')"><div class="tn">02 · PLAYGROUND</div><h4>Fill the brackets</h4><p>Drag income up and watch it pour through the brackets. Meet marginal vs. effective rates.</p></button>
+      <button class="topic-card" onclick="go('m2')"><div class="tn">03 · PLAYGROUND</div><h4>Defuse the bomb</h4><p>Grow a pre-tax balance to 75 and see the required withdrawals — then convert early and compare.</p></button>
+      <button class="topic-card" onclick="go('m4')"><div class="tn">04 · PLAYGROUND</div><h4>Dodge the torpedo</h4><p>See how your other income decides whether — and how much — your Social Security gets taxed.</p></button>
+      <button class="topic-card" onclick="go('m5')"><div class="tn">05 · PLAYGROUND</div><h4>Mind the cliff</h4><p>Retiring before 65? Watch your ACA subsidy vanish the instant income crosses 400% of poverty.</p></button>
+      <button class="topic-card" onclick="go('m3')"><div class="tn">06 · PLAYGROUND</div><h4>Shuffle the years</h4><p>Same returns, different order. Watch one portfolio survive and another run dry.</p></button>
     </div>
   </header>
+
+  <!-- ===================== MODULE 0 : TAX BUCKETS ===================== -->
+  <section class="module" id="m0" style="border-top:none;margin-top:1.6rem">
+    <div class="module-head">
+      <div class="module-num">01</div>
+      <div>
+        <div class="eyebrow">Tax buckets — the foundation</div>
+        <h2>Not every dollar you save is taxed the same way</h2>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Picture yourself right now — still working, a paycheck coming in, and some money left over to save. Where that money goes decides <em>when</em> the government taxes it. Every retirement dollar lands in one of three <strong>tax buckets</strong>, and each bucket taxes you at a different moment: on the way in, along the way, or on the way out.</p>
+      <p>Getting this straight is the whole foundation. Once you see that a traditional 401(k) and a Roth are the same investment with <strong>opposite tax timing</strong>, everything else — conversions, RMDs, withdrawal order — becomes a question of which bucket to fill and which to tap.</p>
+    </div>
+
+    <div class="buckets">
+      <div class="bkt">
+        <div class="bkt-top taxable"><div class="nm">Taxable</div><div class="eg">Brokerage &amp; savings accounts</div></div>
+        <div class="bkt-row"><span class="stage">On the way in</span><span class="badge tax">Already taxed</span></div>
+        <div class="bkt-row"><span class="stage">While it grows</span><span class="badge mix">Dividends &amp; gains taxed</span></div>
+        <div class="bkt-row"><span class="stage">On the way out</span><span class="badge mix">Long-term gains rate</span></div>
+      </div>
+      <div class="bkt">
+        <div class="bkt-top deferred"><div class="nm">Tax-deferred</div><div class="eg">Traditional 401(k) &amp; IRA</div></div>
+        <div class="bkt-row"><span class="stage">On the way in</span><span class="badge good">Deducted now</span></div>
+        <div class="bkt-row"><span class="stage">While it grows</span><span class="badge good">Untaxed</span></div>
+        <div class="bkt-row"><span class="stage">On the way out</span><span class="badge tax">Ordinary income + RMDs</span></div>
+      </div>
+      <div class="bkt">
+        <div class="bkt-top free"><div class="nm">Tax-free</div><div class="eg">Roth 401(k) &amp; Roth IRA</div></div>
+        <div class="bkt-row"><span class="stage">On the way in</span><span class="badge tax">Already taxed</span></div>
+        <div class="bkt-row"><span class="stage">While it grows</span><span class="badge good">Untaxed</span></div>
+        <div class="bkt-row"><span class="stage">On the way out</span><span class="badge good">Tax-free, no RMDs</span></div>
+      </div>
+    </div>
+    <p style="font-size:.86rem;color:var(--ink-mute);max-width:100%;margin-top:-.4rem">Read each column top to bottom: the taxable bucket pays as it goes, the tax-deferred bucket pays at the end, and the tax-free bucket pays once up front and never again.</p>
+
+    <div class="play">
+      <div class="play-head"><span class="chip">Interactive</span><h3>Where should this year's savings go?</h3></div>
+      <div class="play-body">
+        <p style="margin:0 0 1.1rem;font-size:.92rem;color:var(--ink-soft);max-width:100%">You're working and setting aside <b>$10,000 of this year's income</b>. It grows until retirement, then you spend it. The only difference between the buckets is tax timing — so the winner depends on your tax rate <em>now</em> versus <em>then</em>.</p>
+        <div class="controls two-col">
+          <div class="ctl">
+            <label for="b-now"><span>Your tax rate now (while working)</span><span class="val" id="b-now-v">24%</span></label>
+            <input type="range" id="b-now" min="10" max="37" step="1" value="24">
+          </div>
+          <div class="ctl">
+            <label for="b-later"><span>Your tax rate in retirement</span><span class="val" id="b-later-v">15%</span></label>
+            <input type="range" id="b-later" min="0" max="37" step="1" value="15">
+          </div>
+          <div class="ctl">
+            <label for="b-years"><span>Years until you spend it</span><span class="val" id="b-years-v">20 yrs</span></label>
+            <input type="range" id="b-years" min="5" max="35" step="1" value="20">
+          </div>
+          <div class="ctl">
+            <label for="b-grow"><span>Assumed annual growth</span><span class="val" id="b-grow-v">6%</span></label>
+            <input type="range" id="b-grow" min="3" max="9" step="0.5" value="6">
+          </div>
+        </div>
+
+        <div style="margin-top:1.4rem">
+          <div class="wbars" id="b-bars"></div>
+          <p style="font-size:.8rem;color:var(--ink-mute);margin-top:.7rem;max-width:100%">Spendable dollars in retirement from that one $10,000 of pre-tax income. The taxable bar assumes a 15% long-term capital-gains rate on its growth.</p>
+        </div>
+
+        <div class="callout" id="b-verdict" style="margin-bottom:0"></div>
+      </div>
+    </div>
+
+    <div class="callout"><span class="tag">The strategy in one line</span>Nobody knows their exact future tax rates, so the durable move is <strong>tax diversification</strong> — build up all three buckets while you're working. In retirement, having a dial for each lets you pull from the tax-free bucket in an expensive year and the taxable one in a cheap year. <em>(Bonus bucket: an <b>HSA</b> is the only account that's untaxed at all three stages when used for medical costs.)</em></div>
+
+    <div class="check" id="chk0" data-correct="1">
+      <div class="q"><span class="qm">Q</span><span>You contribute to both a traditional 401(k) and a Roth 401(k) this year. What's the core difference in how they're taxed?</span></div>
+      <div class="opts">
+        <button class="opt" data-i="0"><span class="mk">✓</span><span>They're taxed identically — the label is just marketing.</span></button>
+        <button class="opt" data-i="1"><span class="mk">✓</span><span>Traditional is deducted now and taxed when you withdraw; Roth is taxed now and comes out tax-free later.</span></button>
+        <button class="opt" data-i="2"><span class="mk">✓</span><span>Both are taxed now, and both are taxed again at withdrawal.</span></button>
+      </div>
+      <div class="explain" id="chk0-x"><b>That's the whole idea.</b> Traditional = pay later (deduct now, ordinary income at withdrawal, and RMDs eventually). Roth = pay now (after-tax going in, tax-free coming out, no RMDs). Same investment, opposite tax timing — which is exactly why holding some of each gives you options in retirement.</div>
+    </div>
+  </section>
 
   <!-- ===================== MODULE 1 ===================== -->
   <section class="module" id="m1">
     <div class="module-head">
-      <div class="module-num">01</div>
+      <div class="module-num">02</div>
       <div>
         <div class="eyebrow">Roth conversions &amp; brackets</div>
         <h2>Income fills brackets like water fills a glass</h2>
@@ -331,7 +439,7 @@ canvas{display:block;width:100%;height:auto}
   <!-- ===================== MODULE 2 ===================== -->
   <section class="module" id="m2">
     <div class="module-head">
-      <div class="module-num">02</div>
+      <div class="module-num">03</div>
       <div>
         <div class="eyebrow">RMDs &amp; the tax time-bomb</div>
         <h2>The tax you deferred doesn't disappear — it compounds</h2>
@@ -394,10 +502,144 @@ canvas{display:block;width:100%;height:auto}
     </div>
   </section>
 
+  <!-- ===================== MODULE 4 : SOCIAL SECURITY TAX ===================== -->
+  <section class="module" id="m4">
+    <div class="module-head">
+      <div class="module-num">04</div>
+      <div>
+        <div class="eyebrow">Social Security &amp; taxes</div>
+        <h2>How much of your Social Security is taxed is up to your other income</h2>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Most people are surprised that Social Security benefits can be taxed at all. Whether they are — and how much — depends on a special number called <strong>provisional income</strong>: your other income plus any tax-exempt interest, plus <em>half</em> of your Social Security benefit. Cross the first threshold and up to 50% of your benefit becomes taxable; cross the second and up to <strong>85%</strong> does.</p>
+      <p>Here's the sting worth knowing about. In the ramp zones, every extra $1 you pull from a traditional IRA doesn't just get taxed itself — it can also drag $0.50 to $0.85 of your Social Security into taxable territory. So your <em>real</em> marginal rate on that dollar can be 1.5&times; to 1.85&times; your bracket. Advisors call it the <strong>tax torpedo</strong>.</p>
+    </div>
+
+    <div class="play">
+      <div class="play-head"><span class="chip">Interactive</span><h3>The Social Security tax torpedo</h3></div>
+      <div class="play-body">
+        <div class="ctl" style="margin-bottom:1.1rem">
+          <label style="margin-bottom:.55rem"><span>Filing status</span></label>
+          <div class="seg" id="ss-status" role="group" aria-label="Filing status">
+            <button data-s="mfj" class="on">Married filing jointly</button>
+            <button data-s="single">Single</button>
+          </div>
+        </div>
+        <div class="controls two-col">
+          <div class="ctl">
+            <label for="ss-ben"><span>Annual Social Security benefit</span><span class="val" id="ss-ben-v">$36,000</span></label>
+            <input type="range" id="ss-ben" min="12000" max="60000" step="1000" value="36000">
+          </div>
+          <div class="ctl">
+            <label for="ss-oth"><span>Other income <span style="color:var(--ink-mute)">(IRA withdrawals, pensions, etc.)</span></span><span class="val" id="ss-oth-v">$30,000</span></label>
+            <input type="range" id="ss-oth" min="0" max="100000" step="1000" value="30000">
+          </div>
+        </div>
+
+        <div class="canvas-wrap" style="margin-top:1.3rem">
+          <canvas id="m4-canvas" width="900" height="340" role="img" aria-label="Chart of taxable Social Security benefit as other income rises"></canvas>
+        </div>
+        <div class="legend">
+          <div class="li"><span class="sw" style="background:var(--tax)"></span>Taxable portion of your benefit</div>
+          <div class="li"><span class="sw" style="background:var(--ink-mute)"></span>50% and 85% thresholds</div>
+        </div>
+
+        <div class="readouts" style="margin-top:1.2rem">
+          <div class="ro"><div class="k brand" id="ss-prov">—</div><div class="d">Provisional income<br>(other + ½ of benefit)</div></div>
+          <div class="ro"><div class="k tax" id="ss-txbl">—</div><div class="d">Benefit that is taxable</div></div>
+          <div class="ro"><div class="k" id="ss-pctb">—</div><div class="d">Share of benefit taxed</div></div>
+          <div class="ro"><div class="k warn" id="ss-tier">—</div><div class="d">Which zone you're in</div></div>
+        </div>
+        <p style="font-size:.86rem;color:var(--ink-mute);margin-top:1rem;max-width:100%">Thresholds are fixed in law and never adjusted for inflation, so more retirees drift into them every year. This models the federal worksheet; a few states tax benefits too.</p>
+      </div>
+    </div>
+
+    <div class="callout warn"><span class="tag">Why this rewards planning</span>Because ordinary income both gets taxed <em>and</em> pulls your benefit into the tax base, the fixes are the same ones you've met: build a <strong>Roth</strong> bucket so some retirement income doesn't count toward provisional income, and do conversions in low-income years <em>before</em> you claim Social Security, while there's no benefit to torpedo.</div>
+
+    <div class="check" id="chk4" data-correct="2">
+      <div class="q"><span class="qm">Q</span><span>You're in the Social Security "ramp" zone. You take an extra $1,000 from your traditional IRA. Why can that feel like it's taxed at more than your bracket?</span></div>
+      <div class="opts">
+        <button class="opt" data-i="0"><span class="mk">✓</span><span>Traditional IRA withdrawals carry a special surtax.</span></button>
+        <button class="opt" data-i="1"><span class="mk">✓</span><span>It doesn't — $1,000 is always taxed at exactly your bracket.</span></button>
+        <button class="opt" data-i="2"><span class="mk">✓</span><span>The $1,000 is taxed, and it also makes up to $850 of your Social Security newly taxable — so more than $1,000 of income gets taxed.</span></button>
+      </div>
+      <div class="explain" id="chk4-x"><b>That's the torpedo.</b> In the ramp zone each extra dollar of ordinary income can make $0.50–$0.85 of benefit taxable on top of itself. A retiree in the 12% bracket can face a true marginal rate of 18–22% on those dollars — a strong reason to fill low brackets with Roth conversions before claiming.</div>
+    </div>
+  </section>
+
+  <!-- ===================== MODULE 5 : ACA SUBSIDY CLIFF ===================== -->
+  <section class="module" id="m5">
+    <div class="module-head">
+      <div class="module-num">05</div>
+      <div>
+        <div class="eyebrow">The ACA subsidy cliff</div>
+        <h2>Retire before 65? Your income sets your health-insurance subsidy</h2>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Retire before Medicare kicks in at 65 and you'll likely buy coverage on the ACA marketplace — where the premium subsidy you get is scored entirely on your <strong>MAGI</strong> (modified adjusted gross income) measured against the <strong>Federal Poverty Level</strong> for your household. The higher your income, the smaller the subsidy.</p>
+      <p>And there's an edge. The enhanced subsidies that softened this from 2021 through 2025 have <strong>expired</strong>, so in 2026 the old <strong>400%-of-poverty cliff is back</strong>: one dollar of income over the line and the <em>entire</em> subsidy vanishes at once. For an early retiree that single dollar can cost thousands. Drag the income slider through the edge and watch.</p>
+    </div>
+
+    <div class="play">
+      <div class="play-head"><span class="chip">Interactive</span><h3>Mind the cliff</h3></div>
+      <div class="play-body">
+        <div class="ctl" style="margin-bottom:1.1rem">
+          <label style="margin-bottom:.55rem"><span>Household size</span></label>
+          <div class="seg" id="aca-hh" role="group" aria-label="Household size">
+            <button data-h="1">1</button>
+            <button data-h="2" class="on">2</button>
+            <button data-h="3">3</button>
+            <button data-h="4">4</button>
+          </div>
+        </div>
+        <div class="controls two-col">
+          <div class="ctl">
+            <label for="aca-bench"><span>Full-price benchmark premium <span style="color:var(--ink-mute)">(per year)</span></span><span class="val" id="aca-bench-v">$14,000</span></label>
+            <input type="range" id="aca-bench" min="5000" max="30000" step="500" value="14000">
+          </div>
+          <div class="ctl">
+            <label for="aca-magi"><span>Household MAGI for the year</span><span class="val" id="aca-magi-v">$70,000</span></label>
+            <input type="range" id="aca-magi" min="20000" max="130000" step="1000" value="70000">
+          </div>
+        </div>
+
+        <div class="canvas-wrap" style="margin-top:1.3rem">
+          <canvas id="m5-canvas" width="900" height="340" role="img" aria-label="Chart of annual ACA premium subsidy versus income, dropping to zero at 400 percent of poverty"></canvas>
+        </div>
+        <div class="legend">
+          <div class="li"><span class="sw" style="background:var(--keep)"></span>Your annual subsidy</div>
+          <div class="li"><span class="sw" style="background:var(--tax)"></span>The 400%-of-poverty cliff</div>
+        </div>
+
+        <div class="readouts" style="margin-top:1.2rem">
+          <div class="ro"><div class="k brand" id="aca-fpl">—</div><div class="d">Your income as % of poverty</div></div>
+          <div class="ro"><div class="k keep" id="aca-sub">—</div><div class="d">Estimated annual subsidy</div></div>
+          <div class="ro"><div class="k tax" id="aca-net">—</div><div class="d">What you'd pay for the plan</div></div>
+          <div class="ro"><div class="k warn" id="aca-cliff">—</div><div class="d">Subsidy lost if you cross the cliff</div></div>
+        </div>
+        <p style="font-size:.86rem;color:var(--ink-mute);margin-top:1rem;max-width:100%">Illustrative: uses recent poverty guidelines and a simplified contribution schedule. Actual premiums vary by age, zip code, and plan. Congress could restore the enhanced subsidies — this models current law without them.</p>
+      </div>
+    </div>
+
+    <div class="callout"><span class="tag">The lever you control</span>MAGI is <strong>manageable</strong>. In a year you're buying marketplace coverage, spending from your <em>taxable</em> and <em>Roth</em> buckets adds little or nothing to MAGI, while traditional-IRA withdrawals and Roth conversions add fully. That's the tension of early retirement: conversions are cheap in low-income years, but too much conversion can knock you off the subsidy cliff. The buckets you built are exactly what let you thread it.</div>
+
+    <div class="check" id="chk5" data-correct="0">
+      <div class="q"><span class="qm">Q</span><span>An early retiree's MAGI is $1 below 400% of poverty and they're getting a $6,000 subsidy. They do a Roth conversion that pushes MAGI $500 over the line (in a year with the cliff in effect). What happens to the subsidy?</span></div>
+      <div class="opts">
+        <button class="opt" data-i="0"><span class="mk">✓</span><span>All $6,000 is lost — over the cliff, the subsidy drops to zero, so that $500 conversion effectively cost $6,000.</span></button>
+        <button class="opt" data-i="1"><span class="mk">✓</span><span>Only a small, proportional slice of the subsidy is reduced.</span></button>
+        <button class="opt" data-i="2"><span class="mk">✓</span><span>Nothing — subsidies are locked in when you enroll.</span></button>
+      </div>
+      <div class="explain" id="chk5-x"><b>That's the cliff.</b> With the enhanced subsidies expired, crossing 400% of poverty forfeits the whole premium tax credit at once — it's reconciled on your tax return, so a small overage can trigger a large repayment. This is why early retirees watch every source of MAGI in marketplace years.</div>
+    </div>
+  </section>
+
   <!-- ===================== MODULE 3 ===================== -->
   <section class="module" id="m3">
     <div class="module-head">
-      <div class="module-num">03</div>
+      <div class="module-num">06</div>
       <div>
         <div class="eyebrow">Sequence risk &amp; safe withdrawal</div>
         <h2>The order of returns can matter more than the average</h2>
@@ -461,7 +703,7 @@ canvas{display:block;width:100%;height:auto}
         <h2>Put it together</h2>
       </div>
     </div>
-    <p class="prose" style="margin-top:1rem">Six questions spanning all three ideas. Pick an answer and you'll see why it's right or wrong immediately — your score updates as you go.</p>
+    <p class="prose" style="margin-top:1rem">Eight questions spanning every module. Pick an answer and you'll see why it's right or wrong immediately — your score updates as you go.</p>
 
     <div class="quiz-panel" style="margin-top:1.6rem">
       <div class="quiz-score">
@@ -495,7 +737,7 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(!do
 const cvar=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
 /* ============================ PROGRESS RAIL ============================ */
-const MODS=[['m1','Brackets'],['m2','RMDs'],['m3','Sequence'],['quiz','Quiz']];
+const MODS=[['m0','Buckets'],['m1','Brackets'],['m2','RMDs'],['m4','Soc. Security'],['m5','ACA'],['m3','Sequence'],['quiz','Quiz']];
 const done={};
 const rail=$('#rail');
 MODS.forEach(([id,label])=>{
@@ -511,7 +753,7 @@ function markDone(id){done[id]=1;const d=rail.querySelector(`[data-id="${id}"]`)
 const secObs=new IntersectionObserver(es=>{
   es.forEach(e=>{if(e.isIntersecting){$$('.pdot').forEach(p=>p.classList.toggle('active',p.dataset.id===e.target.id));}});
 },{rootMargin:'-45% 0px -50% 0px'});
-['m1','m2','m3','quiz'].forEach(id=>secObs.observe($('#'+id)));
+['m0','m1','m2','m4','m5','m3','quiz'].forEach(id=>secObs.observe($('#'+id)));
 
 /* ============================ TAX MODEL ============================ */
 // 2026 (est.) MFJ ordinary brackets: [rate, lower, upper]
@@ -524,6 +766,39 @@ function taxOn(income){ // tax on ordinary income
   let t=0;for(const[r,lo,hi]of BR){if(income>lo)t+=(Math.min(income,hi)-lo)*r;else break;}return t;
 }
 function marginalRate(income){for(const[r,lo,hi]of BR){if(income>lo&&income<=hi)return r;}return income>0?0.37:0.10;}
+
+/* ============================ MODULE 0 : TAX BUCKETS ============================ */
+(function(){
+  const rn=$('#b-now'),rl=$('#b-later'),yr=$('#b-years'),gr=$('#b-grow');
+  const GROSS=10000, CG=0.15;
+  function render(){
+    const now=+rn.value/100, later=+rl.value/100, n=+yr.value, g=+gr.value/100;
+    $('#b-now-v').textContent=(+rn.value)+'%';
+    $('#b-later-v').textContent=(+rl.value)+'%';
+    $('#b-years-v').textContent=n+' yrs';
+    $('#b-grow-v').textContent=(+gr.value)+'%';
+    const gf=Math.pow(1+g,n);
+    const trad=GROSS*gf*(1-later);
+    const roth=GROSS*(1-now)*gf;
+    const base=GROSS*(1-now), tend=base*gf, taxable=tend-(tend-base)*CG;
+    const vals=[['Tax-deferred (Traditional)',trad,'--warn'],['Tax-free (Roth)',roth,'--keep'],['Taxable (brokerage)',taxable,'--brand']];
+    const max=Math.max(trad,roth,taxable,1);
+    const wrap=$('#b-bars');wrap.innerHTML='';
+    vals.forEach(([nm,v,c])=>{
+      const w=Math.max(9,v/max*100);
+      wrap.insertAdjacentHTML('beforeend',`<div class="wbar"><div class="wl">${nm}</div><div class="wt"><div class="wf" style="width:${w}%;background:var(${c})">${fmt(v)}</div></div></div>`);
+    });
+    const near=Math.abs(now-later)<0.005;
+    const head = near ? 'Traditional and Roth land in exactly the same place.'
+      : (later<now ? 'The Traditional bucket wins here.' : 'The Roth bucket wins here.');
+    const rule = near ? 'With the same rate now and later, the deduction and the tax-free growth cancel out perfectly.'
+      : later<now ? 'Because your rate is <b>lower in retirement</b>, deducting at today’s higher rate (Traditional) comes out ahead.'
+      : 'Because your rate is <b>higher in retirement</b>, paying tax now at today’s lower rate (Roth) comes out ahead.';
+    $('#b-verdict').innerHTML=`<span class="tag">Verdict</span><b>${head}</b> ${rule} Either way, the taxable brokerage trails the Roth bucket — same money invested, but taxes nibble its growth along the way.`;
+    markDone('m0');
+  }
+  rn.oninput=render;rl.oninput=render;yr.oninput=render;gr.oninput=render;render();
+})();
 
 /* ============================ MODULE 1 ============================ */
 (function(){
@@ -741,7 +1016,119 @@ function drawM3(){
   [[M3.lucky.bals,'--keep'],[M3.unlucky.bals,'--tax']].forEach(([b,c])=>{x.fillStyle=cvar(c);x.beginPath();x.arc(AX(b.length-1),Y(b[b.length-1]),3.5,0,7);x.fill();});
 }
 
-function drawAll(){try{drawM2();drawM3();}catch(e){}}
+/* ============================ MODULE 4 : SOCIAL SECURITY TAX ============================ */
+let M4=null;
+(function(){
+  const ben=$('#ss-ben'),oth=$('#ss-oth'); let mfj=true;
+  $$('#ss-status button').forEach(b=>b.onclick=()=>{$$('#ss-status button').forEach(x=>x.classList.remove('on'));b.classList.add('on');mfj=b.dataset.s==='mfj';render();});
+  function taxable(other,ss){
+    const b1=mfj?32000:25000, b2=mfj?44000:34000;
+    const prov=other+0.5*ss;
+    if(prov<=b1)return 0;
+    if(prov<=b2)return Math.min(0.5*ss,0.5*(prov-b1));
+    return Math.min(0.85*ss,0.85*(prov-b2)+Math.min(0.5*ss,0.5*(b2-b1)));
+  }
+  function render(){
+    const ss=+ben.value, o=+oth.value;
+    $('#ss-ben-v').textContent=fmt(ss);$('#ss-oth-v').textContent=fmt(o);
+    const tx=taxable(o,ss), prov=o+0.5*ss;
+    const b1=mfj?32000:25000,b2=mfj?44000:34000;
+    M4={ss,o,mfj,b1,b2,taxable};
+    drawM4();
+    $('#ss-prov').textContent=fmt(prov);
+    $('#ss-txbl').textContent=fmt(tx);
+    $('#ss-pctb').textContent=ss>0?Math.round(tx/ss*100)+'%':'0%';
+    $('#ss-tier').textContent=prov<=b1?'None taxed':prov<=b2?'Up to 50% zone':'Up to 85% zone';
+    markDone('m4');
+  }
+  ben.oninput=render;oth.oninput=render;render();
+})();
+function drawM4(){
+  const cv=$('#m4-canvas');if(!cv||!M4)return;
+  const dpr=Math.min(devicePixelRatio||1,2);const W=cv.clientWidth||900,H=340;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+'px';
+  const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
+  const padL=64,padR=18,padT=18,padB=34,plotW=W-padL-padR,plotH=H-padT-padB;
+  const maxX=100000, ss=M4.ss, maxY=Math.max(0.85*ss,1);
+  const AX=v=>padL+v/maxX*plotW, Y=v=>padT+plotH-(v/maxY)*plotH;
+  const mute=cvar('--ink-mute'),soft=cvar('--line-soft');
+  x.strokeStyle=soft;x.lineWidth=1;x.fillStyle=mute;x.font='11px "IBM Plex Mono",monospace';x.textAlign='right';x.textBaseline='middle';
+  for(let i=0;i<=4;i++){const v=maxY*i/4;const yy=Y(v);x.beginPath();x.moveTo(padL,yy);x.lineTo(W-padR,yy);x.stroke();x.fillText(fmtK(v),padL-8,yy);}
+  x.textAlign='center';x.textBaseline='top';
+  for(let v=0;v<=maxX;v+=25000){x.fillText(fmtK(v),AX(v),H-padB+8);}
+  [[M4.b1-0.5*ss,'50% line'],[M4.b2-0.5*ss,'85% line']].forEach(([ox,lbl])=>{
+    if(ox>=0&&ox<=maxX){x.strokeStyle=mute;x.setLineDash([4,4]);x.lineWidth=1;x.beginPath();x.moveTo(AX(ox),padT);x.lineTo(AX(ox),padT+plotH);x.stroke();x.setLineDash([]);x.fillStyle=mute;x.font='600 10px "IBM Plex Sans",sans-serif';x.textAlign='center';x.textBaseline='top';x.fillText(lbl,AX(ox),padT+2);}
+  });
+  x.beginPath();
+  for(let px=0;px<=plotW;px+=3){const ox=px/plotW*maxX;const ty=M4.taxable(ox,ss);const cx=padL+px,cy=Y(ty);px?x.lineTo(cx,cy):x.moveTo(cx,cy);}
+  x.strokeStyle=cvar('--tax');x.lineWidth=2.6;x.stroke();
+  x.lineTo(AX(maxX),Y(0));x.lineTo(AX(0),Y(0));x.closePath();x.globalAlpha=.10;x.fillStyle=cvar('--tax');x.fill();x.globalAlpha=1;
+  const tx=M4.taxable(M4.o,ss);x.fillStyle=cvar('--tax');x.beginPath();x.arc(AX(Math.min(M4.o,maxX)),Y(tx),4.5,0,7);x.fill();x.strokeStyle=cvar('--surface');x.lineWidth=2;x.stroke();
+}
+
+/* ============================ MODULE 5 : ACA SUBSIDY CLIFF ============================ */
+const FPL={1:15650,2:21150,3:26650,4:32150};
+let M5=null;
+function acaSubsidy(m,benchmark,fpl){
+  const pctFPL=m/fpl*100;
+  if(pctFPL>400) return {sub:0,pctFPL,contrib:benchmark};
+  let pct = pctFPL<150 ? 0.02*(pctFPL/150) : 0.02+(0.0996-0.02)*(pctFPL-150)/250;
+  pct=Math.max(0,Math.min(0.0996,pct));
+  const contrib=pct*m;
+  return {sub:Math.max(0,benchmark-contrib),pctFPL,contrib};
+}
+(function(){
+  const bench=$('#aca-bench'),magi=$('#aca-magi');let hh=2;
+  $$('#aca-hh button').forEach(b=>b.onclick=()=>{$$('#aca-hh button').forEach(x=>x.classList.remove('on'));b.classList.add('on');hh=+b.dataset.h;render();});
+  function render(){
+    const b=+bench.value,m=+magi.value,fpl=FPL[hh];
+    $('#aca-bench-v').textContent=fmt(b);$('#aca-magi-v').textContent=fmt(m);
+    const r=acaSubsidy(m,b,fpl);
+    M5={b,m,fpl,hh};
+    drawM5();
+    $('#aca-fpl').textContent=Math.round(r.pctFPL)+'%';
+    $('#aca-sub').textContent=fmt(r.sub);
+    $('#aca-net').textContent=fmt(b-r.sub);
+    $('#aca-cliff').textContent=fmt(acaSubsidy(fpl*4-1,b,fpl).sub);
+    markDone('m5');
+  }
+  bench.oninput=render;magi.oninput=render;render();
+})();
+function drawM5(){
+  const cv=$('#m5-canvas');if(!cv||!M5)return;
+  const dpr=Math.min(devicePixelRatio||1,2);const W=cv.clientWidth||900,H=340;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+'px';
+  const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
+  const padL=64,padR=18,padT=18,padB=34,plotW=W-padL-padR,plotH=H-padT-padB;
+  const minX=20000,maxX=130000, maxY=Math.max(M5.b,1), cliffX=M5.fpl*4;
+  const AX=v=>padL+(v-minX)/(maxX-minX)*plotW, Y=v=>padT+plotH-(v/maxY)*plotH;
+  const mute=cvar('--ink-mute'),soft=cvar('--line-soft');
+  x.strokeStyle=soft;x.lineWidth=1;x.fillStyle=mute;x.font='11px "IBM Plex Mono",monospace';x.textAlign='right';x.textBaseline='middle';
+  for(let i=0;i<=4;i++){const v=maxY*i/4;const yy=Y(v);x.beginPath();x.moveTo(padL,yy);x.lineTo(W-padR,yy);x.stroke();x.fillText(fmtK(v),padL-8,yy);}
+  x.textAlign='center';x.textBaseline='top';
+  for(let v=minX;v<=maxX;v+=20000){x.fillText(fmtK(v),AX(v),H-padB+8);}
+  // subsidy curve up to cliff (green area)
+  x.beginPath();let started=false;
+  for(let px=0;px<=plotW;px+=2){const m=minX+px/plotW*(maxX-minX);if(m>cliffX)break;const sub=acaSubsidy(m,M5.b,M5.fpl).sub;const cx=padL+px,cy=Y(sub);started?x.lineTo(cx,cy):(x.moveTo(cx,cy),started=true);}
+  const lastSub=acaSubsidy(Math.min(cliffX,maxX),M5.b,M5.fpl).sub;
+  x.lineTo(AX(Math.min(cliffX,maxX)),Y(lastSub));
+  x.strokeStyle=cvar('--keep');x.lineWidth=2.6;x.stroke();
+  // area fill under green
+  x.lineTo(AX(Math.min(cliffX,maxX)),Y(0));x.lineTo(AX(minX),Y(0));x.closePath();x.globalAlpha=.12;x.fillStyle=cvar('--keep');x.fill();x.globalAlpha=1;
+  // the cliff: vertical red drop + zero line after
+  if(cliffX<=maxX){
+    x.strokeStyle=cvar('--tax');x.lineWidth=2.6;x.beginPath();x.moveTo(AX(cliffX),Y(lastSub));x.lineTo(AX(cliffX),Y(0));x.stroke();
+    x.setLineDash([5,4]);x.lineWidth=1.4;x.beginPath();x.moveTo(AX(cliffX),padT);x.lineTo(AX(cliffX),padT+plotH);x.stroke();x.setLineDash([]);
+    x.fillStyle=cvar('--tax');x.font='600 11px "IBM Plex Sans",sans-serif';x.textAlign='center';x.textBaseline='top';x.fillText('400% FPL cliff',AX(cliffX),padT+2);
+    // zero subsidy line past cliff
+    x.strokeStyle=cvar('--tax');x.lineWidth=2.6;x.beginPath();x.moveTo(AX(cliffX),Y(0));x.lineTo(AX(maxX),Y(0));x.stroke();
+  }
+  // current dot
+  const cur=acaSubsidy(M5.m,M5.b,M5.fpl).sub;const dotX=AX(Math.max(minX,Math.min(M5.m,maxX)));
+  x.fillStyle=cur>0?cvar('--keep'):cvar('--tax');x.beginPath();x.arc(dotX,Y(cur),4.5,0,7);x.fill();x.strokeStyle=cvar('--surface');x.lineWidth=2;x.stroke();
+}
+
+function drawAll(){try{drawM2();drawM3();drawM4();drawM5();}catch(e){}}
 addEventListener('resize',()=>{clearTimeout(window._rz);window._rz=setTimeout(drawAll,120);});
 
 /* ============================ INLINE CHECKS ============================ */
@@ -777,7 +1164,13 @@ const QUIZ=[
    x:"This is sequence-of-returns risk: while withdrawing, the <b>order</b> of returns can matter more than the average."},
   {q:"What is the '4% rule' really offering?",
    a:["A guarantee your money lasts exactly 30 years.","A rough, historically-tested starting withdrawal rate meant to survive most bad sequences — not a promise.","The maximum the IRS lets you withdraw each year."],c:1,
-   x:"It's a rule of thumb for a sustainable starting rate (adjusted for inflation after). Higher rates raise the odds of running dry in a bad sequence."}
+   x:"It's a rule of thumb for a sustainable starting rate (adjusted for inflation after). Higher rates raise the odds of running dry in a bad sequence."},
+  {q:"You're in the Social Security 'tax torpedo' zone and take an extra $1,000 from a traditional IRA. Why can it be taxed above your bracket?",
+   a:["Traditional withdrawals carry a special federal surtax.","Because the $1,000 can also make up to $850 of your Social Security benefit newly taxable, so more than $1,000 ends up taxed.","It can't — a withdrawal is always taxed at exactly your bracket."],c:1,
+   x:"In the ramp zone each added dollar of ordinary income pulls $0.50–$0.85 of benefits into the tax base too — an effective marginal rate of roughly 1.5–1.85&times; your bracket."},
+  {q:"With the enhanced subsidies expired, an early retiree's MAGI crosses 400% of poverty by a few hundred dollars. What happens to their ACA subsidy?",
+   a:["It phases down gradually, in proportion to the overage.","The whole subsidy is lost at once — the 400% 'cliff' — so a tiny overage can cost thousands.","Nothing; subsidies are locked in at enrollment."],c:1,
+   x:"Above 400% of poverty the entire premium tax credit disappears and is reconciled on your tax return. Steering MAGI with Roth and taxable buckets is how early retirees stay under the line."}
 ];
 (function(){
   const wrap=$('#qz-items');$('#qz-total').textContent=QUIZ.length;
@@ -798,7 +1191,7 @@ const QUIZ=[
         $('#qz-meter').style.width=(score/QUIZ.length*100)+'%';
         markDone('quiz');
         if(answered===QUIZ.length){
-          const msg=score===QUIZ.length?"Perfect score — you've got the core mechanics of tax-smart retirement down.":score>=4?"Strong. You understand the big levers; revisit the ones you missed above.":"Good start — scroll back up and replay the playgrounds, then retry.";
+          const msg=score===QUIZ.length?"Perfect score — you've got the core mechanics of tax-smart retirement down.":score>=6?"Strong. You understand the big levers; revisit the ones you missed above.":"Good start — scroll back up and replay the playgrounds, then retry.";
           $('#qz-done').innerHTML=`<div class="callout" style="border-color:var(--keep);background:var(--keep-wash)"><span class="tag">Your result</span><b>${score} / ${QUIZ.length}.</b> ${msg}</div>`;
         }
       };
