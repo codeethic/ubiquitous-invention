@@ -272,6 +272,19 @@ canvas{display:block;width:100%;height:auto}
 .tier.adv .tier-fill{background:var(--brand)}
 .tier.taxable .tier-fill{background:var(--ink-mute)}
 .tier.dim{opacity:.5}
+
+/* order-of-operations stepper */
+.steps{display:grid;gap:.55rem;margin:.3rem 0}
+.step{display:flex;gap:.85rem;align-items:flex-start;padding:.8rem 1rem;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s;text-align:left;width:100%;font-family:inherit;color:inherit}
+.step:hover{border-color:var(--brand)}
+.step .box{flex:0 0 auto;width:24px;height:24px;border-radius:7px;border:1.5px solid var(--ink-mute);display:grid;place-items:center;font-size:.8rem;color:transparent;margin-top:.05rem}
+.step.done .box{background:var(--keep);border-color:var(--keep);color:#fff}
+.step .st-body{flex:1;min-width:0}
+.step .st-nm{font-weight:600;font-size:.95rem;display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.step .st-d{font-size:.84rem;color:var(--ink-soft);margin-top:.15rem}
+.step .st-tag{font-family:"IBM Plex Mono",monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;padding:.18rem .45rem;border-radius:5px;background:var(--brand);color:#fff;white-space:nowrap}
+.step.next{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-wash)}
+.step.done{opacity:.66}
 </style>
 </head>
 <body>
@@ -288,9 +301,9 @@ canvas{display:block;width:100%;height:auto}
   <header class="hero wrap">
     <div class="eyebrow">An explorable guide to building &amp; spending a nest egg</div>
     <h1>Your money has a <span class="accent">second life</span> after you stop working.</h1>
-    <p class="sub">The whole journey on one page — from building the pile while you're working to making it last after you stop. Nine short, interactive lessons: how big a nest egg you need, where each dollar should go, how to invest it, and the tax moves that decide how much you actually keep. No spreadsheets, no personal details, just the ideas.</p>
+    <p class="sub">The whole journey on one page — from building the pile while you're working to making it last after you stop. Thirteen short, interactive lessons: your first money moves, how big a nest egg you need, where each dollar goes, how to invest it, and the tax moves that decide how much you actually keep. No spreadsheets, no personal details, just the ideas.</p>
     <div class="hero-cta">
-      <button class="btn btn-primary" onclick="go('m6')">Start the guided path →</button>
+      <button class="btn btn-primary" onclick="go('m9')">Start the guided path →</button>
       <button class="btn btn-ghost" onclick="go('quiz')">Jump to the quiz</button>
     </div>
     <div class="hero-strip">
@@ -299,22 +312,130 @@ canvas{display:block;width:100%;height:auto}
       <div class="cell"><div class="k" style="color:var(--warn)">Spend it</div><div class="d">Turn the pile into income that survives a long life and rough markets.</div></div>
     </div>
     <div class="topic-grid">
-      <button class="topic-card" onclick="go('m6')"><div class="tn">01 · START HERE</div><h4>Find your number</h4><p>How big a nest egg you need, and whether your savings rate has you on pace to hit it.</p></button>
-      <button class="topic-card" onclick="go('m7')"><div class="tn">02 · PLAYGROUND</div><h4>Fill the waterfall</h4><p>Where each saved dollar should go — match first, then HSA, Roth, 401(k), taxable.</p></button>
-      <button class="topic-card" onclick="go('m8')"><div class="tn">03 · PLAYGROUND</div><h4>Set your mix</h4><p>Stocks vs. bonds, the risk-reward cone, and why the mix should glide with age.</p></button>
-      <button class="topic-card" onclick="go('m0')"><div class="tn">04 · PLAYGROUND</div><h4>Meet the three buckets</h4><p>Taxable, tax-deferred, tax-free — the account types that set when you're taxed.</p></button>
-      <button class="topic-card" onclick="go('m1')"><div class="tn">05 · PLAYGROUND</div><h4>Fill the brackets</h4><p>Drag income up and watch it pour through the brackets. Meet marginal vs. effective rates.</p></button>
-      <button class="topic-card" onclick="go('m2')"><div class="tn">06 · PLAYGROUND</div><h4>Defuse the bomb</h4><p>Grow a pre-tax balance to 75 and see the required withdrawals — then convert early and compare.</p></button>
-      <button class="topic-card" onclick="go('m4')"><div class="tn">07 · PLAYGROUND</div><h4>Dodge the torpedo</h4><p>See how your other income decides whether — and how much — your Social Security gets taxed.</p></button>
-      <button class="topic-card" onclick="go('m5')"><div class="tn">08 · PLAYGROUND</div><h4>Mind the cliff</h4><p>Retiring before 65? Watch your ACA subsidy vanish the instant income crosses 400% of poverty.</p></button>
-      <button class="topic-card" onclick="go('m3')"><div class="tn">09 · PLAYGROUND</div><h4>Shuffle the years</h4><p>Same returns, different order. Watch one portfolio survive and another run dry.</p></button>
+      <button class="topic-card" onclick="go('m9')"><div class="tn">01 · START HERE</div><h4>Your first moves</h4><p>The money order of operations — emergency fund, debt, match — before you invest a dollar.</p></button>
+      <button class="topic-card" onclick="go('m10')"><div class="tn">02 · PLAYGROUND</div><h4>The cost of waiting</h4><p>Why time is a 23-year-old's superpower, and what every delayed year quietly costs.</p></button>
+      <button class="topic-card" onclick="go('m6')"><div class="tn">03 · PLAYGROUND</div><h4>Find your number</h4><p>How big a nest egg you need, and whether your savings rate has you on pace to hit it.</p></button>
+      <button class="topic-card" onclick="go('m7')"><div class="tn">04 · PLAYGROUND</div><h4>Fill the waterfall</h4><p>Where each saved dollar should go — match first, then HSA, Roth, 401(k), taxable.</p></button>
+      <button class="topic-card" onclick="go('m11')"><div class="tn">05 · PLAYGROUND</div><h4>Buy the market, cut fees</h4><p>Index funds vs. stock-picking, and how a 1% fee quietly drains decades of growth.</p></button>
+      <button class="topic-card" onclick="go('m8')"><div class="tn">06 · PLAYGROUND</div><h4>Set your mix</h4><p>Stocks vs. bonds, the risk-reward cone, and why the mix should glide with age.</p></button>
+      <button class="topic-card" onclick="go('m12')"><div class="tn">07 · PLAYGROUND</div><h4>The shrinking dollar</h4><p>How inflation quietly erodes cash, and why "safe" money is the risky choice long-term.</p></button>
+      <button class="topic-card" onclick="go('m0')"><div class="tn">08 · PLAYGROUND</div><h4>Meet the three buckets</h4><p>Taxable, tax-deferred, tax-free — the account types that set when you're taxed.</p></button>
+      <button class="topic-card" onclick="go('m1')"><div class="tn">09 · PLAYGROUND</div><h4>Fill the brackets</h4><p>Drag income up and watch it pour through the brackets. Meet marginal vs. effective rates.</p></button>
+      <button class="topic-card" onclick="go('m2')"><div class="tn">10 · PLAYGROUND</div><h4>Defuse the bomb</h4><p>Grow a pre-tax balance to 75 and see the required withdrawals — then convert early and compare.</p></button>
+      <button class="topic-card" onclick="go('m4')"><div class="tn">11 · PLAYGROUND</div><h4>Dodge the torpedo</h4><p>See how your other income decides whether — and how much — your Social Security gets taxed.</p></button>
+      <button class="topic-card" onclick="go('m5')"><div class="tn">12 · PLAYGROUND</div><h4>Mind the cliff</h4><p>Retiring before 65? Watch your ACA subsidy vanish the instant income crosses 400% of poverty.</p></button>
+      <button class="topic-card" onclick="go('m3')"><div class="tn">13 · PLAYGROUND</div><h4>Shuffle the years</h4><p>Same returns, different order. Watch one portfolio survive and another run dry.</p></button>
     </div>
   </header>
 
-  <!-- ===================== MODULE 01 : THE NUMBER / ON TRACK ===================== -->
-  <section class="module" id="m6" style="border-top:none;margin-top:1.6rem">
+  <!-- ===================== MODULE 01 : ORDER OF OPERATIONS ===================== -->
+  <section class="module" id="m9" style="border-top:none;margin-top:1.6rem">
     <div class="module-head">
       <div class="module-num">01</div>
+      <div>
+        <div class="eyebrow">The order of operations</div>
+        <h2>Starting at 23? Do these money moves in this order</h2>
+      </div>
+    </div>
+    <div class="prose">
+      <p>The internet is full of money advice, and most of it argues about step six while beginners are stuck on step one. There's a settled <strong>order of operations</strong> that answers "what should I do with my next dollar?" — and following the sequence matters more than optimizing any single piece. Each step earns the right to the next.</p>
+      <p>Check off what you've already handled and the tool points to your <strong>next move</strong>. Notice where investing actually sits — <em>not first</em>. A safety net and killing high-interest debt come before pouring money into the market: a 22% credit-card balance is a guaranteed 22% loss no investment can reliably beat.</p>
+    </div>
+
+    <div class="play">
+      <div class="play-head"><span class="chip">Interactive</span><h3>What's my next move?</h3></div>
+      <div class="play-body">
+        <p style="margin:0 0 1.1rem;font-size:.92rem;color:var(--ink-soft);max-width:100%">Tap each step you've already done. The highlighted row is where to put your next dollar.</p>
+        <div class="steps" id="oo-steps"></div>
+        <div class="callout" id="oo-next" style="margin:1.3rem 0 0"></div>
+      </div>
+    </div>
+
+    <div class="callout"><span class="tag">Why order beats optimization</span>Each early step is a guaranteed win: an emergency fund stops a surprise from becoming credit-card debt, the employer match is free money, and paying off a 20%+ balance is a risk-free 20% return. Only after those does the market — with its uncertainty — become the best home for a dollar. Get the order right and the rest is tuning.</div>
+
+    <div class="check" id="chk9" data-correct="1">
+      <div class="q"><span class="qm">Q</span><span>You're 23 with a small cash cushion, a 22% credit-card balance, and a 401(k) that offers a match. After grabbing the full match, where does the next dollar do the most good?</span></div>
+      <div class="opts">
+        <button class="opt" data-i="0"><span class="mk">✓</span><span>Max out a Roth IRA right away.</span></button>
+        <button class="opt" data-i="1"><span class="mk">✓</span><span>Pay off the 22% credit card — a guaranteed 22% "return."</span></button>
+        <button class="opt" data-i="2"><span class="mk">✓</span><span>Open a taxable brokerage and start buying index funds.</span></button>
+      </div>
+      <div class="explain" id="chk9-x"><b>Kill the high-interest debt first.</b> Paying off a 22% balance is a guaranteed, tax-free 22% return — better than the stock market's long-run average and with none of the risk. Grab the match (free money), then clear high-interest debt before investing further.</div>
+    </div>
+  </section>
+
+  <!-- ===================== MODULE 02 : HABITS & COST OF WAITING ===================== -->
+  <section class="module" id="m10">
+    <div class="module-head">
+      <div class="module-num">02</div>
+      <div>
+        <div class="eyebrow">Habits &amp; the cost of waiting</div>
+        <h2>At 23 your biggest advantage isn't money — it's time</h2>
+      </div>
+    </div>
+    <div class="prose">
+      <p>A 23-year-old can't out-save a 40-year-old, but they don't have to: a dollar invested now has four extra decades to compound, and compounding is exponential, so those early dollars do <strong>wildly</strong> more work than later ones. The catch is that the benefit is invisible for years — which is exactly why so many people wait, and why waiting is so expensive. Slide the start age below and watch what each delayed year costs.</p>
+      <p>The other half of the game is behavioral, and it's simple to say and hard to do: <strong>automate</strong> your contributions so saving isn't a monthly decision, keep buying through downturns instead of panic-selling, ignore hot-stock and crypto hype, and don't let <strong>lifestyle creep</strong> eat every raise. Boring and consistent beats clever and sporadic.</p>
+    </div>
+
+    <div class="play">
+      <div class="play-head"><span class="chip">Interactive</span><h3>The cost of waiting</h3></div>
+      <div class="play-body">
+        <div class="controls two-col">
+          <div class="ctl">
+            <label for="cw-amt"><span>Invested each month</span><span class="val" id="cw-amt-v">$400</span></label>
+            <input type="range" id="cw-amt" min="50" max="2000" step="50" value="400">
+          </div>
+          <div class="ctl">
+            <label for="cw-age"><span>Age you start</span><span class="val" id="cw-age-v">23</span></label>
+            <input type="range" id="cw-age" min="18" max="45" step="1" value="23">
+          </div>
+          <div class="ctl">
+            <label for="cw-ret"><span>Annual return</span><span class="val" id="cw-ret-v">7%</span></label>
+            <input type="range" id="cw-ret" min="3" max="10" step="0.5" value="7">
+          </div>
+          <div class="ctl">
+            <label for="cw-wait"><span>Or wait this many years</span><span class="val" id="cw-wait-v">10 yrs</span></label>
+            <input type="range" id="cw-wait" min="1" max="15" step="1" value="10">
+          </div>
+        </div>
+
+        <div class="canvas-wrap" style="margin-top:1.3rem">
+          <canvas id="m10-canvas" width="900" height="360" role="img" aria-label="Two savings curves to age 65, starting now versus waiting several years"></canvas>
+        </div>
+        <div class="legend">
+          <div class="li"><span class="sw" style="background:var(--keep)"></span>Start now</div>
+          <div class="li"><span class="sw" style="background:var(--tax)"></span>Wait, then start</div>
+          <div class="li"><span class="sw" style="background:var(--ink-mute)"></span>What you actually put in</div>
+        </div>
+
+        <div class="readouts" style="margin-top:1.2rem">
+          <div class="ro"><div class="k keep" id="cw-now">—</div><div class="d">By 65 if you start now</div></div>
+          <div class="ro"><div class="k tax" id="cw-late">—</div><div class="d">If you wait first</div></div>
+          <div class="ro"><div class="k warn" id="cw-cost">—</div><div class="d">The cost of waiting</div></div>
+          <div class="ro"><div class="k brand" id="cw-growth">—</div><div class="d">Of the "start now" total,<br>this much is growth</div></div>
+        </div>
+        <p style="font-size:.86rem;color:var(--ink-mute);margin-top:1rem;max-width:100%">Both paths invest the same monthly amount and earn the same return, retiring at 65. The only difference is when they begin.</p>
+      </div>
+    </div>
+
+    <div class="callout"><span class="tag">The habits that actually decide it</span>Set contributions to happen automatically on payday, raise them whenever your income rises, and then <strong>do nothing</strong> during scary markets — the investors who bail at the bottom lock in the loss. You will never time the market; you don't need to. Consistency over 40 years is the whole trick.</div>
+
+    <div class="check" id="chk10" data-correct="1">
+      <div class="q"><span class="qm">Q</span><span>Ana invests $300/month from age 25, Ben invests the same from age 35, both to 65 at the same return. Roughly how do they compare at 65?</span></div>
+      <div class="opts">
+        <button class="opt" data-i="0"><span class="mk">✓</span><span>About the same — Ben just contributes for fewer years.</span></button>
+        <button class="opt" data-i="1"><span class="mk">✓</span><span>Ana ends with roughly double Ben, despite investing only 10 years longer.</span></button>
+        <button class="opt" data-i="2"><span class="mk">✓</span><span>Ben ends ahead, because his later contributions are worth more.</span></button>
+      </div>
+      <div class="explain" id="chk10-x"><b>Ana wins by a landslide.</b> Her early dollars compound the longest, so a 10-year head start often <em>doubles</em> the ending balance even though she only contributed for 10 more years. Time in the market, not timing the market, is the young saver's superpower.</div>
+    </div>
+  </section>
+
+  <!-- ===================== MODULE 03 : THE NUMBER / ON TRACK ===================== -->
+  <section class="module" id="m6">
+    <div class="module-head">
+      <div class="module-num">03</div>
       <div>
         <div class="eyebrow">The number — are you on track?</div>
         <h2>Two questions decide everything: how big a pile, and are you on pace?</h2>
@@ -390,7 +511,7 @@ canvas{display:block;width:100%;height:auto}
   <!-- ===================== MODULE 02 : FUNDING WATERFALL ===================== -->
   <section class="module" id="m7">
     <div class="module-head">
-      <div class="module-num">02</div>
+      <div class="module-num">04</div>
       <div>
         <div class="eyebrow">The funding waterfall</div>
         <h2>Where each saved dollar should go — and why the order isn't equal</h2>
@@ -440,10 +561,77 @@ canvas{display:block;width:100%;height:auto}
     </div>
   </section>
 
-  <!-- ===================== MODULE 03 : ASSET ALLOCATION ===================== -->
+  <!-- ===================== MODULE 05 : WHAT TO BUY & FEES ===================== -->
+  <section class="module" id="m11">
+    <div class="module-head">
+      <div class="module-num">05</div>
+      <div>
+        <div class="eyebrow">What to buy &amp; fees</div>
+        <h2>Own the whole market — and guard every basis point</h2>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Once you're contributing, what do you actually buy? For most people the answer is delightfully boring: a <strong>low-cost index fund</strong> that owns essentially the entire market at once. Trying to pick individual winners is a game most professionals lose — after fees, the majority of active funds trail a simple index over long periods. Owning everything cheaply beats guessing.</p>
+      <p>And watch the one cost you fully control: the <strong>expense ratio</strong>. It sounds trivial — 1% versus 0.05% — but fees compound in reverse, quietly, every single year. Over a 40-year horizon that gap can eat a startling share of your final balance. Slide the fee up and watch the drain.</p>
+    </div>
+
+    <div class="play">
+      <div class="play-head"><span class="chip">Interactive</span><h3>The quiet fee drain</h3></div>
+      <div class="play-body">
+        <div class="controls two-col">
+          <div class="ctl">
+            <label for="fe-start"><span>Invested today</span><span class="val" id="fe-start-v">$20,000</span></label>
+            <input type="range" id="fe-start" min="0" max="200000" step="5000" value="20000">
+          </div>
+          <div class="ctl">
+            <label for="fe-add"><span>Added each year</span><span class="val" id="fe-add-v">$7,000</span></label>
+            <input type="range" id="fe-add" min="0" max="30000" step="1000" value="7000">
+          </div>
+          <div class="ctl">
+            <label for="fe-yrs"><span>Years invested</span><span class="val" id="fe-yrs-v">35 yrs</span></label>
+            <input type="range" id="fe-yrs" min="5" max="45" step="1" value="35">
+          </div>
+          <div class="ctl">
+            <label for="fe-fee"><span>Your fund's expense ratio</span><span class="val" id="fe-fee-v">1.00%</span></label>
+            <input type="range" id="fe-fee" min="0.03" max="2" step="0.01" value="1">
+          </div>
+        </div>
+
+        <div class="canvas-wrap" style="margin-top:1.3rem">
+          <canvas id="m11-canvas" width="900" height="360" role="img" aria-label="Two portfolio growth curves, a low-cost index fund versus a higher-fee fund"></canvas>
+        </div>
+        <div class="legend">
+          <div class="li"><span class="sw" style="background:var(--keep)"></span>Low-cost index (0.03%)</div>
+          <div class="li"><span class="sw" style="background:var(--tax)"></span>Your fund's fee</div>
+        </div>
+
+        <div class="readouts" style="margin-top:1.2rem">
+          <div class="ro"><div class="k keep" id="fe-low">—</div><div class="d">Ending with a 0.03% fund</div></div>
+          <div class="ro"><div class="k" id="fe-your">—</div><div class="d">Ending with your fund</div></div>
+          <div class="ro"><div class="k tax" id="fe-lost">—</div><div class="d">Handed over in fees &amp; lost growth</div></div>
+          <div class="ro"><div class="k warn" id="fe-pct">—</div><div class="d">Share of your balance<br>lost to the fee</div></div>
+        </div>
+        <p style="font-size:.86rem;color:var(--ink-mute);margin-top:1rem;max-width:100%">Both earn the same 7% before fees; the only difference is the expense ratio skimmed off every year. "Lost" includes the fees paid plus all the growth those dollars would have earned.</p>
+      </div>
+    </div>
+
+    <div class="callout"><span class="tag">The cheapest reliable edge</span>You can't control the market, but you can control your costs — and low fees are the closest thing to a free lunch in investing. Favor broad index funds with expense ratios near <strong>0.03%–0.10%</strong>, and be skeptical of anything charging 1%+ or an advisor taking 1% of assets a year; over a lifetime that's often hundreds of thousands of dollars.</div>
+
+    <div class="check" id="chk11" data-correct="1">
+      <div class="q"><span class="qm">Q</span><span>Over 40 years, how much can a 1% annual expense ratio (versus about 0.05%) cost a portfolio?</span></div>
+      <div class="opts">
+        <button class="opt" data-i="0"><span class="mk">✓</span><span>A rounding error — 1% a year is negligible.</span></button>
+        <button class="opt" data-i="1"><span class="mk">✓</span><span>A large slice of the final balance — often 20% or more.</span></button>
+        <button class="opt" data-i="2"><span class="mk">✓</span><span>Nothing — fees only come out of profits, not principal.</span></button>
+      </div>
+      <div class="explain" id="chk11-x"><b>Fees compound like returns, in reverse.</b> Roughly 1% skimmed every year for decades can quietly erase a fifth or more of the ending balance. It's the one cost you fully control — which is why low-cost index funds are the default answer.</div>
+    </div>
+  </section>
+
+  <!-- ===================== MODULE 06 : ASSET ALLOCATION ===================== -->
   <section class="module" id="m8">
     <div class="module-head">
-      <div class="module-num">03</div>
+      <div class="module-num">06</div>
       <div>
         <div class="eyebrow">Asset allocation &amp; the glide path</div>
         <h2>Your stock-and-bond mix sets both your growth and your nerves</h2>
@@ -499,10 +687,77 @@ canvas{display:block;width:100%;height:auto}
     </div>
   </section>
 
+  <!-- ===================== MODULE 07 : INFLATION ===================== -->
+  <section class="module" id="m12">
+    <div class="module-head">
+      <div class="module-num">07</div>
+      <div>
+        <div class="eyebrow">Inflation — the silent tax</div>
+        <h2>Why "safe" cash is the risky choice over decades</h2>
+      </div>
+    </div>
+    <div class="prose">
+      <p>There's one force working against your money the entire time: <strong>inflation</strong>. Prices drift up a few percent a year, so the same dollar buys a little less each year — and over a long horizon "a little less" compounds into "a lot less." At about 3% a year, a dollar loses <em>half</em> its purchasing power in roughly 24 years. That's why the real target isn't a big number on a statement; it's <strong>buying power</strong>.</p>
+      <p>This flips the usual intuition about risk. Cash <em>feels</em> safe because the number never drops — but left alone for decades it quietly bleeds value, guaranteed. Investments swing around, yet historically they've <strong>outpaced</strong> inflation over long stretches. Keep cash for near-term needs and emergencies; for money you won't touch for years, standing still is the real danger. Watch both paths below.</p>
+    </div>
+
+    <div class="play">
+      <div class="play-head"><span class="chip">Interactive</span><h3>The shrinking dollar</h3></div>
+      <div class="play-body">
+        <div class="controls two-col">
+          <div class="ctl">
+            <label for="in-amt"><span>Money set aside today</span><span class="val" id="in-amt-v">$50,000</span></label>
+            <input type="range" id="in-amt" min="5000" max="300000" step="5000" value="50000">
+          </div>
+          <div class="ctl">
+            <label for="in-infl"><span>Inflation rate</span><span class="val" id="in-infl-v">3.0%</span></label>
+            <input type="range" id="in-infl" min="1" max="6" step="0.5" value="3">
+          </div>
+          <div class="ctl">
+            <label for="in-inv"><span>If invested instead, return</span><span class="val" id="in-inv-v">7%</span></label>
+            <input type="range" id="in-inv" min="2" max="10" step="0.5" value="7">
+          </div>
+          <div class="ctl">
+            <label for="in-yrs"><span>Years from now</span><span class="val" id="in-yrs-v">30 yrs</span></label>
+            <input type="range" id="in-yrs" min="5" max="45" step="1" value="30">
+          </div>
+        </div>
+
+        <div class="canvas-wrap" style="margin-top:1.3rem">
+          <canvas id="m12-canvas" width="900" height="360" role="img" aria-label="Purchasing power of cash falling versus invested money rising in real terms"></canvas>
+        </div>
+        <div class="legend">
+          <div class="li"><span class="sw" style="background:var(--tax)"></span>Cash left alone (real buying power)</div>
+          <div class="li"><span class="sw" style="background:var(--keep)"></span>Invested (real buying power)</div>
+        </div>
+
+        <div class="readouts" style="margin-top:1.2rem">
+          <div class="ro"><div class="k tax" id="in-cash">—</div><div class="d">Cash's buying power<br>at the end</div></div>
+          <div class="ro"><div class="k keep" id="in-invv">—</div><div class="d">Invested buying power<br>at the end</div></div>
+          <div class="ro"><div class="k warn" id="in-basket">—</div><div class="d">A $100 basket then costs</div></div>
+          <div class="ro"><div class="k brand" id="in-half">—</div><div class="d">Years to lose half<br>your buying power</div></div>
+        </div>
+        <p style="font-size:.86rem;color:var(--ink-mute);margin-top:1rem;max-width:100%">Both figures are in today's dollars (real terms). Cash is shown earning nothing; a savings account paying below inflation still loses buying power, just more slowly.</p>
+      </div>
+    </div>
+
+    <div class="callout"><span class="tag">The takeaway</span>Inflation is the reason the whole plan is built around <em>growth</em>, not just saving. An emergency fund belongs in cash — its job is stability, not returns — but long-term money has to at least keep pace with prices, and ideally beat them. Standing still for 30 years isn't caution; it's a slow, certain loss.</div>
+
+    <div class="check" id="chk12" data-correct="1">
+      <div class="q"><span class="qm">Q</span><span>At about 3% inflation, roughly how long until a dollar's buying power is cut in half?</span></div>
+      <div class="opts">
+        <button class="opt" data-i="0"><span class="mk">✓</span><span>About 5 years.</span></button>
+        <button class="opt" data-i="1"><span class="mk">✓</span><span>About 24 years.</span></button>
+        <button class="opt" data-i="2"><span class="mk">✓</span><span>About 100 years.</span></button>
+      </div>
+      <div class="explain" id="chk12-x"><b>Roughly 24 years.</b> The Rule of 72 says 72 ÷ 3 ≈ 24 years to halve buying power. It's why cash sitting idle for decades quietly loses, and why long-term money has to outpace inflation to truly grow.</div>
+    </div>
+  </section>
+
   <!-- ===================== MODULE 0 : TAX BUCKETS ===================== -->
   <section class="module" id="m0">
     <div class="module-head">
-      <div class="module-num">04</div>
+      <div class="module-num">08</div>
       <div>
         <div class="eyebrow">Tax buckets — the foundation</div>
         <h2>Not every dollar you save is taxed the same way</h2>
@@ -583,7 +838,7 @@ canvas{display:block;width:100%;height:auto}
   <!-- ===================== MODULE 1 ===================== -->
   <section class="module" id="m1">
     <div class="module-head">
-      <div class="module-num">05</div>
+      <div class="module-num">09</div>
       <div>
         <div class="eyebrow">Roth conversions &amp; brackets</div>
         <h2>Income fills brackets like water fills a glass</h2>
@@ -643,7 +898,7 @@ canvas{display:block;width:100%;height:auto}
   <!-- ===================== MODULE 2 ===================== -->
   <section class="module" id="m2">
     <div class="module-head">
-      <div class="module-num">06</div>
+      <div class="module-num">10</div>
       <div>
         <div class="eyebrow">RMDs &amp; the tax time-bomb</div>
         <h2>The tax you deferred doesn't disappear — it compounds</h2>
@@ -709,7 +964,7 @@ canvas{display:block;width:100%;height:auto}
   <!-- ===================== MODULE 4 : SOCIAL SECURITY TAX ===================== -->
   <section class="module" id="m4">
     <div class="module-head">
-      <div class="module-num">07</div>
+      <div class="module-num">11</div>
       <div>
         <div class="eyebrow">Social Security &amp; taxes</div>
         <h2>How much of your Social Security is taxed is up to your other income</h2>
@@ -775,7 +1030,7 @@ canvas{display:block;width:100%;height:auto}
   <!-- ===================== MODULE 5 : ACA SUBSIDY CLIFF ===================== -->
   <section class="module" id="m5">
     <div class="module-head">
-      <div class="module-num">08</div>
+      <div class="module-num">12</div>
       <div>
         <div class="eyebrow">The ACA subsidy cliff</div>
         <h2>Retire before 65? Your income sets your health-insurance subsidy</h2>
@@ -843,7 +1098,7 @@ canvas{display:block;width:100%;height:auto}
   <!-- ===================== MODULE 3 ===================== -->
   <section class="module" id="m3">
     <div class="module-head">
-      <div class="module-num">09</div>
+      <div class="module-num">13</div>
       <div>
         <div class="eyebrow">Sequence risk &amp; safe withdrawal</div>
         <h2>The order of returns can matter more than the average</h2>
@@ -907,7 +1162,7 @@ canvas{display:block;width:100%;height:auto}
         <h2>Put it together</h2>
       </div>
     </div>
-    <p class="prose" style="margin-top:1rem">Eleven questions spanning every module. Pick an answer and you'll see why it's right or wrong immediately — your score updates as you go.</p>
+    <p class="prose" style="margin-top:1rem">Fifteen questions spanning every module. Pick an answer and you'll see why it's right or wrong immediately — your score updates as you go.</p>
 
     <div class="quiz-panel" style="margin-top:1.6rem">
       <div class="quiz-score">
@@ -941,7 +1196,7 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(!do
 const cvar=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
 /* ============================ PROGRESS RAIL ============================ */
-const MODS=[['m6','On track'],['m7','Fund order'],['m8','Allocation'],['m0','Buckets'],['m1','Brackets'],['m2','RMDs'],['m4','SS tax'],['m5','ACA'],['m3','Sequence'],['quiz','Quiz']];
+const MODS=[['m9','Roadmap'],['m10','Habits'],['m6','On track'],['m7','Fund order'],['m11','What to buy'],['m8','Allocation'],['m12','Inflation'],['m0','Buckets'],['m1','Brackets'],['m2','RMDs'],['m4','SS tax'],['m5','ACA'],['m3','Sequence'],['quiz','Quiz']];
 const done={};
 const rail=$('#rail');
 MODS.forEach(([id,label])=>{
@@ -957,7 +1212,7 @@ function markDone(id){done[id]=1;const d=rail.querySelector(`[data-id="${id}"]`)
 const secObs=new IntersectionObserver(es=>{
   es.forEach(e=>{if(e.isIntersecting){$$('.pdot').forEach(p=>p.classList.toggle('active',p.dataset.id===e.target.id));}});
 },{rootMargin:'-45% 0px -50% 0px'});
-['m6','m7','m8','m0','m1','m2','m4','m5','m3','quiz'].forEach(id=>secObs.observe($('#'+id)));
+['m9','m10','m6','m7','m11','m8','m12','m0','m1','m2','m4','m5','m3','quiz'].forEach(id=>secObs.observe($('#'+id)));
 
 /* ============================ TAX MODEL ============================ */
 // 2026 (est.) MFJ ordinary brackets: [rate, lower, upper]
@@ -971,7 +1226,166 @@ function taxOn(income){ // tax on ordinary income
 }
 function marginalRate(income){for(const[r,lo,hi]of BR){if(income>lo&&income<=hi)return r;}return income>0?0.37:0.10;}
 
-/* ============================ MODULE 01 : ARE YOU ON TRACK ============================ */
+/* ============================ MODULE 01 : ORDER OF OPERATIONS ============================ */
+(function(){
+  const STEPS=[
+    {nm:'Budget & automate a savings rate',d:'Know where your money goes, and pay yourself first — automatically, on payday.'},
+    {nm:'Starter emergency fund',d:'$1,000–$2,000 in cash so a surprise doesn’t turn into debt.'},
+    {nm:'Capture the full employer match',d:'Free money — an instant ~50–100% return. Never leave it behind.'},
+    {nm:'Crush high-interest debt',d:'Anything above ~7–8% (credit cards) beats any investment, risk-free.'},
+    {nm:'Full emergency fund',d:'Build cash up to 3–6 months of expenses.'},
+    {nm:'Max a Roth IRA & HSA',d:'Tax-free growth — and your bracket is low now, so Roth shines.'},
+    {nm:'Max your 401(k)',d:'Fill the rest of the annual limit in tax-advantaged space.'},
+    {nm:'Taxable brokerage & big goals',d:'Everything beyond — a house down payment, an early-retirement bridge.'},
+  ];
+  const wrap=$('#oo-steps'), doneSet=new Set();
+  function render(){
+    const nextIdx=STEPS.findIndex((_,i)=>!doneSet.has(i));
+    wrap.innerHTML='';
+    STEPS.forEach((s,i)=>{
+      const done=doneSet.has(i), isNext=i===nextIdx;
+      wrap.insertAdjacentHTML('beforeend',
+        `<button class="step${done?' done':''}${isNext?' next':''}" data-i="${i}"><span class="box">✓</span><span class="st-body"><span class="st-nm">${i+1}. ${s.nm}${isNext?' <span class="st-tag">Next move</span>':''}</span><span class="st-d">${s.d}</span></span></button>`);
+    });
+    $$('.step',wrap).forEach(b=>b.onclick=()=>{const i=+b.dataset.i;doneSet.has(i)?doneSet.delete(i):doneSet.add(i);render();});
+    const nx=$('#oo-next');
+    if(nextIdx===-1){nx.style.borderColor='var(--keep)';nx.style.background='var(--keep-wash)';nx.innerHTML='<span class="tag">All set</span><b>You’ve worked through the whole sequence.</b> From here it’s about consistency — keep contributions automated and revisit the plan as life changes.';}
+    else{nx.style.borderColor='var(--brand)';nx.style.background='var(--surface-2)';nx.innerHTML=`<span class="tag">Your next move</span><b>${STEPS[nextIdx].nm}.</b> ${STEPS[nextIdx].d}`;}
+    markDone('m9');
+  }
+  render();
+})();
+
+/* ============================ MODULE 02 : COST OF WAITING ============================ */
+let M10=null;
+(function(){
+  const amt=$('#cw-amt'),age=$('#cw-age'),ret=$('#cw-ret'),wait=$('#cw-wait');
+  function render(){
+    const M=+amt.value, s=+age.value, r=+ret.value/100, w=+wait.value, RET=65;
+    $('#cw-amt-v').textContent=fmt(M);$('#cw-age-v').textContent=s;$('#cw-ret-v').textContent=(+ret.value)+'%';$('#cw-wait-v').textContent=w+' yrs';
+    const A=M*12, nowS=[], waitS=[]; let bn=0,bw=0;
+    for(let a=s;a<=RET;a++){
+      bn=(bn+A)*(1+r);
+      const started=a>=s+w; bw=started?(bw+A)*(1+r):0;
+      nowS.push({age:a,bal:bn,contrib:A*(a-s+1)});
+      waitS.push({age:a,bal:started?bw:0});
+    }
+    const FVnow=nowS[nowS.length-1].bal, FVwait=waitS[waitS.length-1].bal, contributed=A*(RET-s+1);
+    M10={nowS,waitS,s,RET};
+    drawM10();
+    $('#cw-now').textContent=fmt(FVnow);
+    $('#cw-late').textContent=fmt(FVwait);
+    $('#cw-cost').textContent=fmt(FVnow-FVwait);
+    $('#cw-growth').textContent=FVnow>0?Math.round((FVnow-contributed)/FVnow*100)+'%':'0%';
+    markDone('m10');
+  }
+  [amt,age,ret,wait].forEach(e=>e.oninput=render);render();
+})();
+function drawM10(){
+  const cv=$('#m10-canvas');if(!cv||!M10)return;
+  const dpr=Math.min(devicePixelRatio||1,2);const W=cv.clientWidth||900,H=360;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+'px';
+  const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
+  const padL=64,padR=18,padT=18,padB=34,plotW=W-padL-padR,plotH=H-padT-padB;
+  const s=M10.nowS,n=s.length-1, maxY=Math.max(s[n].bal,1)*1.06, a0=M10.s,a1=M10.RET;
+  const AX=a=>padL+(a1>a0?(a-a0)/(a1-a0):0)*plotW, Y=v=>padT+plotH-(v/maxY)*plotH;
+  const mute=cvar('--ink-mute'),soft=cvar('--line-soft');
+  x.strokeStyle=soft;x.lineWidth=1;x.fillStyle=mute;x.font='11px "IBM Plex Mono",monospace';x.textAlign='right';x.textBaseline='middle';
+  for(let i=0;i<=4;i++){const v=maxY*i/4;const yy=Y(v);x.beginPath();x.moveTo(padL,yy);x.lineTo(W-padR,yy);x.stroke();x.fillText(fmtK(v),padL-8,yy);}
+  x.textAlign='center';x.textBaseline='top';
+  const step=Math.max(1,Math.round((a1-a0)/6));
+  for(let a=a0;a<=a1;a+=step){x.fillText(a,AX(a),H-padB+8);}
+  const plot=(arr,key,color,w,dash)=>{x.strokeStyle=color;x.lineWidth=w;x.setLineDash(dash||[]);x.beginPath();arr.forEach((d,i)=>{const px=AX(d.age),py=Y(d[key]);i?x.lineTo(px,py):x.moveTo(px,py);});x.stroke();x.setLineDash([]);};
+  // start-now area
+  x.beginPath();x.moveTo(AX(a0),Y(0));s.forEach(d=>x.lineTo(AX(d.age),Y(d.bal)));x.lineTo(AX(a1),Y(0));x.closePath();x.globalAlpha=.09;x.fillStyle=cvar('--keep');x.fill();x.globalAlpha=1;
+  plot(M10.waitS,'bal',cvar('--tax'),2.4);
+  plot(s,'contrib',cvar('--ink-mute'),1.5,[5,4]);
+  plot(s,'bal',cvar('--keep'),2.6);
+  x.fillStyle=cvar('--keep');x.beginPath();x.arc(AX(s[n].age),Y(s[n].bal),4,0,7);x.fill();
+}
+
+/* ============================ MODULE 05 : WHAT TO BUY & FEES ============================ */
+let M11=null;
+(function(){
+  const start=$('#fe-start'),add=$('#fe-add'),yrs=$('#fe-yrs'),fee=$('#fe-fee');
+  const G=0.07, LOW=0.0003;
+  function grow(P,A,f,N){const r=G-f,arr=[{k:0,bal:P}];let b=P;for(let k=1;k<=N;k++){b=(b+A)*(1+r);arr.push({k,bal:b});}return arr;}
+  function render(){
+    const P=+start.value,A=+add.value,N=+yrs.value,f=+fee.value/100;
+    $('#fe-start-v').textContent=fmt(P);$('#fe-add-v').textContent=fmt(A);$('#fe-yrs-v').textContent=N+' yrs';$('#fe-fee-v').textContent=(+fee.value).toFixed(2)+'%';
+    const low=grow(P,A,LOW,N), your=grow(P,A,f,N);
+    M11={low,your,N};
+    drawM11();
+    const eLow=low[N].bal,eYour=your[N].bal,lost=eLow-eYour;
+    $('#fe-low').textContent=fmt(eLow);$('#fe-your').textContent=fmt(eYour);$('#fe-lost').textContent=fmt(lost);$('#fe-pct').textContent=eLow>0?Math.round(lost/eLow*100)+'%':'0%';
+    markDone('m11');
+  }
+  [start,add,yrs,fee].forEach(e=>e.oninput=render);render();
+})();
+function drawM11(){
+  const cv=$('#m11-canvas');if(!cv||!M11)return;
+  const dpr=Math.min(devicePixelRatio||1,2);const W=cv.clientWidth||900,H=360;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+'px';
+  const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
+  const padL=64,padR=18,padT=18,padB=34,plotW=W-padL-padR,plotH=H-padT-padB;
+  const N=M11.N, maxY=Math.max(M11.low[N].bal,1)*1.05;
+  const AX=k=>padL+(N>0?k/N:0)*plotW, Y=v=>padT+plotH-(v/maxY)*plotH;
+  const mute=cvar('--ink-mute'),soft=cvar('--line-soft');
+  x.strokeStyle=soft;x.lineWidth=1;x.fillStyle=mute;x.font='11px "IBM Plex Mono",monospace';x.textAlign='right';x.textBaseline='middle';
+  for(let i=0;i<=4;i++){const v=maxY*i/4;const yy=Y(v);x.beginPath();x.moveTo(padL,yy);x.lineTo(W-padR,yy);x.stroke();x.fillText(fmtK(v),padL-8,yy);}
+  x.textAlign='center';x.textBaseline='top';
+  const step=Math.max(1,Math.round(N/6));
+  for(let k=0;k<=N;k+=step){x.fillText('Yr '+k,AX(k),H-padB+8);}
+  // gap area between low and your
+  x.beginPath();M11.low.forEach((d,k)=>{k?x.lineTo(AX(k),Y(d.bal)):x.moveTo(AX(k),Y(d.bal));});for(let k=N;k>=0;k--){x.lineTo(AX(k),Y(M11.your[k].bal));}x.closePath();x.globalAlpha=.12;x.fillStyle=cvar('--tax');x.fill();x.globalAlpha=1;
+  const ln=(arr,c)=>{x.strokeStyle=c;x.lineWidth=2.6;x.beginPath();arr.forEach((d,k)=>{k?x.lineTo(AX(k),Y(d.bal)):x.moveTo(AX(k),Y(d.bal));});x.stroke();};
+  ln(M11.low,cvar('--keep'));ln(M11.your,cvar('--tax'));
+  x.fillStyle=cvar('--keep');x.beginPath();x.arc(AX(N),Y(M11.low[N].bal),4,0,7);x.fill();
+  x.fillStyle=cvar('--tax');x.beginPath();x.arc(AX(N),Y(M11.your[N].bal),4,0,7);x.fill();
+}
+
+/* ============================ MODULE 07 : INFLATION ============================ */
+let M12=null;
+(function(){
+  const amt=$('#in-amt'),infl=$('#in-infl'),inv=$('#in-inv'),yrs=$('#in-yrs');
+  function render(){
+    const P=+amt.value,i=+infl.value/100,g=+inv.value/100,N=+yrs.value;
+    $('#in-amt-v').textContent=fmt(P);$('#in-infl-v').textContent=(+infl.value).toFixed(1)+'%';$('#in-inv-v').textContent=(+inv.value)+'%';$('#in-yrs-v').textContent=N+' yrs';
+    const cash=[],invd=[];
+    for(let k=0;k<=N;k++){cash.push(P/Math.pow(1+i,k));invd.push(P*Math.pow((1+g)/(1+i),k));}
+    M12={cash,invd,N,P};
+    drawM12();
+    $('#in-cash').textContent=fmt(cash[N]);$('#in-invv').textContent=fmt(invd[N]);
+    $('#in-basket').textContent=fmt(100*Math.pow(1+i,N));
+    $('#in-half').textContent=Math.round(Math.log(2)/Math.log(1+i))+' yrs';
+    markDone('m12');
+  }
+  [amt,infl,inv,yrs].forEach(e=>e.oninput=render);render();
+})();
+function drawM12(){
+  const cv=$('#m12-canvas');if(!cv||!M12)return;
+  const dpr=Math.min(devicePixelRatio||1,2);const W=cv.clientWidth||900,H=360;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+'px';
+  const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
+  const padL=64,padR=18,padT=18,padB=34,plotW=W-padL-padR,plotH=H-padT-padB;
+  const N=M12.N, maxY=Math.max(M12.invd[N],M12.P,1)*1.05;
+  const AX=k=>padL+(N>0?k/N:0)*plotW, Y=v=>padT+plotH-(v/maxY)*plotH;
+  const mute=cvar('--ink-mute'),soft=cvar('--line-soft');
+  x.strokeStyle=soft;x.lineWidth=1;x.fillStyle=mute;x.font='11px "IBM Plex Mono",monospace';x.textAlign='right';x.textBaseline='middle';
+  for(let i=0;i<=4;i++){const v=maxY*i/4;const yy=Y(v);x.beginPath();x.moveTo(padL,yy);x.lineTo(W-padR,yy);x.stroke();x.fillText(fmtK(v),padL-8,yy);}
+  x.textAlign='center';x.textBaseline='top';
+  const step=Math.max(1,Math.round(N/6));
+  for(let k=0;k<=N;k+=step){x.fillText('Yr '+k,AX(k),H-padB+8);}
+  // baseline P
+  x.strokeStyle=mute;x.setLineDash([4,4]);x.lineWidth=1;x.beginPath();x.moveTo(padL,Y(M12.P));x.lineTo(W-padR,Y(M12.P));x.stroke();x.setLineDash([]);
+  x.fillStyle=mute;x.font='600 10px "IBM Plex Sans",sans-serif';x.textAlign='left';x.textBaseline='bottom';x.fillText('Today’s '+fmtK(M12.P),padL+4,Y(M12.P)-3);
+  const ln=(arr,c)=>{x.strokeStyle=c;x.lineWidth=2.6;x.beginPath();arr.forEach((v,k)=>{k?x.lineTo(AX(k),Y(v)):x.moveTo(AX(k),Y(v));});x.stroke();};
+  ln(M12.invd,cvar('--keep'));ln(M12.cash,cvar('--tax'));
+  x.fillStyle=cvar('--keep');x.beginPath();x.arc(AX(N),Y(M12.invd[N]),4,0,7);x.fill();
+  x.fillStyle=cvar('--tax');x.beginPath();x.arc(AX(N),Y(M12.cash[N]),4,0,7);x.fill();
+}
+
+/* ============================ MODULE 03 : ARE YOU ON TRACK ============================ */
 let M6=null;
 (function(){
   const ids=['ot-age','ot-ret','ot-cur','ot-add','ot-ret2','ot-spend'];
@@ -1464,7 +1878,7 @@ function drawM5(){
   x.fillStyle=cur>0?cvar('--keep'):cvar('--tax');x.beginPath();x.arc(dotX,Y(cur),4.5,0,7);x.fill();x.strokeStyle=cvar('--surface');x.lineWidth=2;x.stroke();
 }
 
-function drawAll(){try{drawM6();drawM8();drawM2();drawM3();drawM4();drawM5();}catch(e){}}
+function drawAll(){try{drawM10();drawM11();drawM12();drawM6();drawM8();drawM2();drawM3();drawM4();drawM5();}catch(e){}}
 addEventListener('resize',()=>{clearTimeout(window._rz);window._rz=setTimeout(drawAll,120);});
 
 /* ============================ INLINE CHECKS ============================ */
@@ -1483,6 +1897,18 @@ $$('.check').forEach(chk=>{
 
 /* ============================ FINAL QUIZ ============================ */
 const QUIZ=[
+  {q:"You have a 22% credit-card balance and you're already getting your full 401(k) match. What's the best use of the next dollar?",
+   a:["Invest more in the 401(k) beyond the match.","Pay off the 22% credit card — a guaranteed, risk-free 22% return.","Open a taxable brokerage and buy index funds."],c:1,
+   x:"After the free match, clearing high-interest debt is the highest-value move: a guaranteed return equal to the rate, with no risk. No investment reliably beats a certain 22%."},
+  {q:"Starting to invest 10 years earlier, at the same monthly amount and return, tends to…",
+   a:["Make only a small difference over a career.","Dramatically raise the ending balance — often roughly doubling it.","Help only if you also pick better-performing funds."],c:1,
+   x:"Early dollars compound the longest, so a 10-year head start can roughly double the result. Time in the market beats timing it — the young saver's biggest edge."},
+  {q:"Compared with a 0.05% index fund, a fund charging 1% a year over several decades will…",
+   a:["Barely differ — 1% is trivial.","Leave you with meaningfully less, because fees compound against you every year.","Do better, since a higher fee signals better management."],c:1,
+   x:"Fees compound in reverse. About 1% a year for decades can quietly erase a fifth or more of the final balance — and it's the one cost you fully control."},
+  {q:"Why is parking money in cash for 30 years surprisingly risky?",
+   a:["It isn't — cash never loses value.","Inflation steadily erodes its buying power, a near-certain loss over decades.","Banks eventually reclaim idle balances."],c:1,
+   x:"The dollar figure holds, but at ~3% inflation buying power halves in about 24 years. For long-term money, standing still is a slow, near-guaranteed loss — you have to outpace inflation."},
   {q:"You want your portfolio to provide about $60,000 a year. Using the quick 25&times; rule, roughly how big a nest egg are you aiming for?",
    a:["About $600,000","About $1.5 million","About $6 million"],c:1,
    x:"25 &times; $60,000 &approx; $1.5M — the 4% rule inverted. It's a rough starting target, before counting Social Security or a pension."},
@@ -1536,7 +1962,7 @@ const QUIZ=[
         $('#qz-meter').style.width=(score/QUIZ.length*100)+'%';
         markDone('quiz');
         if(answered===QUIZ.length){
-          const msg=score===QUIZ.length?"Perfect score — you've got the core mechanics of building and spending a nest egg down.":score>=8?"Strong. You understand the big levers; revisit the ones you missed above.":"Good start — scroll back up and replay the playgrounds, then retry.";
+          const msg=score===QUIZ.length?"Perfect score — you've got the core mechanics of building and spending a nest egg down.":score>=11?"Strong. You understand the big levers; revisit the ones you missed above.":"Good start — scroll back up and replay the playgrounds, then retry.";
           $('#qz-done').innerHTML=`<div class="callout" style="border-color:var(--keep);background:var(--keep-wash)"><span class="tag">Your result</span><b>${score} / ${QUIZ.length}.</b> ${msg}</div>`;
         }
       };
