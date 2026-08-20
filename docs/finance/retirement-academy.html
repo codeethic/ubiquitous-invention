@@ -353,6 +353,8 @@ canvas{display:block;width:100%;height:auto}
 
     <div class="callout"><span class="tag">Why order beats optimization</span>Each early step is a guaranteed win: an emergency fund stops a surprise from becoming credit-card debt, the employer match is free money, and paying off a 20%+ balance is a risk-free 20% return. Only after those does the market — with its uncertainty — become the best home for a dollar. Get the order right and the rest is tuning.</div>
 
+    <div class="callout"><span class="tag">Does income change the order?</span>The <em>sequence</em> barely moves with income — a Roth IRA and HSA come before finishing the 401(k) because they usually offer cheaper, broader investments (and the HSA is triple-tax-free), which is true at any salary. What income changes is <strong>how you run the Roth-IRA step</strong>. Direct Roth IRA contributions phase out in 2026 at a MAGI of <strong>$153k–$168k (single)</strong> and <strong>$242k–$252k (married filing jointly)</strong>; above that you use a <strong>"backdoor Roth"</strong> (contribute to a nondeductible traditional IRA, then convert). The HSA has no income limit. Income also flips the <em>flavor</em>: a low bracket — like a 23-year-old's — favors <strong>Roth</strong> (pay tax cheaply now), while peak-earning high brackets often favor <strong>pre-tax</strong> contributions (deduct now, pay later at a lower rate).</div>
+
     <div class="check" id="chk9" data-correct="1">
       <div class="q"><span class="qm">Q</span><span>You're 23 with a small cash cushion, a 22% credit-card balance, and a 401(k) that offers a match. After grabbing the full match, where does the next dollar do the most good?</span></div>
       <div class="opts">
@@ -544,7 +546,7 @@ canvas{display:block;width:100%;height:auto}
           <div class="ro"><div class="k" id="wf-tax">—</div><div class="d">Spilling into taxable</div></div>
           <div class="ro"><div class="k keep" id="wf-total">—</div><div class="d">Total working for you<br>(your savings + match)</div></div>
         </div>
-        <p style="font-size:.86rem;color:var(--ink-mute);margin-top:1rem;max-width:100%">Uses recent contribution limits (401(k) $23,500, IRA $7,000, HSA $4,300 self-only) and a 50%-up-to-6% match, all under age 50. Catch-up contributions raise these at 50+.</p>
+        <p style="font-size:.86rem;color:var(--ink-mute);margin-top:1rem;max-width:100%">Uses 2026 contribution limits (401(k) $24,500, IRA $7,500, HSA $4,400 self-only) and a 50%-up-to-6% match, all under age 50. Catch-up contributions raise these at 50+.</p>
       </div>
     </div>
 
@@ -1439,7 +1441,7 @@ function drawM6(){
 /* ============================ MODULE 02 : FUNDING WATERFALL ============================ */
 (function(){
   const save=$('#wf-save'),sal=$('#wf-sal'),wrap=$('#wf-tiers');
-  const MATCH_PCT=0.06,MATCH_RATE=0.5,HSA=4300,IRA=7000,DEF401=23500;
+  const MATCH_PCT=0.06,MATCH_RATE=0.5,HSA=4400,IRA=7500,DEF401=24500;
   function render(){
     const total=+save.value, salary=+sal.value;
     $('#wf-save-v').textContent=fmt(total);$('#wf-sal-v').textContent=fmt(salary);
