@@ -105,7 +105,7 @@ a:hover{text-decoration:underline}
 .topbar-in{max-width:var(--maxw);margin:0 auto;padding:.6rem 1.25rem;display:flex;align-items:center;gap:1rem}
 .brandmark{display:flex;align-items:center;gap:.6rem;font-family:"Spectral",serif;font-weight:600;font-size:1.06rem;letter-spacing:.01em;white-space:nowrap}
 .brandmark .glyph{width:26px;height:26px;flex:0 0 auto;display:grid;place-items:center;border-radius:7px;background:var(--brand);color:#fff;font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:.82rem}
-.progress-rail{flex:1;display:flex;align-items:center;gap:.5rem;min-width:0;justify-content:center}
+.progress-rail{flex:1;display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .4rem;row-gap:.3rem;min-width:0;justify-content:center}
 .pdot{display:flex;align-items:center;gap:.4rem;padding:.25rem .5rem;border-radius:999px;font-size:.72rem;color:var(--ink-mute);cursor:pointer;border:1px solid transparent;white-space:nowrap;background:none;font-family:inherit}
 .pdot:hover{color:var(--ink);background:var(--surface-2)}
 .pdot .ring{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--ink-mute)}
@@ -259,6 +259,19 @@ canvas{display:block;width:100%;height:auto}
 .wbar .wl{font-size:.85rem;color:var(--ink-soft)}
 .wbar .wt{position:relative;height:32px;background:var(--surface-2);border-radius:7px;overflow:hidden}
 .wbar .wf{position:absolute;inset:0 auto 0 0;border-radius:7px;display:flex;align-items:center;justify-content:flex-end;padding:0 .6rem;color:#fff;font-family:"IBM Plex Mono",monospace;font-size:.82rem;font-weight:600;transition:width .45s cubic-bezier(.4,0,.2,1);min-width:58px}
+
+/* funding waterfall tiers */
+.tiers{display:grid;gap:.85rem;margin-top:.3rem}
+.tier-top{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;margin-bottom:.35rem}
+.tier-top .nm{font-size:.9rem;font-weight:600}
+.tier-top .nm .sub{font-weight:400;color:var(--ink-mute);font-size:.78rem}
+.tier-top .amt{font-family:"IBM Plex Mono",monospace;font-size:.84rem;color:var(--ink-soft);white-space:nowrap}
+.tier-bar{position:relative;height:22px;background:var(--surface-2);border-radius:6px;overflow:hidden;border:1px solid var(--line-soft)}
+.tier-fill{position:absolute;inset:0 auto 0 0;width:0;border-radius:6px 0 0 6px;transition:width .45s cubic-bezier(.4,0,.2,1)}
+.tier.match .tier-fill{background:var(--keep)}
+.tier.adv .tier-fill{background:var(--brand)}
+.tier.taxable .tier-fill{background:var(--ink-mute)}
+.tier.dim{opacity:.5}
 </style>
 </head>
 <body>
@@ -273,32 +286,223 @@ canvas{display:block;width:100%;height:auto}
 <main>
   <!-- ===================== HERO ===================== -->
   <header class="hero wrap">
-    <div class="eyebrow">An explorable guide to retirement taxes</div>
+    <div class="eyebrow">An explorable guide to building &amp; spending a nest egg</div>
     <h1>Your money has a <span class="accent">second life</span> after you stop working.</h1>
-    <p class="sub">Three forces quietly decide how much of your nest egg you actually keep: the tax brackets your withdrawals fall into, the required distributions waiting at age 75, and the order in which good and bad market years happen to arrive. Play with each one below — no spreadsheets, no personal details, just the ideas.</p>
+    <p class="sub">The whole journey on one page — from building the pile while you're working to making it last after you stop. Nine short, interactive lessons: how big a nest egg you need, where each dollar should go, how to invest it, and the tax moves that decide how much you actually keep. No spreadsheets, no personal details, just the ideas.</p>
     <div class="hero-cta">
-      <button class="btn btn-primary" onclick="go('m1')">Start the guided path →</button>
+      <button class="btn btn-primary" onclick="go('m6')">Start the guided path →</button>
       <button class="btn btn-ghost" onclick="go('quiz')">Jump to the quiz</button>
     </div>
     <div class="hero-strip">
-      <div class="cell"><div class="k keep">Brackets</div><div class="d">Why the same dollar can be taxed at 12% or 24% — and how to aim it.</div></div>
-      <div class="cell"><div class="k warn">The time-bomb</div><div class="d">How an untouched pre-tax account forces bigger taxable income every year after 75.</div></div>
-      <div class="cell"><div class="k tax">Sequence risk</div><div class="d">Why two retirees with identical average returns can end up worlds apart.</div></div>
+      <div class="cell"><div class="k" style="color:var(--keep)">Build it</div><div class="d">Save enough, in the right order, invested for your time horizon — the accumulation engine.</div></div>
+      <div class="cell"><div class="k" style="color:var(--brand)">Shield it</div><div class="d">Pick the right accounts and tax moves so you keep more of what you built.</div></div>
+      <div class="cell"><div class="k" style="color:var(--warn)">Spend it</div><div class="d">Turn the pile into income that survives a long life and rough markets.</div></div>
     </div>
     <div class="topic-grid">
-      <button class="topic-card" onclick="go('m0')"><div class="tn">01 · START HERE</div><h4>Meet the three buckets</h4><p>Taxable, tax-deferred, tax-free. See where this year's savings should go while you're still working.</p></button>
-      <button class="topic-card" onclick="go('m1')"><div class="tn">02 · PLAYGROUND</div><h4>Fill the brackets</h4><p>Drag income up and watch it pour through the brackets. Meet marginal vs. effective rates.</p></button>
-      <button class="topic-card" onclick="go('m2')"><div class="tn">03 · PLAYGROUND</div><h4>Defuse the bomb</h4><p>Grow a pre-tax balance to 75 and see the required withdrawals — then convert early and compare.</p></button>
-      <button class="topic-card" onclick="go('m4')"><div class="tn">04 · PLAYGROUND</div><h4>Dodge the torpedo</h4><p>See how your other income decides whether — and how much — your Social Security gets taxed.</p></button>
-      <button class="topic-card" onclick="go('m5')"><div class="tn">05 · PLAYGROUND</div><h4>Mind the cliff</h4><p>Retiring before 65? Watch your ACA subsidy vanish the instant income crosses 400% of poverty.</p></button>
-      <button class="topic-card" onclick="go('m3')"><div class="tn">06 · PLAYGROUND</div><h4>Shuffle the years</h4><p>Same returns, different order. Watch one portfolio survive and another run dry.</p></button>
+      <button class="topic-card" onclick="go('m6')"><div class="tn">01 · START HERE</div><h4>Find your number</h4><p>How big a nest egg you need, and whether your savings rate has you on pace to hit it.</p></button>
+      <button class="topic-card" onclick="go('m7')"><div class="tn">02 · PLAYGROUND</div><h4>Fill the waterfall</h4><p>Where each saved dollar should go — match first, then HSA, Roth, 401(k), taxable.</p></button>
+      <button class="topic-card" onclick="go('m8')"><div class="tn">03 · PLAYGROUND</div><h4>Set your mix</h4><p>Stocks vs. bonds, the risk-reward cone, and why the mix should glide with age.</p></button>
+      <button class="topic-card" onclick="go('m0')"><div class="tn">04 · PLAYGROUND</div><h4>Meet the three buckets</h4><p>Taxable, tax-deferred, tax-free — the account types that set when you're taxed.</p></button>
+      <button class="topic-card" onclick="go('m1')"><div class="tn">05 · PLAYGROUND</div><h4>Fill the brackets</h4><p>Drag income up and watch it pour through the brackets. Meet marginal vs. effective rates.</p></button>
+      <button class="topic-card" onclick="go('m2')"><div class="tn">06 · PLAYGROUND</div><h4>Defuse the bomb</h4><p>Grow a pre-tax balance to 75 and see the required withdrawals — then convert early and compare.</p></button>
+      <button class="topic-card" onclick="go('m4')"><div class="tn">07 · PLAYGROUND</div><h4>Dodge the torpedo</h4><p>See how your other income decides whether — and how much — your Social Security gets taxed.</p></button>
+      <button class="topic-card" onclick="go('m5')"><div class="tn">08 · PLAYGROUND</div><h4>Mind the cliff</h4><p>Retiring before 65? Watch your ACA subsidy vanish the instant income crosses 400% of poverty.</p></button>
+      <button class="topic-card" onclick="go('m3')"><div class="tn">09 · PLAYGROUND</div><h4>Shuffle the years</h4><p>Same returns, different order. Watch one portfolio survive and another run dry.</p></button>
     </div>
   </header>
 
-  <!-- ===================== MODULE 0 : TAX BUCKETS ===================== -->
-  <section class="module" id="m0" style="border-top:none;margin-top:1.6rem">
+  <!-- ===================== MODULE 01 : THE NUMBER / ON TRACK ===================== -->
+  <section class="module" id="m6" style="border-top:none;margin-top:1.6rem">
     <div class="module-head">
       <div class="module-num">01</div>
+      <div>
+        <div class="eyebrow">The number — are you on track?</div>
+        <h2>Two questions decide everything: how big a pile, and are you on pace?</h2>
+      </div>
+    </div>
+    <div class="prose">
+      <p>How much is enough? The quickest honest answer comes from flipping the 4% rule on its head: if a portfolio can safely provide about 4% a year, then you need roughly <strong>25 times</strong> the annual spending you want it to cover. Hoping for $60,000 a year from your investments? Your target is somewhere near $1.5 million.</p>
+      <p>The encouraging part is that you don't get there on contributions alone — <strong>compounding does most of the lifting</strong>, and the earlier you start, the bigger its share of the final pile. Set your numbers below and watch how much of the ending balance is growth versus money you actually set aside.</p>
+    </div>
+
+    <div class="play">
+      <div class="play-head"><span class="chip">Interactive</span><h3>Are you on track?</h3></div>
+      <div class="play-body">
+        <div class="controls two-col">
+          <div class="ctl">
+            <label for="ot-age"><span>Your age now</span><span class="val" id="ot-age-v">35</span></label>
+            <input type="range" id="ot-age" min="20" max="60" step="1" value="35">
+          </div>
+          <div class="ctl">
+            <label for="ot-ret"><span>Target retirement age</span><span class="val" id="ot-ret-v">65</span></label>
+            <input type="range" id="ot-ret" min="45" max="75" step="1" value="65">
+          </div>
+          <div class="ctl">
+            <label for="ot-cur"><span>Saved so far</span><span class="val" id="ot-cur-v">$120,000</span></label>
+            <input type="range" id="ot-cur" min="0" max="1500000" step="10000" value="120000">
+          </div>
+          <div class="ctl">
+            <label for="ot-add"><span>Adding each year</span><span class="val" id="ot-add-v">$18,000</span></label>
+            <input type="range" id="ot-add" min="0" max="70000" step="1000" value="18000">
+          </div>
+          <div class="ctl">
+            <label for="ot-ret2"><span>Return above inflation</span><span class="val" id="ot-ret2-v">5.0%</span></label>
+            <input type="range" id="ot-ret2" min="2" max="8" step="0.5" value="5">
+          </div>
+          <div class="ctl">
+            <label for="ot-spend"><span>Annual spending you want it to cover</span><span class="val" id="ot-spend-v">$60,000</span></label>
+            <input type="range" id="ot-spend" min="20000" max="150000" step="5000" value="60000">
+          </div>
+        </div>
+
+        <div class="canvas-wrap" style="margin-top:1.3rem">
+          <canvas id="m6-canvas" width="900" height="360" role="img" aria-label="Projected savings balance growing to retirement versus target"></canvas>
+        </div>
+        <div class="legend">
+          <div class="li"><span class="sw" style="background:var(--brand)"></span>Money you contributed</div>
+          <div class="li"><span class="sw" style="background:var(--keep)"></span>Investment growth</div>
+          <div class="li"><span class="sw" style="background:var(--ink-mute)"></span>Your target (25&times; spending)</div>
+        </div>
+
+        <div class="readouts" style="margin-top:1.2rem">
+          <div class="ro"><div class="k brand" id="ot-target">—</div><div class="d">Your target number<br>(25&times; spending)</div></div>
+          <div class="ro"><div class="k" id="ot-proj">—</div><div class="d">Projected at retirement</div></div>
+          <div class="ro"><div class="k" id="ot-track">—</div><div class="d">On track</div></div>
+          <div class="ro"><div class="k keep" id="ot-income">—</div><div class="d">Income it supports<br>(4% a year)</div></div>
+        </div>
+        <p style="font-size:.86rem;color:var(--ink-mute);margin-top:1rem;max-width:100%">Everything is in today's dollars (the return is already net of inflation), so the target and the projection are directly comparable. Social Security and pensions would reduce the spending your portfolio must cover.</p>
+      </div>
+    </div>
+
+    <div class="callout"><span class="tag">The two dials that matter most</span>Your <strong>savings rate</strong> and your <strong>years of compounding</strong> move the outcome more than anything else — including picking hot investments. Starting five years earlier often beats saving more later, because the first dollars in are the ones that compound the longest.</div>
+
+    <div class="check" id="chk6" data-correct="1">
+      <div class="q"><span class="qm">Q</span><span>A rough way to size your retirement target is to take the annual spending you want from the portfolio and multiply it by about…</span></div>
+      <div class="opts">
+        <button class="opt" data-i="0"><span class="mk">✓</span><span>10&times; — that's the standard retirement multiple.</span></button>
+        <button class="opt" data-i="1"><span class="mk">✓</span><span>25&times; — the flip side of the 4% rule (4% of 25&times; your spending is one year of spending).</span></button>
+        <button class="opt" data-i="2"><span class="mk">✓</span><span>100&times; — you need a century of spending saved up.</span></button>
+      </div>
+      <div class="explain" id="chk6-x"><b>Right — 25&times; is the quick target.</b> It's just the 4% rule inverted: if you withdraw 4% a year, you need 25 years of spending saved (before growth). Want $50,000 a year from investments? Aim for roughly $1.25 million. It's a starting estimate, not a precise promise.</div>
+    </div>
+  </section>
+
+  <!-- ===================== MODULE 02 : FUNDING WATERFALL ===================== -->
+  <section class="module" id="m7">
+    <div class="module-head">
+      <div class="module-num">02</div>
+      <div>
+        <div class="eyebrow">The funding waterfall</div>
+        <h2>Where each saved dollar should go — and why the order isn't equal</h2>
+      </div>
+    </div>
+    <div class="prose">
+      <p>Once you're saving, the next question is <em>where</em> each dollar lands — and the tiers are not created equal. The very top of the list isn't an investment at all: it's your <strong>employer's match</strong>, an instant 50–100% return no market can promise. Skipping it is the one money mistake with no upside.</p>
+      <p>A widely used priority: capture the <strong>full match</strong> first, then fund an <strong>HSA</strong> if you're eligible (the only triple-tax-free account), then max your <strong>Roth/IRA</strong> and the rest of your <strong>401(k)</strong>, and finally a <strong>taxable brokerage</strong> for anything left over. (Before any of it: a starter emergency fund and any high-interest debt.) Slide your yearly savings up and watch the buckets fill in order.</p>
+    </div>
+
+    <div class="play">
+      <div class="play-head"><span class="chip">Interactive</span><h3>Fill the waterfall</h3></div>
+      <div class="play-body">
+        <div class="controls two-col">
+          <div class="ctl">
+            <label for="wf-save"><span>Total you can save this year</span><span class="val" id="wf-save-v">$20,000</span></label>
+            <input type="range" id="wf-save" min="0" max="60000" step="1000" value="20000">
+          </div>
+          <div class="ctl">
+            <label for="wf-sal"><span>Your salary <span style="color:var(--ink-mute)">(sets the match)</span></span><span class="val" id="wf-sal-v">$90,000</span></label>
+            <input type="range" id="wf-sal" min="30000" max="250000" step="5000" value="90000">
+          </div>
+        </div>
+
+        <div class="tiers" id="wf-tiers" style="margin-top:1.4rem"></div>
+
+        <div class="readouts" style="margin-top:1.3rem">
+          <div class="ro"><div class="k keep" id="wf-match">—</div><div class="d">Free employer match captured</div></div>
+          <div class="ro"><div class="k brand" id="wf-adv">—</div><div class="d">Into tax-advantaged accounts</div></div>
+          <div class="ro"><div class="k" id="wf-tax">—</div><div class="d">Spilling into taxable</div></div>
+          <div class="ro"><div class="k keep" id="wf-total">—</div><div class="d">Total working for you<br>(your savings + match)</div></div>
+        </div>
+        <p style="font-size:.86rem;color:var(--ink-mute);margin-top:1rem;max-width:100%">Uses recent contribution limits (401(k) $23,500, IRA $7,000, HSA $4,300 self-only) and a 50%-up-to-6% match, all under age 50. Catch-up contributions raise these at 50+.</p>
+      </div>
+    </div>
+
+    <div class="callout"><span class="tag">Don't leave the raise on the table</span>The match is a guaranteed return you can't get anywhere else, so it comes before paying off a low-rate mortgage or investing elsewhere. After the match, the <strong>HSA</strong> is the most underused tier — contribute, invest it, and pay medical bills from cash so it compounds tax-free for decades, becoming a stealth retirement account.</div>
+
+    <div class="check" id="chk7" data-correct="1">
+      <div class="q"><span class="qm">Q</span><span>Your employer matches 50% of contributions up to 6% of pay, but you can only save a little this year. Where should the first dollars go?</span></div>
+      <div class="opts">
+        <button class="opt" data-i="0"><span class="mk">✓</span><span>A taxable brokerage account, for maximum flexibility.</span></button>
+        <button class="opt" data-i="1"><span class="mk">✓</span><span>Your 401(k), up to the full match — it's an immediate, guaranteed ~50% return.</span></button>
+        <button class="opt" data-i="2"><span class="mk">✓</span><span>Extra principal on a low-interest mortgage.</span></button>
+      </div>
+      <div class="explain" id="chk7-x"><b>Always grab the match first.</b> A 50% match is an instant 50% return on those dollars — nothing else in the waterfall, and no investment, reliably beats that. Capture the full match, then work your way down to the HSA, Roth/401(k), and finally taxable.</div>
+    </div>
+  </section>
+
+  <!-- ===================== MODULE 03 : ASSET ALLOCATION ===================== -->
+  <section class="module" id="m8">
+    <div class="module-head">
+      <div class="module-num">03</div>
+      <div>
+        <div class="eyebrow">Asset allocation &amp; the glide path</div>
+        <h2>Your stock-and-bond mix sets both your growth and your nerves</h2>
+      </div>
+    </div>
+    <div class="prose">
+      <p>The split between stocks and bonds is the biggest investing decision you make — it sets your expected growth <em>and</em> how rough the ride is. Stocks have paid more over long stretches but swing hard; bonds are steadier but grow slowly. There's no free lunch: reaching for more return means accepting a <strong>wider range of outcomes</strong>.</p>
+      <p>That's why the mix should <strong>change with time</strong>. Early on, decades of compounding can ride out the swings, so a stock-heavy portfolio makes sense. As retirement nears, a single bad year matters far more — you met this as <em>sequence risk</em> — so the standard move is to <strong>glide</strong> toward more bonds. Target-date funds do exactly this on autopilot. Set a mix and a time horizon and watch the cone of outcomes widen and shift.</p>
+    </div>
+
+    <div class="play">
+      <div class="play-head"><span class="chip">Interactive</span><h3>The risk-and-reward cone</h3></div>
+      <div class="play-body">
+        <div class="controls two-col">
+          <div class="ctl">
+            <label for="aa-stock"><span>Stocks in your mix <span style="color:var(--ink-mute)">(rest in bonds)</span></span><span class="val" id="aa-stock-v">80%</span></label>
+            <input type="range" id="aa-stock" min="0" max="100" step="5" value="80">
+          </div>
+          <div class="ctl">
+            <label for="aa-yrs"><span>Years until you need it</span><span class="val" id="aa-yrs-v">25 yrs</span></label>
+            <input type="range" id="aa-yrs" min="5" max="40" step="1" value="25">
+          </div>
+        </div>
+
+        <div class="canvas-wrap" style="margin-top:1.3rem">
+          <canvas id="m8-canvas" width="900" height="360" role="img" aria-label="Cone of possible portfolio outcomes for a chosen stock and bond mix"></canvas>
+        </div>
+        <div class="legend">
+          <div class="li"><span class="sw" style="background:var(--brand)"></span>Typical (median) path of $100k</div>
+          <div class="li"><span class="sw" style="background:var(--brand);opacity:.25"></span>Most outcomes (10th–90th)</div>
+        </div>
+
+        <div class="readouts" style="margin-top:1.2rem">
+          <div class="ro"><div class="k brand" id="aa-ret">—</div><div class="d">Expected real return</div></div>
+          <div class="ro"><div class="k warn" id="aa-vol">—</div><div class="d">Volatility (bumpiness)</div></div>
+          <div class="ro"><div class="k" id="aa-range">—</div><div class="d">Where $100k likely lands</div></div>
+          <div class="ro"><div class="k tax" id="aa-worst">—</div><div class="d">A rough bad year<br>(≈5th percentile)</div></div>
+        </div>
+        <p style="font-size:.86rem;color:var(--ink-mute);margin-top:1rem;max-width:100%">Illustrative long-run assumptions (stocks ≈5% real / bonds ≈2%, with historical-scale volatility). Real markets don't follow a tidy cone — this shows the <em>shape</em> of the tradeoff, not a forecast.</p>
+      </div>
+    </div>
+
+    <div class="callout"><span class="tag">A starting rule, then adjust</span>A common heuristic is to hold roughly <strong>(110 &minus; your age)%</strong> in stocks — about 80% at 30, 50% at 60 — then tune it to your own stomach for risk. The best mix is the one you'll actually <em>hold through a downturn without selling</em>; the biggest real-world losses come from bailing out at the bottom.</div>
+
+    <div class="check" id="chk8" data-correct="1">
+      <div class="q"><span class="qm">Q</span><span>Why do target-date funds shift from mostly stocks toward more bonds as you near retirement?</span></div>
+      <div class="opts">
+        <button class="opt" data-i="0"><span class="mk">✓</span><span>Bonds simply outperform stocks once you're older.</span></button>
+        <button class="opt" data-i="1"><span class="mk">✓</span><span>Because a bad market year hurts far more once you're about to withdraw — trimming stocks limits sequence risk.</span></button>
+        <button class="opt" data-i="2"><span class="mk">✓</span><span>To avoid the taxes that stock dividends create.</span></button>
+      </div>
+      <div class="explain" id="chk8-x"><b>It's about protecting the landing.</b> Early on, time smooths the swings; near retirement, a crash you're forced to sell into can do permanent damage. Gliding toward bonds trades a little growth for stability exactly when a bad sequence would hurt most.</div>
+    </div>
+  </section>
+
+  <!-- ===================== MODULE 0 : TAX BUCKETS ===================== -->
+  <section class="module" id="m0">
+    <div class="module-head">
+      <div class="module-num">04</div>
       <div>
         <div class="eyebrow">Tax buckets — the foundation</div>
         <h2>Not every dollar you save is taxed the same way</h2>
@@ -379,7 +583,7 @@ canvas{display:block;width:100%;height:auto}
   <!-- ===================== MODULE 1 ===================== -->
   <section class="module" id="m1">
     <div class="module-head">
-      <div class="module-num">02</div>
+      <div class="module-num">05</div>
       <div>
         <div class="eyebrow">Roth conversions &amp; brackets</div>
         <h2>Income fills brackets like water fills a glass</h2>
@@ -439,7 +643,7 @@ canvas{display:block;width:100%;height:auto}
   <!-- ===================== MODULE 2 ===================== -->
   <section class="module" id="m2">
     <div class="module-head">
-      <div class="module-num">03</div>
+      <div class="module-num">06</div>
       <div>
         <div class="eyebrow">RMDs &amp; the tax time-bomb</div>
         <h2>The tax you deferred doesn't disappear — it compounds</h2>
@@ -505,7 +709,7 @@ canvas{display:block;width:100%;height:auto}
   <!-- ===================== MODULE 4 : SOCIAL SECURITY TAX ===================== -->
   <section class="module" id="m4">
     <div class="module-head">
-      <div class="module-num">04</div>
+      <div class="module-num">07</div>
       <div>
         <div class="eyebrow">Social Security &amp; taxes</div>
         <h2>How much of your Social Security is taxed is up to your other income</h2>
@@ -571,7 +775,7 @@ canvas{display:block;width:100%;height:auto}
   <!-- ===================== MODULE 5 : ACA SUBSIDY CLIFF ===================== -->
   <section class="module" id="m5">
     <div class="module-head">
-      <div class="module-num">05</div>
+      <div class="module-num">08</div>
       <div>
         <div class="eyebrow">The ACA subsidy cliff</div>
         <h2>Retire before 65? Your income sets your health-insurance subsidy</h2>
@@ -639,7 +843,7 @@ canvas{display:block;width:100%;height:auto}
   <!-- ===================== MODULE 3 ===================== -->
   <section class="module" id="m3">
     <div class="module-head">
-      <div class="module-num">06</div>
+      <div class="module-num">09</div>
       <div>
         <div class="eyebrow">Sequence risk &amp; safe withdrawal</div>
         <h2>The order of returns can matter more than the average</h2>
@@ -703,7 +907,7 @@ canvas{display:block;width:100%;height:auto}
         <h2>Put it together</h2>
       </div>
     </div>
-    <p class="prose" style="margin-top:1rem">Eight questions spanning every module. Pick an answer and you'll see why it's right or wrong immediately — your score updates as you go.</p>
+    <p class="prose" style="margin-top:1rem">Eleven questions spanning every module. Pick an answer and you'll see why it's right or wrong immediately — your score updates as you go.</p>
 
     <div class="quiz-panel" style="margin-top:1.6rem">
       <div class="quiz-score">
@@ -737,7 +941,7 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(!do
 const cvar=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
 /* ============================ PROGRESS RAIL ============================ */
-const MODS=[['m0','Buckets'],['m1','Brackets'],['m2','RMDs'],['m4','Soc. Security'],['m5','ACA'],['m3','Sequence'],['quiz','Quiz']];
+const MODS=[['m6','On track'],['m7','Fund order'],['m8','Allocation'],['m0','Buckets'],['m1','Brackets'],['m2','RMDs'],['m4','SS tax'],['m5','ACA'],['m3','Sequence'],['quiz','Quiz']];
 const done={};
 const rail=$('#rail');
 MODS.forEach(([id,label])=>{
@@ -753,7 +957,7 @@ function markDone(id){done[id]=1;const d=rail.querySelector(`[data-id="${id}"]`)
 const secObs=new IntersectionObserver(es=>{
   es.forEach(e=>{if(e.isIntersecting){$$('.pdot').forEach(p=>p.classList.toggle('active',p.dataset.id===e.target.id));}});
 },{rootMargin:'-45% 0px -50% 0px'});
-['m0','m1','m2','m4','m5','m3','quiz'].forEach(id=>secObs.observe($('#'+id)));
+['m6','m7','m8','m0','m1','m2','m4','m5','m3','quiz'].forEach(id=>secObs.observe($('#'+id)));
 
 /* ============================ TAX MODEL ============================ */
 // 2026 (est.) MFJ ordinary brackets: [rate, lower, upper]
@@ -766,6 +970,138 @@ function taxOn(income){ // tax on ordinary income
   let t=0;for(const[r,lo,hi]of BR){if(income>lo)t+=(Math.min(income,hi)-lo)*r;else break;}return t;
 }
 function marginalRate(income){for(const[r,lo,hi]of BR){if(income>lo&&income<=hi)return r;}return income>0?0.37:0.10;}
+
+/* ============================ MODULE 01 : ARE YOU ON TRACK ============================ */
+let M6=null;
+(function(){
+  const ids=['ot-age','ot-ret','ot-cur','ot-add','ot-ret2','ot-spend'];
+  const age=$('#ot-age'),ret=$('#ot-ret'),cur=$('#ot-cur'),add=$('#ot-add'),rr=$('#ot-ret2'),spend=$('#ot-spend');
+  function render(){
+    const a0=+age.value, a1=Math.max(+ret.value,a0+1), n=a1-a0, r=+rr.value/100, C=+cur.value, A=+add.value, S=+spend.value;
+    $('#ot-age-v').textContent=a0;$('#ot-ret-v').textContent=+ret.value;$('#ot-cur-v').textContent=fmt(C);$('#ot-add-v').textContent=fmt(A);$('#ot-ret2-v').textContent=(+rr.value).toFixed(1)+'%';$('#ot-spend-v').textContent=fmt(S);
+    const series=[];
+    for(let k=0;k<=n;k++){
+      const bal=C*Math.pow(1+r,k)+(r>0?A*((Math.pow(1+r,k)-1)/r):A*k);
+      series.push({age:a0+k,bal,contrib:C+A*k});
+    }
+    const FV=series[n].bal, target=S*25, pct=target>0?FV/target*100:0;
+    M6={series,target,a0,a1};
+    drawM6();
+    $('#ot-target').textContent=fmt(target);
+    $('#ot-proj').textContent=fmt(FV);
+    const t=$('#ot-track');t.textContent=Math.round(pct)+'%';t.className='k '+(pct>=100?'keep':pct>=70?'warn':'tax');
+    $('#ot-income').textContent=fmt(FV*0.04)+'/yr';
+    markDone('m6');
+  }
+  ids.forEach(i=>$('#'+i).oninput=render);render();
+})();
+function drawM6(){
+  const cv=$('#m6-canvas');if(!cv||!M6)return;
+  const dpr=Math.min(devicePixelRatio||1,2);const W=cv.clientWidth||900,H=360;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+'px';
+  const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
+  const padL=64,padR=18,padT=18,padB=34,plotW=W-padL-padR,plotH=H-padT-padB;
+  const s=M6.series,n=s.length-1, maxY=Math.max(s[n].bal,M6.target)*1.08;
+  const AX=k=>padL+(M6.a1>M6.a0?(s[k].age-M6.a0)/(M6.a1-M6.a0):0)*plotW, Y=v=>padT+plotH-(v/maxY)*plotH;
+  const mute=cvar('--ink-mute'),soft=cvar('--line-soft');
+  x.strokeStyle=soft;x.lineWidth=1;x.fillStyle=mute;x.font='11px "IBM Plex Mono",monospace';x.textAlign='right';x.textBaseline='middle';
+  for(let i=0;i<=4;i++){const v=maxY*i/4;const yy=Y(v);x.beginPath();x.moveTo(padL,yy);x.lineTo(W-padR,yy);x.stroke();x.fillText(fmtK(v),padL-8,yy);}
+  x.textAlign='center';x.textBaseline='top';
+  const step=Math.max(1,Math.round((M6.a1-M6.a0)/6));
+  for(let k=0;k<=n;k+=step){x.fillText(s[k].age,AX(k),H-padB+8);}
+  // contributions area
+  x.beginPath();x.moveTo(AX(0),Y(0));s.forEach((d,k)=>x.lineTo(AX(k),Y(d.contrib)));x.lineTo(AX(n),Y(0));x.closePath();x.fillStyle=cvar('--brand-wash');x.fill();
+  // growth band (contrib -> bal)
+  x.beginPath();s.forEach((d,k)=>{k?x.lineTo(AX(k),Y(d.contrib)):x.moveTo(AX(k),Y(d.contrib));});for(let k=n;k>=0;k--){x.lineTo(AX(k),Y(s[k].bal));}x.closePath();x.globalAlpha=.16;x.fillStyle=cvar('--keep');x.fill();x.globalAlpha=1;
+  // balance & contribution lines
+  x.strokeStyle=cvar('--keep');x.lineWidth=2.6;x.beginPath();s.forEach((d,k)=>{k?x.lineTo(AX(k),Y(d.bal)):x.moveTo(AX(k),Y(d.bal));});x.stroke();
+  x.strokeStyle=cvar('--brand');x.lineWidth=1.6;x.beginPath();s.forEach((d,k)=>{k?x.lineTo(AX(k),Y(d.contrib)):x.moveTo(AX(k),Y(d.contrib));});x.stroke();
+  // target line
+  x.strokeStyle=mute;x.setLineDash([5,4]);x.lineWidth=1.4;x.beginPath();x.moveTo(padL,Y(M6.target));x.lineTo(W-padR,Y(M6.target));x.stroke();x.setLineDash([]);
+  x.fillStyle=mute;x.font='600 10px "IBM Plex Sans",sans-serif';x.textAlign='left';x.textBaseline='bottom';x.fillText('Target '+fmtK(M6.target),padL+4,Y(M6.target)-3);
+  x.fillStyle=cvar('--keep');x.beginPath();x.arc(AX(n),Y(s[n].bal),4,0,7);x.fill();
+}
+
+/* ============================ MODULE 02 : FUNDING WATERFALL ============================ */
+(function(){
+  const save=$('#wf-save'),sal=$('#wf-sal'),wrap=$('#wf-tiers');
+  const MATCH_PCT=0.06,MATCH_RATE=0.5,HSA=4300,IRA=7000,DEF401=23500;
+  function render(){
+    const total=+save.value, salary=+sal.value;
+    $('#wf-save-v').textContent=fmt(total);$('#wf-sal-v').textContent=fmt(salary);
+    const matchCap=Math.round(MATCH_PCT*salary);
+    const tiers=[
+      {key:'match',cls:'match',nm:'401(k) to the full match',sub:'6% of salary',cap:matchCap},
+      {key:'hsa',cls:'adv',nm:'HSA',sub:'if eligible · triple-tax-free',cap:HSA},
+      {key:'ira',cls:'adv',nm:'Roth IRA',sub:'tax-free growth',cap:IRA},
+      {key:'k401',cls:'adv',nm:'Rest of 401(k)',sub:'up to the annual limit',cap:Math.max(0,DEF401-matchCap)},
+      {key:'tax',cls:'taxable',nm:'Taxable brokerage',sub:'no limit',cap:Infinity},
+    ];
+    let left=total; const funded={};
+    tiers.forEach(t=>{const f=Math.max(0,Math.min(left,t.cap));funded[t.key]=f;left-=f;});
+    const match=funded.match*MATCH_RATE, adv=funded.hsa+funded.ira+funded.k401+funded.match, taxable=funded.tax;
+    wrap.innerHTML='';
+    tiers.forEach(t=>{
+      const f=funded[t.key], pct=t.cap===Infinity?(f>0?100:0):(t.cap>0?f/t.cap*100:0), dim=f<=0?' dim':'';
+      const extra=t.key==='match'&&f>0?` <span style="color:var(--keep)">+${fmt(match)} match</span>`:'';
+      const amt=`${fmt(f)}${t.cap===Infinity?'':' / '+fmt(t.cap)}${extra}`;
+      wrap.insertAdjacentHTML('beforeend',
+        `<div class="tier ${t.cls}${dim}"><div class="tier-top"><div class="nm">${t.nm} <span class="sub">${t.sub}</span></div><div class="amt">${amt}</div></div><div class="tier-bar"><div class="tier-fill" style="width:${Math.max(f>0?4:0,Math.min(100,pct))}%"></div></div></div>`);
+    });
+    $('#wf-match').textContent=fmt(match);
+    $('#wf-adv').textContent=fmt(adv);
+    $('#wf-tax').textContent=fmt(taxable);
+    $('#wf-total').textContent=fmt(total+match);
+    markDone('m7');
+  }
+  save.oninput=render;sal.oninput=render;render();
+})();
+
+/* ============================ MODULE 03 : ASSET ALLOCATION ============================ */
+let M8=null;
+function allocStats(w){
+  const sr=0.05,sv=0.17,br=0.02,bv=0.06,corr=0.1;
+  const ret=w*sr+(1-w)*br;
+  const vol=Math.sqrt(w*w*sv*sv+(1-w)*(1-w)*bv*bv+2*w*(1-w)*corr*sv*bv);
+  return {ret,vol};
+}
+(function(){
+  const st=$('#aa-stock'),yr=$('#aa-yrs');
+  function render(){
+    const w=+st.value/100, N=+yr.value, {ret,vol}=allocStats(w);
+    $('#aa-stock-v').textContent=(+st.value)+'%';$('#aa-yrs-v').textContent=N+' yrs';
+    M8={w,N,ret,vol};
+    drawM8();
+    const muL=Math.log(1+ret)-vol*vol/2, end=z=>100000*Math.exp(N*muL+z*vol*Math.sqrt(N));
+    $('#aa-ret').textContent=(ret*100).toFixed(1)+'%';
+    $('#aa-vol').textContent='±'+(vol*100).toFixed(0)+'%';
+    $('#aa-range').textContent=fmtK(end(-1.2816))+' – '+fmtK(end(1.2816));
+    $('#aa-worst').textContent=Math.round((ret-1.65*vol)*100)+'%';
+    markDone('m8');
+  }
+  st.oninput=render;yr.oninput=render;render();
+})();
+function drawM8(){
+  const cv=$('#m8-canvas');if(!cv||!M8)return;
+  const dpr=Math.min(devicePixelRatio||1,2);const W=cv.clientWidth||900,H=360;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+'px';
+  const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
+  const padL=64,padR=18,padT=18,padB=34,plotW=W-padL-padR,plotH=H-padT-padB;
+  const N=M8.N, muL=Math.log(1+M8.ret)-M8.vol*M8.vol/2, val=(z,k)=>100000*Math.exp(k*muL+z*M8.vol*Math.sqrt(k));
+  const maxY=Math.max(val(1.2816,N),100000)*1.05;
+  const AX=k=>padL+(N>0?k/N:0)*plotW, Y=v=>padT+plotH-(v/maxY)*plotH;
+  const mute=cvar('--ink-mute'),soft=cvar('--line-soft');
+  x.strokeStyle=soft;x.lineWidth=1;x.fillStyle=mute;x.font='11px "IBM Plex Mono",monospace';x.textAlign='right';x.textBaseline='middle';
+  for(let i=0;i<=4;i++){const v=maxY*i/4;const yy=Y(v);x.beginPath();x.moveTo(padL,yy);x.lineTo(W-padR,yy);x.stroke();x.fillText(fmtK(v),padL-8,yy);}
+  x.textAlign='center';x.textBaseline='top';
+  const step=Math.max(1,Math.round(N/6));
+  for(let k=0;k<=N;k+=step){x.fillText('Yr '+k,AX(k),H-padB+8);}
+  x.beginPath();for(let k=0;k<=N;k++){const px=AX(k),py=Y(val(1.2816,k));k?x.lineTo(px,py):x.moveTo(px,py);}
+  for(let k=N;k>=0;k--){x.lineTo(AX(k),Y(val(-1.2816,k)));}x.closePath();x.globalAlpha=.18;x.fillStyle=cvar('--brand');x.fill();x.globalAlpha=1;
+  x.strokeStyle=cvar('--brand');x.lineWidth=2.6;x.beginPath();for(let k=0;k<=N;k++){const px=AX(k),py=Y(val(0,k));k?x.lineTo(px,py):x.moveTo(px,py);}x.stroke();
+  x.strokeStyle=mute;x.setLineDash([4,4]);x.lineWidth=1;x.beginPath();x.moveTo(padL,Y(100000));x.lineTo(W-padR,Y(100000));x.stroke();x.setLineDash([]);
+  x.fillStyle=cvar('--brand');x.beginPath();x.arc(AX(N),Y(val(0,N)),4,0,7);x.fill();
+}
 
 /* ============================ MODULE 0 : TAX BUCKETS ============================ */
 (function(){
@@ -1128,7 +1464,7 @@ function drawM5(){
   x.fillStyle=cur>0?cvar('--keep'):cvar('--tax');x.beginPath();x.arc(dotX,Y(cur),4.5,0,7);x.fill();x.strokeStyle=cvar('--surface');x.lineWidth=2;x.stroke();
 }
 
-function drawAll(){try{drawM2();drawM3();drawM4();drawM5();}catch(e){}}
+function drawAll(){try{drawM6();drawM8();drawM2();drawM3();drawM4();drawM5();}catch(e){}}
 addEventListener('resize',()=>{clearTimeout(window._rz);window._rz=setTimeout(drawAll,120);});
 
 /* ============================ INLINE CHECKS ============================ */
@@ -1147,6 +1483,15 @@ $$('.check').forEach(chk=>{
 
 /* ============================ FINAL QUIZ ============================ */
 const QUIZ=[
+  {q:"You want your portfolio to provide about $60,000 a year. Using the quick 25&times; rule, roughly how big a nest egg are you aiming for?",
+   a:["About $600,000","About $1.5 million","About $6 million"],c:1,
+   x:"25 &times; $60,000 &approx; $1.5M — the 4% rule inverted. It's a rough starting target, before counting Social Security or a pension."},
+  {q:"You can only save a little this year, and your employer matches 50% of contributions up to 6% of pay. Where should the first dollars go?",
+   a:["A taxable brokerage, for flexibility.","The 401(k), up to the full match — an instant ~50% return.","Extra principal on a low-rate mortgage."],c:1,
+   x:"The match is free money — a guaranteed return nothing else in the waterfall beats. Grab it first, then move down to the HSA, Roth/401(k), and finally taxable."},
+  {q:"Why does a target-date fund hold more bonds as you get closer to retirement?",
+   a:["Bonds reliably outperform stocks for older investors.","Because a bad year hurts far more once you're about to withdraw — fewer stocks limits sequence risk.","Because stocks can't be held inside retirement accounts."],c:1,
+   x:"Time smooths the swings early on; near retirement a crash you're forced to sell into can be permanent. Gliding toward bonds trades a little growth for protection when it matters most."},
   {q:"Your marginal tax rate is 24%. What does that tell you?",
    a:["Your entire income is taxed at 24%.","Your next dollar of income (or conversion) would be taxed at 24%.","You paid 24% of your income in total tax."],c:1,
    x:"Marginal = the rate on the <b>next</b> dollar. Your average (effective) rate is lower, because earlier dollars filled cheaper brackets."},
@@ -1191,7 +1536,7 @@ const QUIZ=[
         $('#qz-meter').style.width=(score/QUIZ.length*100)+'%';
         markDone('quiz');
         if(answered===QUIZ.length){
-          const msg=score===QUIZ.length?"Perfect score — you've got the core mechanics of tax-smart retirement down.":score>=6?"Strong. You understand the big levers; revisit the ones you missed above.":"Good start — scroll back up and replay the playgrounds, then retry.";
+          const msg=score===QUIZ.length?"Perfect score — you've got the core mechanics of building and spending a nest egg down.":score>=8?"Strong. You understand the big levers; revisit the ones you missed above.":"Good start — scroll back up and replay the playgrounds, then retry.";
           $('#qz-done').innerHTML=`<div class="callout" style="border-color:var(--keep);background:var(--keep-wash)"><span class="tag">Your result</span><b>${score} / ${QUIZ.length}.</b> ${msg}</div>`;
         }
       };
