@@ -295,6 +295,18 @@ canvas{display:block;width:100%;height:auto}
 .advisor-cta .ac-btn:hover{border-color:var(--brand);background:var(--brand-wash);text-decoration:none}
 .advisor-cta .ac-disc{font-size:.72rem;color:var(--ink-mute);margin-top:.55rem}
 
+/* email capture */
+.capture{background:var(--brand-wash);border:1px solid color-mix(in srgb,var(--brand) 25%,transparent);border-radius:var(--r);padding:1.3rem 1.4rem;margin:1.5rem 0}
+.capture .cap-eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.66rem;text-transform:uppercase;letter-spacing:.13em;color:var(--brand-deep)}
+.capture .cap-h{font-size:1.2rem;margin:.3rem 0}
+.capture .cap-sub{font-size:.9rem;color:var(--ink-soft);margin:.2rem 0 .9rem;max-width:60ch}
+.cap-form{display:flex;gap:.55rem;flex-wrap:wrap;max-width:520px}
+.cap-form input{flex:1;min-width:200px;font-family:inherit;font-size:.95rem;padding:.6rem .8rem;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.cap-form input:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+.cap-form .btn-primary{white-space:nowrap}
+.cap-msg{font-size:.85rem;margin-top:.6rem}
+.cap-msg.ok{color:var(--keep)} .cap-msg.err{color:var(--tax)}
+
 /* cheat sheet */
 .cheatgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-top:1.4rem}
 @media(max-width:700px){.cheatgrid{grid-template-columns:1fr}}
@@ -1319,6 +1331,17 @@ canvas{display:block;width:100%;height:auto}
       </div>
     </div>
     <p class="prose" style="margin-top:.8rem">Every rule of thumb from the course, in one place. <button class="btn btn-ghost noprint" onclick="window.print()" style="margin-left:.3rem;padding:.35rem .75rem;font-size:.83rem">Print / save as PDF</button></p>
+
+    <div class="capture noprint" id="capture">
+      <div class="cap-eyebrow">Keep it handy</div>
+      <h3 class="cap-h">Get the cheat sheet in your inbox</h3>
+      <p class="cap-sub">Plus the occasional plain-English retirement tip as new modules drop. No spam — unsubscribe anytime.</p>
+      <form class="cap-form" id="emailForm">
+        <input type="email" id="emailInput" placeholder="you@example.com" required aria-label="Email address">
+        <button type="submit" class="btn btn-primary">Send it to me</button>
+      </form>
+      <div class="cap-msg" id="capMsg"></div>
+    </div>
     <div class="cheatgrid">
       <div class="cheat-card">
         <h4><span class="cn">1</span>Order of operations</h4>
@@ -2242,6 +2265,26 @@ const DASHBOARD_URL="retirement-dashboard.html"; /* sanitized public sandbox, sa
 /* Fiduciary CTA: swap ADVISOR_URL for a paid referral link (SmartAsset / Zoe / Wealthramp) and set ADVISOR_SPONSORED=true to monetize. Default is NAPFA's free fee-only directory. */
 const ADVISOR_URL="https://www.napfa.org/find-an-advisor";
 const ADVISOR_SPONSORED=false;
+/* Email capture: paste your form service's POST URL (Formspree "https://formspree.io/f/XXXX", Buttondown, ConvertKit, etc.) to switch it on. Empty = the signup box stays hidden, so visitors never see a dead form. Posts JSON {email}. */
+const EMAIL_ENDPOINT="";
+(function(){
+  const wrap=document.getElementById('capture'); if(!wrap) return;
+  if(!EMAIL_ENDPOINT){ wrap.style.display='none'; return; }
+  const form=document.getElementById('emailForm'), msg=document.getElementById('capMsg');
+  let subbed=false; try{subbed=STORE.get('subscribed',false);}catch(e){}
+  if(subbed){ form.style.display='none'; msg.textContent="You're on the list — thanks!"; msg.className='cap-msg ok'; return; }
+  form.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const email=document.getElementById('emailInput').value.trim(); if(!email) return;
+    const btn=form.querySelector('button'); btn.disabled=true; msg.textContent='Sending…'; msg.className='cap-msg';
+    try{
+      const r=await fetch(EMAIL_ENDPOINT,{method:'POST',headers:{'Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({email})});
+      if(!r.ok) throw new Error('bad');
+      form.style.display='none'; msg.textContent='Done — check your inbox to confirm. Thanks!'; msg.className='cap-msg ok';
+      try{STORE.set('subscribed',true);}catch(_){}
+    }catch(_){ btn.disabled=false; msg.textContent="Hmm, that didn't go through — please try again."; msg.className='cap-msg err'; }
+  });
+})();
 (function(){
   document.querySelectorAll('.ac-btn').forEach(a=>a.href=ADVISOR_URL);
   const d=ADVISOR_SPONSORED?'Partner link — we may earn a referral fee, at no cost to you.':'Links to NAPFA, a free directory of fee-only fiduciary advisors. Not a paid referral.';
