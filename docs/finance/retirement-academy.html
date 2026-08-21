@@ -285,6 +285,23 @@ canvas{display:block;width:100%;height:auto}
 .step .st-tag{font-family:"IBM Plex Mono",monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;padding:.18rem .45rem;border-radius:5px;background:var(--brand);color:#fff;white-space:nowrap}
 .step.next{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-wash)}
 .step.done{opacity:.66}
+
+/* cheat sheet */
+.cheatgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-top:1.4rem}
+@media(max-width:700px){.cheatgrid{grid-template-columns:1fr}}
+.cheat-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:1.05rem 1.2rem;box-shadow:var(--shadow);break-inside:avoid}
+.cheat-card h4{font-size:1.02rem;margin-bottom:.55rem;display:flex;align-items:center;gap:.5rem}
+.cheat-card h4 .cn{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 30%,transparent);border-radius:5px;padding:.1rem .4rem}
+.cheat-card ul,.cheat-card ol{margin:0;padding-left:1.15rem}
+.cheat-card li{font-size:.87rem;color:var(--ink-soft);margin:.32rem 0;line-height:1.45}
+.cheat-card li b{color:var(--ink);font-weight:600}
+@media print{
+  .topbar,.hero,.module,.foot,#nextstep,.noprint{display:none!important}
+  #cheat{display:block!important}
+  body{background:#fff;color:#000}
+  .cheat-card{box-shadow:none;border-color:#bbb}
+  main{padding:0}
+}
 </style>
 </head>
 <body>
@@ -301,7 +318,7 @@ canvas{display:block;width:100%;height:auto}
   <header class="hero wrap">
     <div class="eyebrow">An explorable guide to building &amp; spending a nest egg</div>
     <h1>Your money has a <span class="accent">second life</span> after you stop working.</h1>
-    <p class="sub">The whole journey on one page — from building the pile while you're working to making it last after you stop. Thirteen short, interactive lessons: your first money moves, how big a nest egg you need, where each dollar goes, how to invest it, and the tax moves that decide how much you actually keep. No spreadsheets, no personal details, just the ideas.</p>
+    <p class="sub">The whole journey on one page — from building the pile while you're working to making it last after you stop. Fourteen short, interactive lessons: your first money moves, how big a nest egg you need, where each dollar goes, how to invest it, and the tax-and-timing moves that decide how much you actually keep. No spreadsheets, no personal details, just the ideas.</p>
     <div class="hero-cta">
       <button class="btn btn-primary" onclick="go('m9')">Start the guided path →</button>
       <button class="btn btn-ghost" onclick="go('quiz')">Jump to the quiz</button>
@@ -323,8 +340,9 @@ canvas{display:block;width:100%;height:auto}
       <button class="topic-card" onclick="go('m1')"><div class="tn">09 · PLAYGROUND</div><h4>Fill the brackets</h4><p>Drag income up and watch it pour through the brackets. Meet marginal vs. effective rates.</p></button>
       <button class="topic-card" onclick="go('m2')"><div class="tn">10 · PLAYGROUND</div><h4>Defuse the bomb</h4><p>Grow a pre-tax balance to 75 and see the required withdrawals — then convert early and compare.</p></button>
       <button class="topic-card" onclick="go('m4')"><div class="tn">11 · PLAYGROUND</div><h4>Dodge the torpedo</h4><p>See how your other income decides whether — and how much — your Social Security gets taxed.</p></button>
-      <button class="topic-card" onclick="go('m5')"><div class="tn">12 · PLAYGROUND</div><h4>Mind the cliff</h4><p>Retiring before 65? Watch your ACA subsidy vanish the instant income crosses 400% of poverty.</p></button>
-      <button class="topic-card" onclick="go('m3')"><div class="tn">13 · PLAYGROUND</div><h4>Shuffle the years</h4><p>Same returns, different order. Watch one portfolio survive and another run dry.</p></button>
+      <button class="topic-card" onclick="go('m13')"><div class="tn">12 · PLAYGROUND</div><h4>Claim early, or wait?</h4><p>Claiming Social Security at 62 vs. 70, and the break-even age where waiting pulls ahead.</p></button>
+      <button class="topic-card" onclick="go('m5')"><div class="tn">13 · PLAYGROUND</div><h4>Mind the cliff</h4><p>Retiring before 65? Watch your ACA subsidy vanish the instant income crosses 400% of poverty.</p></button>
+      <button class="topic-card" onclick="go('m3')"><div class="tn">14 · PLAYGROUND</div><h4>Shuffle the years</h4><p>Same returns, different order. Watch one portfolio survive and another run dry.</p></button>
     </div>
   </header>
 
@@ -1029,10 +1047,74 @@ canvas{display:block;width:100%;height:auto}
     </div>
   </section>
 
+  <!-- ===================== MODULE 12 : WHEN TO CLAIM SS ===================== -->
+  <section class="module" id="m13">
+    <div class="module-head">
+      <div class="module-num">12</div>
+      <div>
+        <div class="eyebrow">When to claim Social Security</div>
+        <h2>The same benefit, worth very different amounts depending on when you start</h2>
+      </div>
+    </div>
+    <div class="prose">
+      <p>You can start Social Security any time from <strong>62 to 70</strong>, and the age you pick permanently sets the size of every check. Claim early and each payment is smaller — as little as 70% of your full benefit at 62. Wait past your full retirement age (67 for anyone born in 1960 or later) and it grows about <strong>8% for every year you delay</strong>, up to 124% at 70. Same earnings record, wildly different monthly checks.</p>
+      <p>So which wins? It's a bet on <strong>longevity</strong>. Claiming early means more checks but smaller ones; waiting means fewer but bigger. They cross at a <strong>break-even age</strong> — usually the early-to-mid 80s. Live past it and waiting pays more in total; die before it and claiming early came out ahead. Slide the claim age and your life expectancy and watch the lines cross.</p>
+    </div>
+
+    <div class="play">
+      <div class="play-head"><span class="chip">Interactive</span><h3>Claim early, or wait?</h3></div>
+      <div class="play-body">
+        <div class="controls two-col">
+          <div class="ctl">
+            <label for="sc-fra"><span>Your full benefit at 67 <span style="color:var(--ink-mute)">(monthly)</span></span><span class="val" id="sc-fra-v">$2,400</span></label>
+            <input type="range" id="sc-fra" min="1000" max="4000" step="100" value="2400">
+          </div>
+          <div class="ctl">
+            <label for="sc-claim"><span>Age you claim</span><span class="val" id="sc-claim-v">70</span></label>
+            <input type="range" id="sc-claim" min="62" max="70" step="1" value="70">
+          </div>
+          <div class="ctl">
+            <label for="sc-life"><span>How long you live</span><span class="val" id="sc-life-v">90</span></label>
+            <input type="range" id="sc-life" min="72" max="98" step="1" value="90">
+          </div>
+        </div>
+
+        <div class="canvas-wrap" style="margin-top:1.3rem">
+          <canvas id="m13-canvas" width="900" height="360" role="img" aria-label="Cumulative lifetime Social Security benefits, claiming at 62 versus a later age"></canvas>
+        </div>
+        <div class="legend">
+          <div class="li"><span class="sw" style="background:var(--warn)"></span>Claim at 62 (smaller, sooner)</div>
+          <div class="li"><span class="sw" style="background:var(--keep)"></span>Claim at your chosen age</div>
+          <div class="li"><span class="sw" style="background:var(--ink-mute)"></span>Break-even &amp; life expectancy</div>
+        </div>
+
+        <div class="readouts" style="margin-top:1.2rem">
+          <div class="ro"><div class="k keep" id="sc-monthly">—</div><div class="d">Monthly if you claim<br>at your chosen age</div></div>
+          <div class="ro"><div class="k warn" id="sc-mo62">—</div><div class="d">Monthly if you claim at 62</div></div>
+          <div class="ro"><div class="k brand" id="sc-be">—</div><div class="d">Break-even age<br>(waiting vs. claiming at 62)</div></div>
+          <div class="ro"><div class="k" id="sc-life-tot">—</div><div class="d">Lifetime total by your<br>life expectancy</div></div>
+        </div>
+        <p style="font-size:.86rem;color:var(--ink-mute);margin-top:1rem;max-width:100%">Uses the standard actuarial adjustments around a full retirement age of 67 (nominal dollars, before cost-of-living raises). Health, other income, and a spouse's benefit all shift the right answer.</p>
+      </div>
+    </div>
+
+    <div class="callout"><span class="tag">Delaying is cheap longevity insurance</span>Waiting to 70 buys you the largest possible inflation-adjusted check for the rest of your life — the best protection against the real risk of <em>outliving your money</em>. It's especially powerful for the <strong>higher earner in a couple</strong>, because that benefit continues as the survivor's benefit after the first death. Claim early if you need the income, expect a shorter life, or want to stop working — but for the healthy and patient, waiting usually wins.</div>
+
+    <div class="check" id="chk13" data-correct="1">
+      <div class="q"><span class="qm">Q</span><span>Claiming Social Security at 70 instead of 62 gives you…</span></div>
+      <div class="opts">
+        <button class="opt" data-i="0"><span class="mk">✓</span><span>Exactly the same lifetime total — it always evens out.</span></button>
+        <button class="opt" data-i="1"><span class="mk">✓</span><span>A permanently larger monthly check — a net win if you live past the break-even age (usually the early 80s).</span></button>
+        <button class="opt" data-i="2"><span class="mk">✓</span><span>A smaller check, but enough extra years of payments to come out ahead.</span></button>
+      </div>
+      <div class="explain" id="chk13-x"><b>Bigger checks, fewer of them.</b> Delaying raises the monthly benefit ~8% per year, so you collect fewer but larger payments; past the break-even age (typically early-to-mid 80s) the cumulative total pulls ahead. It's longevity insurance — most valuable for those who live long or want to protect a surviving spouse.</div>
+    </div>
+  </section>
+
   <!-- ===================== MODULE 5 : ACA SUBSIDY CLIFF ===================== -->
   <section class="module" id="m5">
     <div class="module-head">
-      <div class="module-num">12</div>
+      <div class="module-num">13</div>
       <div>
         <div class="eyebrow">The ACA subsidy cliff</div>
         <h2>Retire before 65? Your income sets your health-insurance subsidy</h2>
@@ -1100,7 +1182,7 @@ canvas{display:block;width:100%;height:auto}
   <!-- ===================== MODULE 3 ===================== -->
   <section class="module" id="m3">
     <div class="module-head">
-      <div class="module-num">13</div>
+      <div class="module-num">14</div>
       <div>
         <div class="eyebrow">Sequence risk &amp; safe withdrawal</div>
         <h2>The order of returns can matter more than the average</h2>
@@ -1164,7 +1246,7 @@ canvas{display:block;width:100%;height:auto}
         <h2>Put it together</h2>
       </div>
     </div>
-    <p class="prose" style="margin-top:1rem">Fifteen questions spanning every module. Pick an answer and you'll see why it's right or wrong immediately — your score updates as you go.</p>
+    <p class="prose" style="margin-top:1rem">Sixteen questions spanning every module. Pick an answer and you'll see why it's right or wrong immediately — your score updates as you go.</p>
 
     <div class="quiz-panel" style="margin-top:1.6rem">
       <div class="quiz-score">
@@ -1174,6 +1256,86 @@ canvas{display:block;width:100%;height:auto}
       <div id="qz-items"></div>
     </div>
     <div style="margin-top:1.4rem" id="qz-done"></div>
+  </section>
+
+  <!-- ===================== NEXT STEP ===================== -->
+  <section id="nextstep" style="margin-top:2.6rem">
+    <div class="callout" style="border-color:var(--keep);background:var(--keep-wash)">
+      <span class="tag">You've reached the end</span>
+      <b>That's the whole arc — from your first paycheck to your last withdrawal.</b> The ideas here are the levers; your real numbers decide the settings.
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.9rem">
+        <button class="btn btn-primary" onclick="go('cheat')">Get the one-page cheat sheet →</button>
+        <a class="btn btn-ghost" id="dashBtn" href="#" target="_blank" rel="noopener" style="display:none">Run your own numbers →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CHEAT SHEET ===================== -->
+  <section id="cheat" style="margin-top:2.8rem;scroll-margin-top:70px">
+    <div class="module-head">
+      <div class="module-num" style="background:var(--surface-2);color:var(--ink-soft);border-color:var(--line)">★</div>
+      <div>
+        <div class="eyebrow">Take it with you</div>
+        <h2>The one-page cheat sheet</h2>
+      </div>
+    </div>
+    <p class="prose" style="margin-top:.8rem">Every rule of thumb from the course, in one place. <button class="btn btn-ghost noprint" onclick="window.print()" style="margin-left:.3rem;padding:.35rem .75rem;font-size:.83rem">Print / save as PDF</button></p>
+    <div class="cheatgrid">
+      <div class="cheat-card">
+        <h4><span class="cn">1</span>Order of operations</h4>
+        <ol>
+          <li>Budget &amp; automate a savings rate</li>
+          <li>Starter emergency fund ($1–2k)</li>
+          <li>Full <b>employer match</b> (free money)</li>
+          <li>Kill high-interest debt (&gt;~7–8%)</li>
+          <li>Full emergency fund (3–6 months)</li>
+          <li>Max <b>Roth IRA &amp; HSA</b></li>
+          <li>Max your <b>401(k)</b></li>
+          <li>Taxable brokerage &amp; big goals</li>
+        </ol>
+      </div>
+      <div class="cheat-card">
+        <h4><span class="cn">2</span>How much &amp; how fast</h4>
+        <ul>
+          <li>Target &approx; <b>25&times;</b> the annual spending you want from the portfolio (the 4% rule, inverted).</li>
+          <li>Safe start: withdraw about <b>4%</b> in year one, then adjust for inflation.</li>
+          <li><b>Time beats timing</b> — a 10-year head start can roughly double the result.</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4><span class="cn">3</span>Where each dollar goes <span style="font-weight:400;color:var(--ink-mute);font-size:.8rem">(2026)</span></h4>
+        <ul>
+          <li>Capture the full <b>match</b> before anything else.</li>
+          <li>Limits: <b>HSA</b> $4,400 self · <b>Roth IRA</b> $7,500 · <b>401(k)</b> $24,500.</li>
+          <li>Roth IRA phases out at <b>$153k–$168k</b> (single) / <b>$242k–$252k</b> (MFJ) → use a <b>backdoor Roth</b> above.</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4><span class="cn">4</span>How to invest it</h4>
+        <ul>
+          <li>Buy <b>low-cost index funds</b>; keep expense ratios near <b>0.03–0.10%</b>.</li>
+          <li>Rough stock share &approx; <b>(110 − your age)%</b>; glide toward bonds as you age.</li>
+          <li><b>Inflation</b> ~3% halves buying power in ~24 years — long-term money must outpace it.</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4><span class="cn">5</span>The three tax buckets</h4>
+        <ul>
+          <li><b>Taxable</b> (pay as you go) · <b>Tax-deferred</b> (pay later + RMDs) · <b>Roth</b> (pay now, never again).</li>
+          <li><b>Roth</b> when your bracket is low; <b>pre-tax</b> when it's high.</li>
+          <li>Hold some of each — it gives you dials to turn in retirement.</li>
+        </ul>
+      </div>
+      <div class="cheat-card">
+        <h4><span class="cn">6</span>Key ages &amp; watch-outs</h4>
+        <ul>
+          <li><b>59½</b> penalty-free withdrawals · <b>65</b> Medicare · <b>73–75</b> RMDs begin (75 if born 1960+).</li>
+          <li><b>62–70</b> claim Social Security (full at 67; +~8%/yr to 70).</li>
+          <li>Watch: the <b>RMD tax bomb</b>, up to <b>85%</b> of SS taxable, the <b>ACA 400% cliff</b> before 65, and <b>sequence risk</b> early in retirement.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="prose" style="font-size:.82rem;color:var(--ink-mute);margin-top:1.2rem;max-width:100%">Figures use 2026 limits and current rules; verify against IRS/SSA before acting. Educational only — not financial, tax, or legal advice.</p>
   </section>
 
   <footer class="foot wrap">
@@ -1198,7 +1360,9 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(!do
 const cvar=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
 /* ============================ PROGRESS RAIL ============================ */
-const MODS=[['m9','Roadmap'],['m10','Habits'],['m6','On track'],['m7','Fund order'],['m11','What to buy'],['m8','Allocation'],['m12','Inflation'],['m0','Buckets'],['m1','Brackets'],['m2','RMDs'],['m4','SS tax'],['m5','ACA'],['m3','Sequence'],['quiz','Quiz']];
+let READY=false;
+const STORE={get(k,d){try{const v=localStorage.getItem('ra_'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem('ra_'+k,JSON.stringify(v));}catch(e){}}};
+const MODS=[['m9','Roadmap'],['m10','Habits'],['m6','On track'],['m7','Fund order'],['m11','What to buy'],['m8','Allocation'],['m12','Inflation'],['m0','Buckets'],['m1','Brackets'],['m2','RMDs'],['m4','SS tax'],['m13','SS timing'],['m5','ACA'],['m3','Sequence'],['quiz','Quiz'],['cheat','Cheat sheet']];
 const done={};
 const rail=$('#rail');
 MODS.forEach(([id,label])=>{
@@ -1209,12 +1373,12 @@ MODS.forEach(([id,label])=>{
   rail.appendChild(b);
 });
 function go(id){const el=$('#'+id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
-function markDone(id){done[id]=1;const d=rail.querySelector(`[data-id="${id}"]`);if(d)d.dataset.done='1';}
+function markDone(id){if(!READY)return;if(done[id])return;done[id]=1;const d=rail.querySelector(`[data-id="${id}"]`);if(d)d.dataset.done='1';STORE.set('done',Object.keys(done));}
 // active-section highlight
 const secObs=new IntersectionObserver(es=>{
-  es.forEach(e=>{if(e.isIntersecting){$$('.pdot').forEach(p=>p.classList.toggle('active',p.dataset.id===e.target.id));}});
+  es.forEach(e=>{if(e.isIntersecting){$$('.pdot').forEach(p=>p.classList.toggle('active',p.dataset.id===e.target.id));if(e.target.id==='cheat')markDone('cheat');}});
 },{rootMargin:'-45% 0px -50% 0px'});
-['m9','m10','m6','m7','m11','m8','m12','m0','m1','m2','m4','m5','m3','quiz'].forEach(id=>secObs.observe($('#'+id)));
+['m9','m10','m6','m7','m11','m8','m12','m0','m1','m2','m4','m13','m5','m3','quiz','cheat'].forEach(id=>{const el=$('#'+id);if(el)secObs.observe(el);});
 
 /* ============================ TAX MODEL ============================ */
 // 2026 (est.) MFJ ordinary brackets: [rate, lower, upper]
@@ -1240,7 +1404,7 @@ function marginalRate(income){for(const[r,lo,hi]of BR){if(income>lo&&income<=hi)
     {nm:'Max your 401(k)',d:'Fill the rest of the annual limit in tax-advantaged space.'},
     {nm:'Taxable brokerage & big goals',d:'Everything beyond — a house down payment, an early-retirement bridge.'},
   ];
-  const wrap=$('#oo-steps'), doneSet=new Set();
+  const wrap=$('#oo-steps'), doneSet=new Set(STORE.get('oo',[]));
   function render(){
     const nextIdx=STEPS.findIndex((_,i)=>!doneSet.has(i));
     wrap.innerHTML='';
@@ -1249,7 +1413,7 @@ function marginalRate(income){for(const[r,lo,hi]of BR){if(income>lo&&income<=hi)
       wrap.insertAdjacentHTML('beforeend',
         `<button class="step${done?' done':''}${isNext?' next':''}" data-i="${i}"><span class="box">✓</span><span class="st-body"><span class="st-nm">${i+1}. ${s.nm}${isNext?' <span class="st-tag">Next move</span>':''}</span><span class="st-d">${s.d}</span></span></button>`);
     });
-    $$('.step',wrap).forEach(b=>b.onclick=()=>{const i=+b.dataset.i;doneSet.has(i)?doneSet.delete(i):doneSet.add(i);render();});
+    $$('.step',wrap).forEach(b=>b.onclick=()=>{const i=+b.dataset.i;doneSet.has(i)?doneSet.delete(i):doneSet.add(i);STORE.set('oo',[...doneSet]);render();});
     const nx=$('#oo-next');
     if(nextIdx===-1){nx.style.borderColor='var(--keep)';nx.style.background='var(--keep-wash)';nx.innerHTML='<span class="tag">All set</span><b>You’ve worked through the whole sequence.</b> From here it’s about consistency — keep contributions automated and revisit the plan as life changes.';}
     else{nx.style.borderColor='var(--brand)';nx.style.background='var(--surface-2)';nx.innerHTML=`<span class="tag">Your next move</span><b>${STEPS[nextIdx].nm}.</b> ${STEPS[nextIdx].d}`;}
@@ -1880,7 +2044,58 @@ function drawM5(){
   x.fillStyle=cur>0?cvar('--keep'):cvar('--tax');x.beginPath();x.arc(dotX,Y(cur),4.5,0,7);x.fill();x.strokeStyle=cvar('--surface');x.lineWidth=2;x.stroke();
 }
 
-function drawAll(){try{drawM10();drawM11();drawM12();drawM6();drawM8();drawM2();drawM3();drawM4();drawM5();}catch(e){}}
+/* ============================ MODULE 12 : WHEN TO CLAIM SS ============================ */
+let M13=null;
+function ssFactor(age){
+  const m=(age-67)*12;
+  if(m>=0) return 1+(2/3/100)*m;
+  const em=-m, first=Math.min(em,36), rest=Math.max(0,em-36);
+  return 1-(5/9/100)*first-(5/12/100)*rest;
+}
+(function(){
+  const fra=$('#sc-fra'),claim=$('#sc-claim'),life=$('#sc-life');
+  function render(){
+    const F=+fra.value, cA=+claim.value, L=+life.value;
+    $('#sc-fra-v').textContent=fmt(F);$('#sc-claim-v').textContent=cA;$('#sc-life-v').textContent=L;
+    const moChosen=F*ssFactor(cA), mo62=F*0.70, END=95;
+    const cum62=[],cumCh=[];let c62=0,cch=0;
+    for(let a=62;a<=END;a++){c62+=mo62*12;if(a>=cA)cch+=moChosen*12;cum62.push({age:a,v:c62});cumCh.push({age:a,v:cch});}
+    let be=null;
+    for(let i=0;i<cum62.length;i++){if(cumCh[i].age>cA&&cumCh[i].v>=cum62[i].v){be=cum62[i].age;break;}}
+    M13={cum62,cumCh,cA,L,END};
+    drawM13();
+    $('#sc-monthly').textContent=fmt(moChosen)+'/mo';
+    $('#sc-mo62').textContent=fmt(mo62)+'/mo';
+    $('#sc-be').textContent=cA<=62?'—':(be?be:'past 95');
+    $('#sc-life-tot').textContent=fmt(cumCh[Math.min(L,END)-62].v);
+    markDone('m13');
+  }
+  [fra,claim,life].forEach(e=>e.oninput=render);render();
+})();
+function drawM13(){
+  const cv=$('#m13-canvas');if(!cv||!M13)return;
+  const dpr=Math.min(devicePixelRatio||1,2);const W=cv.clientWidth||900,H=360;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+'px';
+  const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
+  const padL=64,padR=18,padT=18,padB=34,plotW=W-padL-padR,plotH=H-padT-padB;
+  const a0=62,a1=M13.END, maxY=Math.max(M13.cum62[M13.cum62.length-1].v,M13.cumCh[M13.cumCh.length-1].v,1)*1.05;
+  const AX=a=>padL+(a-a0)/(a1-a0)*plotW, Y=v=>padT+plotH-(v/maxY)*plotH;
+  const mute=cvar('--ink-mute'),soft=cvar('--line-soft');
+  x.strokeStyle=soft;x.lineWidth=1;x.fillStyle=mute;x.font='11px "IBM Plex Mono",monospace';x.textAlign='right';x.textBaseline='middle';
+  for(let i=0;i<=4;i++){const v=maxY*i/4;const yy=Y(v);x.beginPath();x.moveTo(padL,yy);x.lineTo(W-padR,yy);x.stroke();x.fillText(fmtK(v),padL-8,yy);}
+  x.textAlign='center';x.textBaseline='top';
+  for(let a=a0;a<=a1;a+=5){x.fillText(a,AX(a),H-padB+8);}
+  // life expectancy marker
+  if(M13.L>=a0&&M13.L<=a1){x.strokeStyle=mute;x.setLineDash([4,4]);x.lineWidth=1.2;x.beginPath();x.moveTo(AX(M13.L),padT);x.lineTo(AX(M13.L),padT+plotH);x.stroke();x.setLineDash([]);x.fillStyle=mute;x.font='600 10px "IBM Plex Sans",sans-serif';x.textAlign='center';x.textBaseline='top';x.fillText('lives to '+M13.L,AX(M13.L),padT+2);}
+  const ln=(arr,c)=>{x.strokeStyle=c;x.lineWidth=2.6;x.beginPath();arr.forEach((d,i)=>{i?x.lineTo(AX(d.age),Y(d.v)):x.moveTo(AX(d.age),Y(d.v));});x.stroke();};
+  ln(M13.cum62,cvar('--warn'));ln(M13.cumCh,cvar('--keep'));
+  // break-even crossing marker
+  for(let i=1;i<M13.cum62.length;i++){if(M13.cumCh[i].age>M13.cA&&M13.cumCh[i].v>=M13.cum62[i].v){const a=M13.cum62[i].age;x.fillStyle=cvar('--ink');x.beginPath();x.arc(AX(a),Y(M13.cum62[i].v),4,0,7);x.fill();x.strokeStyle=cvar('--surface');x.lineWidth=2;x.stroke();x.fillStyle=mute;x.font='600 10px "IBM Plex Sans",sans-serif';x.textAlign='center';x.textBaseline='bottom';x.fillText('break-even '+a,AX(a),Y(M13.cum62[i].v)-8);break;}}
+  x.fillStyle=cvar('--warn');x.beginPath();x.arc(AX(a1),Y(M13.cum62[M13.cum62.length-1].v),4,0,7);x.fill();
+  x.fillStyle=cvar('--keep');x.beginPath();x.arc(AX(a1),Y(M13.cumCh[M13.cumCh.length-1].v),4,0,7);x.fill();
+}
+
+function drawAll(){try{drawM10();drawM11();drawM12();drawM6();drawM8();drawM2();drawM3();drawM4();drawM13();drawM5();}catch(e){}}
 addEventListener('resize',()=>{clearTimeout(window._rz);window._rz=setTimeout(drawAll,120);});
 
 /* ============================ INLINE CHECKS ============================ */
@@ -1943,35 +2158,52 @@ const QUIZ=[
    x:"In the ramp zone each added dollar of ordinary income pulls $0.50–$0.85 of benefits into the tax base too — an effective marginal rate of roughly 1.5–1.85&times; your bracket."},
   {q:"With the enhanced subsidies expired, an early retiree's MAGI crosses 400% of poverty by a few hundred dollars. What happens to their ACA subsidy?",
    a:["It phases down gradually, in proportion to the overage.","The whole subsidy is lost at once — the 400% 'cliff' — so a tiny overage can cost thousands.","Nothing; subsidies are locked in at enrollment."],c:1,
-   x:"Above 400% of poverty the entire premium tax credit disappears and is reconciled on your tax return. Steering MAGI with Roth and taxable buckets is how early retirees stay under the line."}
+   x:"Above 400% of poverty the entire premium tax credit disappears and is reconciled on your tax return. Steering MAGI with Roth and taxable buckets is how early retirees stay under the line."},
+  {q:"A healthy 62-year-old with other income to live on is deciding when to claim Social Security. What's the usual case for waiting until 70?",
+   a:["You get more checks overall by starting later.","Each check is permanently ~8%/year larger, which wins if you live past the break-even age and protects a surviving spouse.","Benefits claimed at 70 are tax-free."],c:1,
+   x:"Delaying raises the monthly benefit about 8% a year to 70. You collect fewer but larger checks; past the break-even age (usually early-to-mid 80s) the total pulls ahead — and the bigger benefit carries over as a survivor's benefit. It's longevity insurance."}
 ];
 (function(){
   const wrap=$('#qz-items');$('#qz-total').textContent=QUIZ.length;
+  const saved=STORE.get('quiz',{});
   let score=0, answered=0;
+  function tally(){
+    $('#qz-score').textContent=score;
+    $('#qz-meter').style.width=(score/QUIZ.length*100)+'%';
+    if(answered===QUIZ.length){
+      const msg=score===QUIZ.length?"Perfect score — you've got the core mechanics of building and spending a nest egg down.":score>=12?"Strong. You understand the big levers; revisit the ones you missed above.":"Good start — scroll back up and replay the playgrounds, then retry.";
+      $('#qz-done').innerHTML=`<div class="callout" style="border-color:var(--keep);background:var(--keep-wash)"><span class="tag">Your result</span><b>${score} / ${QUIZ.length}.</b> ${msg}</div>`;
+    }
+  }
   QUIZ.forEach((item,qi)=>{
     const d=document.createElement('div');d.className='qitem';
     d.innerHTML=`<div class="q" style="font-weight:600;font-size:1.02rem;margin-bottom:.85rem;display:flex;gap:.6rem;align-items:flex-start"><span class="qm mono" style="color:var(--brand);font-size:.85rem;padding-top:.15rem">${String(qi+1).padStart(2,'0')}</span><span>${item.q}</span></div>`;
     const opts=document.createElement('div');opts.className='opts';
+    function apply(ai,persist){
+      if(d.dataset.answered)return;d.dataset.answered='1';answered++;
+      const btns=$$('.opt',opts);btns.forEach(o=>o.disabled=true);
+      if(ai===item.c){btns[ai].classList.add('correct');score++;}
+      else{btns[ai].classList.add('wrong');btns[item.c].classList.add('correct');}
+      const ex=document.createElement('div');ex.className='explain show';ex.innerHTML=item.x;d.appendChild(ex);
+      if(persist){const s=STORE.get('quiz',{});s[qi]=ai;STORE.set('quiz',s);markDone('quiz');}
+      tally();
+    }
     item.a.forEach((txt,ai)=>{
       const b=document.createElement('button');b.className='opt';b.innerHTML=`<span class="mk">✓</span><span>${txt}</span>`;
-      b.onclick=()=>{
-        if(d.dataset.answered)return;d.dataset.answered='1';answered++;
-        $$('.opt',opts).forEach(o=>o.disabled=true);
-        if(ai===item.c){b.classList.add('correct');score++;}
-        else{b.classList.add('wrong');$$('.opt',opts)[item.c].classList.add('correct');}
-        const ex=document.createElement('div');ex.className='explain show';ex.innerHTML=item.x;d.appendChild(ex);
-        $('#qz-score').textContent=score;
-        $('#qz-meter').style.width=(score/QUIZ.length*100)+'%';
-        markDone('quiz');
-        if(answered===QUIZ.length){
-          const msg=score===QUIZ.length?"Perfect score — you've got the core mechanics of building and spending a nest egg down.":score>=11?"Strong. You understand the big levers; revisit the ones you missed above.":"Good start — scroll back up and replay the playgrounds, then retry.";
-          $('#qz-done').innerHTML=`<div class="callout" style="border-color:var(--keep);background:var(--keep-wash)"><span class="tag">Your result</span><b>${score} / ${QUIZ.length}.</b> ${msg}</div>`;
-        }
-      };
+      b.onclick=()=>apply(ai,true);
       opts.appendChild(b);
     });
     d.appendChild(opts);wrap.appendChild(d);
+    if(saved[qi]!=null) apply(saved[qi],false);
   });
+})();
+
+/* ---- restore saved progress, wire dashboard link, then arm persistence ---- */
+const DASHBOARD_URL="retirement-dashboard.html"; /* sanitized public sandbox, same folder */
+(function(){
+  try{STORE.get('done',[]).forEach(id=>{done[id]=1;const d=rail.querySelector(`[data-id="${id}"]`);if(d)d.dataset.done='1';});}catch(e){}
+  if(DASHBOARD_URL){const db=$('#dashBtn');if(db){db.href=DASHBOARD_URL;db.style.display='';}}
+  READY=true;
 })();
 </script>
 </body>
