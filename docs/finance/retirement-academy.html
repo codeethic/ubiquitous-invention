@@ -286,6 +286,15 @@ canvas{display:block;width:100%;height:auto}
 .step.next{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-wash)}
 .step.done{opacity:.66}
 
+/* fiduciary CTA (restrained, contextual) */
+.advisor-cta{display:flex;gap:.9rem;align-items:flex-start;margin:1.8rem 0;padding:1rem 1.15rem;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);max-width:var(--read)}
+.advisor-cta .ac-icon{flex:0 0 auto;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--brand-wash);color:var(--brand-deep);font-size:1.05rem}
+.advisor-cta .ac-eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.64rem;text-transform:uppercase;letter-spacing:.13em;color:var(--ink-mute)}
+.advisor-cta .ac-text{font-size:.9rem;color:var(--ink-soft);margin:.3rem 0 .7rem;max-width:100%}
+.advisor-cta .ac-btn{display:inline-flex;align-items:center;gap:.4rem;font-family:inherit;font-size:.86rem;font-weight:600;color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 35%,transparent);padding:.42rem .8rem;border-radius:8px;background:var(--surface);transition:border-color .12s,background .12s}
+.advisor-cta .ac-btn:hover{border-color:var(--brand);background:var(--brand-wash);text-decoration:none}
+.advisor-cta .ac-disc{font-size:.72rem;color:var(--ink-mute);margin-top:.55rem}
+
 /* cheat sheet */
 .cheatgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-top:1.4rem}
 @media(max-width:700px){.cheatgrid{grid-template-columns:1fr}}
@@ -904,6 +913,16 @@ canvas{display:block;width:100%;height:auto}
 
     <div class="callout"><span class="tag">The insight</span>A Roth conversion is voluntarily filling a bucket <em>now</em>, at today's known rate, so that money (and all its future growth) is never taxed again. The art is choosing <strong>how much</strong> to convert: enough to top off a cheap bucket, but not so much that you spill into a pricier one.</div>
 
+    <div class="advisor-cta">
+      <div class="ac-icon">⚖</div>
+      <div class="ac-body">
+        <div class="ac-eyebrow">When it's worth a second opinion</div>
+        <p class="ac-text">Multi-year Roth-conversion planning is high-stakes and hard to reverse — the kind of decision a fee-only fiduciary can often turn into real, lasting tax savings.</p>
+        <a class="ac-btn" href="https://www.napfa.org/find-an-advisor" target="_blank" rel="noopener">Talk to a fiduciary advisor →</a>
+        <div class="ac-disc"></div>
+      </div>
+    </div>
+
     <div class="check" id="chk1" data-correct="1">
       <div class="q"><span class="qm">Q</span><span>You're in the 22% bracket with $18,000 of room left before the 24% bracket begins. You convert $30,000 to Roth. How is that conversion taxed?</span></div>
       <div class="opts">
@@ -1100,6 +1119,16 @@ canvas{display:block;width:100%;height:auto}
 
     <div class="callout"><span class="tag">Delaying is cheap longevity insurance</span>Waiting to 70 buys you the largest possible inflation-adjusted check for the rest of your life — the best protection against the real risk of <em>outliving your money</em>. It's especially powerful for the <strong>higher earner in a couple</strong>, because that benefit continues as the survivor's benefit after the first death. Claim early if you need the income, expect a shorter life, or want to stop working — but for the healthy and patient, waiting usually wins.</div>
 
+    <div class="advisor-cta">
+      <div class="ac-icon">⚖</div>
+      <div class="ac-body">
+        <div class="ac-eyebrow">When it's worth a second opinion</div>
+        <p class="ac-text">When to claim — and how to coordinate two spouses' benefits and survivor protection — is a once-and-for-all choice that's worth a professional's eyes before you file.</p>
+        <a class="ac-btn" href="https://www.napfa.org/find-an-advisor" target="_blank" rel="noopener">Talk to a fiduciary advisor →</a>
+        <div class="ac-disc"></div>
+      </div>
+    </div>
+
     <div class="check" id="chk13" data-correct="1">
       <div class="q"><span class="qm">Q</span><span>Claiming Social Security at 70 instead of 62 gives you…</span></div>
       <div class="opts">
@@ -1225,6 +1254,16 @@ canvas{display:block;width:100%;height:auto}
     </div>
 
     <div class="callout"><span class="tag">Where "4%" comes from</span>The famous <b>4% rule</b> is a rough answer to sequence risk: start by withdrawing 4% of your portfolio, adjust that dollar amount for inflation each year, and history suggests it survives 30 years through most bad sequences. It's a starting point, not a guarantee — push the rate up and watch the unlucky path fail. Real defenses include holding a cash buffer for down years and trimming spending after a bad start.</div>
+
+    <div class="advisor-cta">
+      <div class="ac-icon">⚖</div>
+      <div class="ac-body">
+        <div class="ac-eyebrow">When it's worth a second opinion</div>
+        <p class="ac-text">Turning a nest egg into income that survives a bad decade is exactly where objective, fee-only advice tends to earn its keep.</p>
+        <a class="ac-btn" href="https://www.napfa.org/find-an-advisor" target="_blank" rel="noopener">Talk to a fiduciary advisor →</a>
+        <div class="ac-disc"></div>
+      </div>
+    </div>
 
     <div class="check" id="chk3" data-correct="1">
       <div class="q"><span class="qm">Q</span><span>Two retirees experience the identical set of annual returns over 30 years and withdraw the same amounts. What most determines who ends up wealthier?</span></div>
@@ -2200,6 +2239,14 @@ const QUIZ=[
 
 /* ---- restore saved progress, wire dashboard link, then arm persistence ---- */
 const DASHBOARD_URL="retirement-dashboard.html"; /* sanitized public sandbox, same folder */
+/* Fiduciary CTA: swap ADVISOR_URL for a paid referral link (SmartAsset / Zoe / Wealthramp) and set ADVISOR_SPONSORED=true to monetize. Default is NAPFA's free fee-only directory. */
+const ADVISOR_URL="https://www.napfa.org/find-an-advisor";
+const ADVISOR_SPONSORED=false;
+(function(){
+  document.querySelectorAll('.ac-btn').forEach(a=>a.href=ADVISOR_URL);
+  const d=ADVISOR_SPONSORED?'Partner link — we may earn a referral fee, at no cost to you.':'Links to NAPFA, a free directory of fee-only fiduciary advisors. Not a paid referral.';
+  document.querySelectorAll('.ac-disc').forEach(e=>e.textContent=d);
+})();
 (function(){
   try{STORE.get('done',[]).forEach(id=>{done[id]=1;const d=rail.querySelector(`[data-id="${id}"]`);if(d)d.dataset.done='1';});}catch(e){}
   if(DASHBOARD_URL){const db=$('#dashBtn');if(db){db.href=DASHBOARD_URL;db.style.display='';}}
