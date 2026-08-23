@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800" role="img" aria-labelledby="portraitTitle">
+  <title id="portraitTitle">Illustration of a teacher seated in a cross-legged meditation posture</title>
+
+  <defs>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#F2EADB"/>
+      <stop offset="58%"  stop-color="#DCD3BE"/>
+      <stop offset="100%" stop-color="#B9B79C"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#D9A840"/>
+      <stop offset="100%" stop-color="#C4922F"/>
+    </linearGradient>
+    <clipPath id="frame">
+      <path d="M0 300a300 300 0 0 1 600 0v500H0z"/>
+    </clipPath>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" result="n"/>
+      <feColorMatrix in="n" type="saturate" values="0"/>
+    </filter>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <rect width="600" height="800" fill="url(#ground)"/>
+
+    <!-- low sun behind the figure -->
+    <circle cx="300" cy="332" r="168" fill="url(#sun)"/>
+
+    <!-- horizon band: the floor of the room -->
+    <rect y="700" width="600" height="100" fill="#4E5A3A" opacity="0.16"/>
+
+    <!-- seated figure, silhouette -->
+    <g fill="#33291F">
+      <!-- head -->
+      <circle cx="300" cy="288" r="54"/>
+      <!-- hair, gathered low -->
+      <path d="M246 288a54 54 0 0 1 108 0c0 6-2 12-5 17 6-34-16-52-49-52s-55 18-49 52c-3-5-5-11-5-17z"/>
+      <circle cx="300" cy="250" r="22"/>
+      <!-- torso, arms resting to the knees, crossed legs -->
+      <path d="M262 348c-28 9-52 34-61 78l-22 116c-8 44 0 68 22 82-50 10-72 32-74 58l-1 14h348l-1-14c-2-26-24-48-74-58 22-14 30-38 22-82l-22-116c-9-44-33-69-61-78a260 260 0 0 1-76 0z"/>
+    </g>
+
+    <!-- arms resting down to the knees, drawn as light relief on the silhouette -->
+    <g fill="none" stroke="#E8DFCB" stroke-width="5" opacity="0.17" stroke-linecap="round">
+      <path d="M244 376c-24 30-34 76-30 122 3 34 16 56 38 68"/>
+      <path d="M356 376c24 30 34 76 30 122-3 34-16 56-38 68"/>
+    </g>
+
+    <!-- shin line across the crossed legs -->
+    <path d="M188 702c46-24 178-24 224 0" fill="none" stroke="#E8DFCB" stroke-width="4.5" opacity="0.32" stroke-linecap="round"/>
+
+    <!-- paper grain -->
+    <rect width="600" height="800" filter="url(#grain)" opacity="0.07" style="mix-blend-mode:multiply"/>
+  </g>
+</svg>

@@ -6,6 +6,11 @@
 <title>Loam Yoga — Vinyasa, flow and meditation</title>
 <meta name="description" content="A small in-person studio teaching breath-led vinyasa, slow flow and guided meditation. Classes capped at sixteen mats.">
 
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#33291F">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..500&family=Karla:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -131,7 +136,7 @@ p:last-child{ margin-bottom:0; }
   letter-spacing:-.02em; text-decoration:none;
   display:flex; align-items:baseline; gap:.5rem;
 }
-.mark__dot{ width:9px; height:9px; border-radius:999px; background:var(--ochre); flex:none; transform:translateY(-1px); }
+.mark__glyph{ width:16px; height:16px; flex:none; transform:translateY(2px); }
 .nav__links{ display:flex; align-items:center; gap:2rem; }
 .nav__links a{ font-size:.9rem; text-decoration:none; color:var(--umber-70); transition:color .2s var(--ease); }
 .nav__links a:hover{ color:var(--umber); }
@@ -278,19 +283,10 @@ p:last-child{ margin-bottom:0; }
    ============================================================ */
 .teacher{ display:grid; grid-template-columns:.8fr 1.2fr; gap:clamp(2rem,5vw,4.5rem); align-items:center; }
 .portrait{
-  border-radius:var(--arch); aspect-ratio:3/4;
-  background:
-    radial-gradient(120% 80% at 50% 12%, #C9A96A 0%, transparent 58%),
-    linear-gradient(168deg, var(--sage) 0%, var(--olive) 100%);
-  position:relative; overflow:hidden;
-  border:1px solid color-mix(in srgb, var(--umber) 14%, transparent);
+  margin:0; border-radius:var(--arch); aspect-ratio:3/4;
+  overflow:hidden; background:var(--linen);
 }
-.portrait::after{
-  content:"Replace with a photo of you teaching";
-  position:absolute; inset:auto 1rem 1rem; text-align:center;
-  font-family:var(--mono); font-size:.66rem; letter-spacing:.11em;
-  text-transform:uppercase; color:rgba(255,255,255,.78);
-}
+.portrait img{ width:100%; height:100%; object-fit:cover; display:block; }
 .creds{
   list-style:none; padding:0; margin:1.9rem 0 0; display:grid; gap:.55rem;
   font-family:var(--mono); font-size:.79rem; letter-spacing:.05em; color:var(--umber-70);
@@ -403,7 +399,11 @@ p:last-child{ margin-bottom:0; }
 <!-- ============================ NAV ============================ -->
 <header class="nav">
   <div class="wrap nav__inner">
-    <a href="#top" class="mark"><span class="mark__dot"></span>Loam Yoga</a>
+    <a href="#top" class="mark">
+      <svg class="mark__glyph" viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M18 48V30a14 14 0 0 1 28 0v18z" fill="#C4922F"/>
+        <circle cx="32" cy="32" r="7.5" fill="#33291F"/>
+      </svg>Loam Yoga</a>
     <nav class="nav__links" aria-label="Main">
       <a href="#classes">Classes</a>
       <a href="#meditation">Meditation</a>
@@ -585,20 +585,20 @@ p:last-child{ margin-bottom:0; }
 <!-- ============================ TEACHER ============================ -->
 <section class="section" id="teacher">
   <div class="wrap teacher">
-    <div class="portrait reveal"></div>
+    <!-- Swap teacher.svg for a real photo when you have one — same file name keeps this markup unchanged -->
+    <figure class="portrait reveal">
+      <img src="teacher.svg" alt="Elena Marsh seated in a cross-legged meditation posture" width="600" height="800">
+    </figure>
     <div class="reveal">
       <p class="eyebrow">Who is teaching</p>
-      <h2><a href="https://app.yogaalliance.org/teacherpublicprofile?id=003TR00000wF7r2YAC">Maya S.</a></h2>
+      <h2>Elena Marsh</h2>
       <p class="lede" style="margin:1.3rem 0 1.5rem">Founder · vinyasa and meditation · teaching since 2011</p>
       <p>Vinyasa is where I actually live as a teacher. I care about the count — where the breath lands, how a sequence builds toward one shape and then unwinds from it — and I will not run a class where the transitions are an afterthought.</p>
       <p>The meditation came later and changed how I teach the flow. Moving well is a way of getting quiet enough to sit; sitting is what makes the moving mean anything. Most weeks I teach both, and I would rather you did both too.</p>
       <ul class="creds">
-        <li>E-RYT 2S00, Yoga Alliance</li>
-        <li>Flow Yoga</li>
-        <li>Spiritually-Oriented Yoga</li>
-        <li>Hot/Heated Yog</li>
-        <li>Gentle Yog</li>
-        <li>Specialty Yoga</li>
+        <li>E-RYT 500, Yoga Alliance</li>
+        <li>Vinyasa Krama training, 2014</li>
+        <li>Trauma-informed teaching certificate, 2019</li>
       </ul>
     </div>
   </div>
