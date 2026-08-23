@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loam Yoga — Vinyasa, flow and meditation</title>
+<meta name="description" content="A small in-person studio teaching breath-led vinyasa, slow flow and guided meditation. Classes capped at sixteen mats.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..500&family=Karla:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --oat:      #EFE7D8;
+  --linen:    #F7F2E7;
+  --umber:    #33291F;
+  --umber-70: #6B5B4B;
+  --olive:    #4E5A3A;
+  --sage:     #9BA588;
+  --ochre:    #C4922F;
+  --ochre-dp: #9A6F1E;
+
+  --display: "Fraunces", Georgia, "Times New Roman", serif;
+  --body:    "Karla", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono:    "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --arch: 999px 999px 14px 14px;
+  --ease: cubic-bezier(.22,.61,.36,1);
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+
+body{
+  margin:0;
+  background:var(--oat);
+  color:var(--umber);
+  font-family:var(--body);
+  font-size:clamp(16px,1.05vw,17.5px);
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+body::after{
+  content:"";
+  position:fixed; inset:0; z-index:9999; pointer-events:none;
+  opacity:.05; mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+img{ max-width:100%; display:block; }
+a{ color:inherit; }
+:focus-visible{ outline:2.5px solid var(--ochre); outline-offset:3px; border-radius:2px; }
+
+/* ============================================================
+   TYPE
+   ============================================================ */
+h1,h2,h3{
+  font-family:var(--display); font-weight:400; line-height:1.03;
+  letter-spacing:-.018em; margin:0; font-variation-settings:"opsz" 100;
+}
+h1{ font-size:clamp(3.1rem,8.4vw,6.8rem); }
+h2{ font-size:clamp(2.2rem,4.6vw,3.9rem); }
+h3{ font-size:clamp(1.25rem,1.8vw,1.6rem); letter-spacing:-.01em; }
+p{ margin:0 0 1.05em; }
+p:last-child{ margin-bottom:0; }
+
+.eyebrow{
+  font-family:var(--mono); font-size:.72rem; letter-spacing:.19em;
+  text-transform:uppercase; color:var(--ochre-dp); margin:0 0 1.4rem;
+  display:flex; align-items:center; gap:.75rem;
+}
+.eyebrow::before{ content:""; width:26px; height:1.5px; background:var(--ochre); flex:none; }
+.section--dark .eyebrow,
+.section--olive .eyebrow{ color:var(--ochre); }
+
+.lede{
+  font-size:clamp(1.08rem,1.5vw,1.3rem); line-height:1.55;
+  color:var(--umber-70); max-width:46ch;
+}
+.section--dark .lede,
+.section--olive .lede{ color:#CFC4B2; }
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.wrap{ width:min(1180px, 100% - 2.75rem); margin-inline:auto; }
+.section{ padding:clamp(76px,10.5vw,148px) 0; position:relative; }
+.section--dark{ background:var(--umber); color:var(--oat); }
+.section--olive{ background:var(--olive); color:var(--oat); }
+.section--linen{ background:var(--linen); }
+.head{ max-width:60ch; margin-bottom:clamp(2.6rem,5vw,4.2rem); }
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn{
+  display:inline-flex; align-items:center; gap:.6rem;
+  font-weight:600; font-size:.95rem; padding:.95em 1.7em;
+  border-radius:999px; border:1.5px solid transparent;
+  text-decoration:none; cursor:pointer;
+  transition:transform .25s var(--ease), background .25s var(--ease),
+             color .25s var(--ease), border-color .25s var(--ease);
+}
+.btn--solid{ background:var(--umber); color:var(--oat); }
+.btn--solid:hover{ background:var(--ochre-dp); transform:translateY(-2px); }
+.btn--ghost{ border-color:currentColor; }
+.btn--ghost:hover{ background:var(--umber); color:var(--oat); border-color:var(--umber); transform:translateY(-2px); }
+.section--dark .btn--solid,
+.section--olive .btn--solid{ background:var(--ochre); color:var(--umber); }
+.section--dark .btn--solid:hover,
+.section--olive .btn--solid:hover{ background:var(--oat); }
+.section--dark .btn--ghost:hover,
+.section--olive .btn--ghost:hover{ background:var(--oat); color:var(--umber); border-color:var(--oat); }
+
+/* ============================================================
+   NAV
+   ============================================================ */
+.nav{
+  position:sticky; top:0; z-index:100;
+  background:color-mix(in srgb, var(--oat) 88%, transparent);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid color-mix(in srgb, var(--umber) 12%, transparent);
+}
+.nav__inner{ display:flex; align-items:center; justify-content:space-between; gap:1.5rem; padding:.95rem 0; }
+.mark{
+  font-family:var(--display); font-size:1.32rem; font-weight:500;
+  letter-spacing:-.02em; text-decoration:none;
+  display:flex; align-items:baseline; gap:.5rem;
+}
+.mark__dot{ width:9px; height:9px; border-radius:999px; background:var(--ochre); flex:none; transform:translateY(-1px); }
+.nav__links{ display:flex; align-items:center; gap:2rem; }
+.nav__links a{ font-size:.9rem; text-decoration:none; color:var(--umber-70); transition:color .2s var(--ease); }
+.nav__links a:hover{ color:var(--umber); }
+.nav .btn{ padding:.7em 1.35em; font-size:.88rem; color:var(--oat); }
+@media (max-width:900px){ .nav__links a:not(.btn){ display:none; } }
+
+/* ============================================================
+   HERO — breathing ring, now on a vinyasa count
+   ============================================================ */
+.hero{ padding:clamp(56px,8vw,104px) 0 clamp(72px,9vw,128px); overflow:hidden; }
+.hero__grid{
+  display:grid; grid-template-columns:1.15fr .85fr;
+  gap:clamp(2rem,5vw,4.5rem); align-items:center;
+}
+.hero h1{ margin-bottom:1.6rem; }
+.hero h1 em{ font-style:italic; font-weight:300; color:var(--ochre-dp); }
+.hero__meta{
+  display:flex; flex-wrap:wrap; gap:.6rem 1.5rem;
+  font-family:var(--mono); font-size:.76rem; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--umber-70); margin-bottom:2.1rem;
+}
+.hero__cta{ display:flex; flex-wrap:wrap; gap:.85rem; margin-top:2.3rem; }
+
+.breath{ position:relative; aspect-ratio:1; display:grid; place-items:center; max-width:400px; width:100%; margin-inline:auto; }
+.breath svg{ width:100%; height:100%; overflow:visible; }
+.breath__disc{ fill:var(--sage); opacity:.34; transform-origin:50% 50%; animation:breathe 8s var(--ease) infinite; }
+.breath__ring{ fill:none; stroke:var(--ochre); stroke-width:1.4; transform-origin:50% 50%; animation:breathe 8s var(--ease) infinite; }
+.breath__ring--outer{ stroke:var(--sage); stroke-width:1; opacity:.7; animation:breathe-wide 8s var(--ease) infinite; }
+
+@keyframes breathe{
+  0%{ transform:scale(.66); } 47%{ transform:scale(1); }
+  50%{ transform:scale(1); } 97%{ transform:scale(.66); } 100%{ transform:scale(.66); }
+}
+@keyframes breathe-wide{
+  0%{ transform:scale(.78); opacity:.35; } 47%{ transform:scale(1.1); opacity:.75; }
+  50%{ transform:scale(1.1); opacity:.75; } 97%{ transform:scale(.78); opacity:.35; } 100%{ transform:scale(.78); opacity:.35; }
+}
+
+.breath__labels{ position:absolute; inset:0; display:grid; place-items:center; text-align:center; }
+.breath__word{
+  position:absolute; font-family:var(--mono); font-size:.78rem;
+  letter-spacing:.28em; text-transform:uppercase; color:var(--umber-70);
+}
+.breath__word--in{ animation:word-in 8s steps(1,end) infinite; }
+.breath__word--out{ animation:word-out 8s steps(1,end) infinite; }
+@keyframes word-in { 0%,48%{opacity:1} 49%,100%{opacity:0} }
+@keyframes word-out{ 0%,48%{opacity:0} 49%,98%{opacity:1} 99%,100%{opacity:0} }
+
+.breath__count{
+  position:absolute; bottom:-2.4rem; left:50%; transform:translateX(-50%);
+  font-family:var(--mono); font-size:.7rem; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--umber-70); opacity:.65; white-space:nowrap;
+}
+@media (max-width:900px){
+  .hero__grid{ grid-template-columns:1fr; }
+  .breath{ max-width:280px; order:-1; margin-bottom:1rem; }
+}
+
+.rule{
+  border-top:1px solid color-mix(in srgb, var(--umber) 16%, transparent);
+  padding:1.15rem 0; display:flex; flex-wrap:wrap; gap:.5rem 2.4rem;
+  font-family:var(--mono); font-size:.73rem; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--umber-70);
+}
+
+/* ============================================================
+   CLASSES
+   ============================================================ */
+.classes{ display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:clamp(1.1rem,2.2vw,1.9rem); }
+.class{
+  background:var(--linen); border-radius:var(--arch);
+  padding:clamp(1.6rem,2.4vw,2.1rem); padding-top:clamp(2.4rem,3.4vw,3rem);
+  border:1px solid color-mix(in srgb, var(--umber) 9%, transparent);
+  display:flex; flex-direction:column;
+  transition:transform .35s var(--ease), box-shadow .35s var(--ease);
+}
+.class--lead{ background:var(--umber); color:var(--oat); border-color:var(--umber); }
+.class:hover{ transform:translateY(-5px); box-shadow:0 18px 40px -26px rgba(51,41,31,.5); }
+.class__glyph{ margin:0 auto 1.4rem; display:block; }
+.class h3{ text-align:center; margin-bottom:.7rem; }
+.class p{ font-size:.94rem; color:var(--umber-70); text-align:center; margin-bottom:1.4rem; }
+.class--lead p{ color:#CFC4B2; }
+.class__meta{
+  margin-top:auto; padding-top:1rem;
+  border-top:1px solid color-mix(in srgb, var(--umber) 12%, transparent);
+  display:flex; justify-content:space-between;
+  font-family:var(--mono); font-size:.72rem; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ochre-dp);
+}
+.class--lead .class__meta{ border-top-color:color-mix(in srgb, var(--oat) 22%, transparent); color:var(--ochre); }
+
+/* ============================================================
+   MEDITATION
+   ============================================================ */
+.med{ display:grid; grid-template-columns:1.05fr .95fr; gap:clamp(2rem,5vw,4.5rem); align-items:center; }
+.med__sits{ list-style:none; padding:0; margin:2.2rem 0 0; display:grid; gap:0; }
+.med__sits li{
+  display:grid; grid-template-columns:auto 1fr auto; gap:1.2rem; align-items:baseline;
+  padding:1.05rem 0; border-top:1px solid color-mix(in srgb, var(--umber) 15%, transparent);
+}
+.med__sits li:last-child{ border-bottom:1px solid color-mix(in srgb, var(--umber) 15%, transparent); }
+.med__dur{ font-family:var(--mono); font-size:.82rem; color:var(--ochre-dp); letter-spacing:.04em; min-width:4.6em; }
+.med__what{ font-size:1rem; }
+.med__when{ font-family:var(--mono); font-size:.72rem; letter-spacing:.09em; text-transform:uppercase; color:var(--umber-70); text-align:right; }
+.med__art{
+  border-radius:var(--arch); aspect-ratio:4/5;
+  background:linear-gradient(172deg, var(--oat) 0%, #E4DAC7 100%);
+  border:1px solid color-mix(in srgb, var(--umber) 13%, transparent);
+  display:grid; place-items:center; padding:2rem;
+}
+@media (max-width:860px){ .med{ grid-template-columns:1fr; } .med__art{ order:-1; aspect-ratio:3/2; } }
+
+/* ============================================================
+   SCHEDULE
+   ============================================================ */
+.sched{
+  display:grid; grid-template-columns:repeat(7,1fr); gap:1px;
+  background:color-mix(in srgb, var(--oat) 22%, transparent);
+  border:1px solid color-mix(in srgb, var(--oat) 22%, transparent);
+  border-radius:16px; overflow:hidden;
+}
+.sched__day{ background:var(--umber); padding:1.15rem .9rem 1.4rem; }
+.sched__dayname{
+  font-family:var(--mono); font-size:.71rem; letter-spacing:.17em;
+  text-transform:uppercase; color:var(--ochre);
+  padding-bottom:.85rem; margin-bottom:.95rem;
+  border-bottom:1px solid color-mix(in srgb, var(--oat) 20%, transparent);
+}
+.slot{ margin-bottom:1.15rem; }
+.slot:last-child{ margin-bottom:0; }
+.slot__time{ font-family:var(--mono); font-size:.84rem; color:var(--oat); display:block; }
+.slot__name{ font-size:.88rem; color:#C6BAA8; line-height:1.35; display:block; }
+.slot__len{ font-family:var(--mono); font-size:.68rem; color:var(--sage); letter-spacing:.08em; }
+.slot--sit .slot__name{ color:var(--ochre); }
+.sched__key{
+  margin-top:1.6rem; display:flex; flex-wrap:wrap; gap:.6rem 2rem;
+  font-family:var(--mono); font-size:.73rem; letter-spacing:.07em; color:var(--sage);
+}
+@media (max-width:1040px){ .sched{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width:560px){ .sched{ grid-template-columns:1fr; } }
+
+/* ============================================================
+   TEACHER
+   ============================================================ */
+.teacher{ display:grid; grid-template-columns:.8fr 1.2fr; gap:clamp(2rem,5vw,4.5rem); align-items:center; }
+.portrait{
+  border-radius:var(--arch); aspect-ratio:3/4;
+  background:
+    radial-gradient(120% 80% at 50% 12%, #C9A96A 0%, transparent 58%),
+    linear-gradient(168deg, var(--sage) 0%, var(--olive) 100%);
+  position:relative; overflow:hidden;
+  border:1px solid color-mix(in srgb, var(--umber) 14%, transparent);
+}
+.portrait::after{
+  content:"Replace with a photo of you teaching";
+  position:absolute; inset:auto 1rem 1rem; text-align:center;
+  font-family:var(--mono); font-size:.66rem; letter-spacing:.11em;
+  text-transform:uppercase; color:rgba(255,255,255,.78);
+}
+.creds{
+  list-style:none; padding:0; margin:1.9rem 0 0; display:grid; gap:.55rem;
+  font-family:var(--mono); font-size:.79rem; letter-spacing:.05em; color:var(--umber-70);
+}
+.creds li{ display:flex; gap:.85rem; align-items:baseline; }
+.creds li::before{ content:"—"; color:var(--ochre); flex:none; }
+@media (max-width:820px){ .teacher{ grid-template-columns:1fr; } }
+
+/* ============================================================
+   PRICING
+   ============================================================ */
+.prices{ display:grid; grid-template-columns:repeat(auto-fit,minmax(248px,1fr)); gap:clamp(1.1rem,2vw,1.6rem); }
+.price{
+  background:var(--oat); border:1px solid color-mix(in srgb, var(--umber) 11%, transparent);
+  border-radius:18px; padding:clamp(1.7rem,2.6vw,2.2rem);
+  display:flex; flex-direction:column; position:relative;
+}
+.price--feature{ background:var(--umber); color:var(--oat); border-color:var(--umber); }
+.price__tag{
+  position:absolute; top:-.75rem; left:clamp(1.7rem,2.6vw,2.2rem);
+  background:var(--ochre); color:var(--umber);
+  font-family:var(--mono); font-size:.65rem; letter-spacing:.15em;
+  text-transform:uppercase; padding:.3rem .7rem; border-radius:999px;
+}
+.price__name{ font-family:var(--mono); font-size:.74rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ochre-dp); margin-bottom:1.1rem; }
+.price--feature .price__name{ color:var(--ochre); }
+.price__fig{ font-family:var(--display); font-size:clamp(2.6rem,4.4vw,3.5rem); line-height:1; letter-spacing:-.03em; display:flex; align-items:baseline; gap:.35rem; }
+.price__per{ font-family:var(--mono); font-size:.74rem; letter-spacing:.1em; text-transform:uppercase; color:var(--umber-70); }
+.price--feature .price__per{ color:var(--sage); }
+.price ul{ list-style:none; padding:0; margin:1.5rem 0 1.9rem; display:grid; gap:.6rem; font-size:.93rem; color:var(--umber-70); }
+.price--feature ul{ color:#CFC4B2; }
+.price li{ display:flex; gap:.7rem; align-items:baseline; }
+.price li::before{ content:"·"; color:var(--ochre); font-weight:700; flex:none; }
+.price .btn{ margin-top:auto; justify-content:center; }
+.price-note{ margin-top:1.8rem; font-family:var(--mono); font-size:.76rem; letter-spacing:.06em; color:var(--umber-70); }
+
+/* ============================================================
+   TESTIMONIALS
+   ============================================================ */
+.quotes{ display:grid; grid-template-columns:repeat(auto-fit,minmax(258px,1fr)); gap:clamp(1.6rem,3vw,2.6rem); }
+.quote{ border-top:1.5px solid var(--ochre); padding-top:1.5rem; }
+.quote blockquote{
+  margin:0 0 1.3rem; font-family:var(--display);
+  font-size:clamp(1.16rem,1.6vw,1.42rem); line-height:1.4;
+  letter-spacing:-.012em; font-weight:300;
+}
+.quote figcaption{ font-family:var(--mono); font-size:.73rem; letter-spacing:.12em; text-transform:uppercase; color:#CFC4B2; }
+
+/* ============================================================
+   VISIT
+   ============================================================ */
+.visit{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(2rem,5vw,4.5rem); align-items:start; }
+.facts{ margin:2.2rem 0 0; display:grid; gap:1.35rem; }
+.facts dt{ font-family:var(--mono); font-size:.71rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ochre-dp); margin-bottom:.3rem; }
+.facts dd{ margin:0; font-size:1rem; }
+.hours{ font-family:var(--mono); font-size:.88rem; line-height:1.9; }
+.mapcard{
+  border-radius:var(--arch); aspect-ratio:4/5;
+  background:
+    repeating-linear-gradient(37deg, transparent 0 34px, color-mix(in srgb,var(--umber) 6%, transparent) 34px 35px),
+    repeating-linear-gradient(-53deg, transparent 0 34px, color-mix(in srgb,var(--umber) 6%, transparent) 34px 35px),
+    var(--linen);
+  border:1px solid color-mix(in srgb, var(--umber) 14%, transparent);
+  display:grid; place-items:center; text-align:center; padding:2rem;
+}
+.mapcard__pin{ width:16px; height:16px; border-radius:999px; background:var(--ochre); margin:0 auto .9rem; box-shadow:0 0 0 8px color-mix(in srgb,var(--ochre) 22%, transparent); }
+.mapcard p{ font-family:var(--mono); font-size:.74rem; letter-spacing:.12em; text-transform:uppercase; color:var(--umber-70); }
+@media (max-width:820px){ .visit{ grid-template-columns:1fr; } }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.foot{ background:var(--umber); color:var(--oat); padding:clamp(3.4rem,6vw,5rem) 0 2.4rem; }
+.foot__top{
+  display:flex; flex-wrap:wrap; gap:2rem; justify-content:space-between;
+  align-items:flex-end; padding-bottom:2.6rem;
+  border-bottom:1px solid color-mix(in srgb, var(--oat) 18%, transparent);
+}
+.foot h2{ max-width:16ch; }
+.foot .btn--solid{ background:var(--ochre); color:var(--umber); }
+.foot .btn--solid:hover{ background:var(--oat); }
+.foot__bottom{
+  display:flex; flex-wrap:wrap; gap:1rem 2rem; justify-content:space-between;
+  padding-top:1.6rem; font-family:var(--mono); font-size:.72rem;
+  letter-spacing:.11em; text-transform:uppercase; color:var(--sage);
+}
+.foot__bottom a{ text-decoration:none; }
+.foot__bottom a:hover{ color:var(--ochre); }
+.foot__links{ display:flex; gap:1.6rem; flex-wrap:wrap; }
+
+/* ============================================================
+   REVEAL + MOTION
+   ============================================================ */
+.reveal{ opacity:0; transform:translateY(20px); transition:opacity .8s var(--ease), transform .8s var(--ease); }
+.reveal.is-in{ opacity:1; transform:none; }
+
+@media (prefers-reduced-motion:reduce){
+  html{ scroll-behavior:auto; }
+  *,*::before,*::after{
+    animation-duration:.001ms !important; animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+  }
+  .reveal{ opacity:1; transform:none; }
+  .breath__word--out{ opacity:0; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================ NAV ============================ -->
+<header class="nav">
+  <div class="wrap nav__inner">
+    <a href="#top" class="mark"><span class="mark__dot"></span>Loam Yoga</a>
+    <nav class="nav__links" aria-label="Main">
+      <a href="#classes">Classes</a>
+      <a href="#meditation">Meditation</a>
+      <a href="#schedule">Schedule</a>
+      <a href="#teacher">Teacher</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#pricing" class="btn btn--solid">Book a class</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ============================ HERO ============================ -->
+<section class="hero">
+  <div class="wrap hero__grid">
+    <div>
+      <p class="eyebrow">Vinyasa &amp; meditation · 128 Poplar Street</p>
+      <h1>Breath first.<br>The shape<br><em>follows.</em></h1>
+      <div class="hero__meta">
+        <span>16 mats, no more</span>
+        <span>Warm room</span>
+        <span>All levels</span>
+      </div>
+      <p class="lede">Vinyasa taught properly — every movement tied to a breath, every sequence built to go somewhere. Then twenty minutes of sitting still, because that is the other half of the practice.</p>
+      <div class="hero__cta">
+        <a href="#pricing" class="btn btn--solid">Your first class is free</a>
+        <a href="#schedule" class="btn btn--ghost">See the schedule</a>
+      </div>
+    </div>
+
+    <div class="breath">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <circle class="breath__ring breath__ring--outer" cx="100" cy="100" r="88"/>
+        <circle class="breath__disc" cx="100" cy="100" r="70"/>
+        <circle class="breath__ring" cx="100" cy="100" r="70"/>
+      </svg>
+      <div class="breath__labels" aria-hidden="true">
+        <span class="breath__word breath__word--in">Inhale</span>
+        <span class="breath__word breath__word--out">Exhale</span>
+      </div>
+      <p class="breath__count">Four in · four out · the pace we move at</p>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <p class="rule">
+    <span>Vinyasa</span><span>Slow Flow</span><span>Guided Meditation</span>
+    <span>Breathwork</span><span>Beginners welcome</span>
+  </p>
+</div>
+
+<!-- ============================ CLASSES ============================ -->
+<section class="section" id="classes">
+  <div class="wrap">
+    <div class="head reveal">
+      <p class="eyebrow">What we teach</p>
+      <h2>Three things, taught well.</h2>
+      <p class="lede" style="margin-top:1.4rem">We do not run twenty formats. We run vinyasa, we run flow, and we sit. That is the whole studio.</p>
+    </div>
+
+    <div class="classes">
+      <article class="class class--lead reveal">
+        <svg class="class__glyph" width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+          <path d="M6 34C6 18 16 8 22 8s16 10 16 26" stroke="#C4922F" stroke-width="1.6"/>
+          <path d="M14 34c0-9 4-15 8-15s8 6 8 15" stroke="#9BA588" stroke-width="1.6"/>
+        </svg>
+        <h3>Vinyasa</h3>
+        <p>The core of the studio. One breath, one movement, built into a sequence with a real peak and a real landing. Warm, continuous, and honest about being work.</p>
+        <div class="class__meta"><span>60 – 90 min</span><span>All levels</span></div>
+      </article>
+
+      <article class="class reveal">
+        <svg class="class__glyph" width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+          <path d="M4 30c8 0 8-16 18-16s10 16 18 16" stroke="#C4922F" stroke-width="1.6"/>
+        </svg>
+        <h3>Slow Flow</h3>
+        <p>Same vinyasa logic, half the tempo. Longer holds and time to actually arrive in a shape before leaving it. The one to take when your week has been loud.</p>
+        <div class="class__meta"><span>60 – 75 min</span><span>All levels</span></div>
+      </article>
+
+      <article class="class reveal">
+        <svg class="class__glyph" width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+          <circle cx="22" cy="22" r="15" stroke="#C4922F" stroke-width="1.6"/>
+          <circle cx="22" cy="22" r="6" stroke="#9BA588" stroke-width="1.6"/>
+        </svg>
+        <h3>Meditation</h3>
+        <p>Guided sitting, breathwork, and silence — as its own class, not five minutes bolted onto the end of a flow. No experience needed and nothing to believe in.</p>
+        <div class="class__meta"><span>30 – 60 min</span><span>Everyone</span></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ MEDITATION ============================ -->
+<section class="section section--linen" id="meditation">
+  <div class="wrap med">
+    <div class="reveal">
+      <p class="eyebrow">Sitting practice</p>
+      <h2>Meditation is not the cool-down.</h2>
+      <p class="lede" style="margin-top:1.4rem">Most studios give it three minutes at the end, after everyone has already started thinking about dinner. We schedule it as its own class, with its own room and its own teacher.</p>
+      <ul class="med__sits">
+        <li><span class="med__dur">30 min</span><span class="med__what">Midday sit — guided, chairs available</span><span class="med__when">Mon &amp; Wed</span></li>
+        <li><span class="med__dur">45 min</span><span class="med__what">Evening breathwork and silence</span><span class="med__when">Tue &amp; Thu</span></li>
+        <li><span class="med__dur">60 min</span><span class="med__what">Sound &amp; Stillness — bowls, long sit</span><span class="med__when">Sunday</span></li>
+      </ul>
+    </div>
+    <div class="med__art reveal">
+      <svg viewBox="0 0 200 200" width="100%" style="max-width:280px" fill="none" aria-hidden="true">
+        <circle cx="100" cy="100" r="86" stroke="#9BA588" stroke-width="1"/>
+        <circle cx="100" cy="100" r="66" stroke="#9BA588" stroke-width="1"/>
+        <circle cx="100" cy="100" r="46" stroke="#C4922F" stroke-width="1.4"/>
+        <circle cx="100" cy="100" r="26" stroke="#C4922F" stroke-width="1.4"/>
+        <circle cx="100" cy="100" r="7" fill="#C4922F"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ SCHEDULE ============================ -->
+<section class="section section--dark" id="schedule">
+  <div class="wrap">
+    <div class="head reveal">
+      <p class="eyebrow">Every week</p>
+      <h2>The schedule rarely changes.</h2>
+      <p class="lede" style="margin-top:1.4rem">Same classes, same times — so a practice can become a habit instead of a plan you keep rescheduling.</p>
+    </div>
+
+    <div class="sched reveal">
+      <div class="sched__day">
+        <p class="sched__dayname">Mon</p>
+        <div class="slot"><span class="slot__time">7:00 am</span><span class="slot__name">Sunrise Vinyasa</span><span class="slot__len">60 min</span></div>
+        <div class="slot slot--sit"><span class="slot__time">12:15 pm</span><span class="slot__name">Midday Sit</span><span class="slot__len">30 min</span></div>
+        <div class="slot"><span class="slot__time">6:00 pm</span><span class="slot__name">Vinyasa</span><span class="slot__len">75 min</span></div>
+      </div>
+      <div class="sched__day">
+        <p class="sched__dayname">Tue</p>
+        <div class="slot"><span class="slot__time">9:30 am</span><span class="slot__name">Slow Flow</span><span class="slot__len">60 min</span></div>
+        <div class="slot"><span class="slot__time">5:30 pm</span><span class="slot__name">Vinyasa</span><span class="slot__len">60 min</span></div>
+        <div class="slot slot--sit"><span class="slot__time">7:15 pm</span><span class="slot__name">Breathwork &amp; Silence</span><span class="slot__len">45 min</span></div>
+      </div>
+      <div class="sched__day">
+        <p class="sched__dayname">Wed</p>
+        <div class="slot"><span class="slot__time">7:00 am</span><span class="slot__name">Sunrise Vinyasa</span><span class="slot__len">60 min</span></div>
+        <div class="slot slot--sit"><span class="slot__time">12:15 pm</span><span class="slot__name">Midday Sit</span><span class="slot__len">30 min</span></div>
+        <div class="slot"><span class="slot__time">6:00 pm</span><span class="slot__name">Slow Flow</span><span class="slot__len">75 min</span></div>
+      </div>
+      <div class="sched__day">
+        <p class="sched__dayname">Thu</p>
+        <div class="slot"><span class="slot__time">9:30 am</span><span class="slot__name">Slow Flow</span><span class="slot__len">60 min</span></div>
+        <div class="slot"><span class="slot__time">5:30 pm</span><span class="slot__name">Vinyasa</span><span class="slot__len">60 min</span></div>
+        <div class="slot slot--sit"><span class="slot__time">7:15 pm</span><span class="slot__name">Breathwork &amp; Silence</span><span class="slot__len">45 min</span></div>
+      </div>
+      <div class="sched__day">
+        <p class="sched__dayname">Fri</p>
+        <div class="slot"><span class="slot__time">7:00 am</span><span class="slot__name">Sunrise Vinyasa</span><span class="slot__len">60 min</span></div>
+        <div class="slot"><span class="slot__time">5:30 pm</span><span class="slot__name">Wind-Down Flow</span><span class="slot__len">60 min</span></div>
+      </div>
+      <div class="sched__day">
+        <p class="sched__dayname">Sat</p>
+        <div class="slot"><span class="slot__time">8:30 am</span><span class="slot__name">Long Vinyasa</span><span class="slot__len">90 min</span></div>
+        <div class="slot"><span class="slot__time">10:30 am</span><span class="slot__name">Slow Flow</span><span class="slot__len">60 min</span></div>
+      </div>
+      <div class="sched__day">
+        <p class="sched__dayname">Sun</p>
+        <div class="slot"><span class="slot__time">9:00 am</span><span class="slot__name">Vinyasa</span><span class="slot__len">75 min</span></div>
+        <div class="slot slot--sit"><span class="slot__time">4:00 pm</span><span class="slot__name">Sound &amp; Stillness</span><span class="slot__len">60 min</span></div>
+      </div>
+    </div>
+    <p class="sched__key">
+      <span>Gold marks a sitting practice</span>
+      <span>Doors open 15 minutes early</span>
+      <span>Mats and props provided</span>
+    </p>
+  </div>
+</section>
+
+<!-- ============================ TEACHER ============================ -->
+<section class="section" id="teacher">
+  <div class="wrap teacher">
+    <div class="portrait reveal"></div>
+    <div class="reveal">
+      <p class="eyebrow">Who is teaching</p>
+      <h2>Elena Marsh</h2>
+      <p class="lede" style="margin:1.3rem 0 1.5rem">Founder · vinyasa and meditation · teaching since 2011</p>
+      <p>Vinyasa is where I actually live as a teacher. I care about the count — where the breath lands, how a sequence builds toward one shape and then unwinds from it — and I will not run a class where the transitions are an afterthought.</p>
+      <p>The meditation came later and changed how I teach the flow. Moving well is a way of getting quiet enough to sit; sitting is what makes the moving mean anything. Most weeks I teach both, and I would rather you did both too.</p>
+      <ul class="creds">
+        <li>E-RYT 500, Yoga Alliance</li>
+        <li>Vinyasa Krama training, 2014</li>
+        <li>Trauma-informed teaching certificate, 2019</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ PRICING ============================ -->
+<section class="section section--linen" id="pricing">
+  <div class="wrap">
+    <div class="head reveal">
+      <p class="eyebrow">What it costs</p>
+      <h2>Three ways to pay. No contract on any of them.</h2>
+    </div>
+
+    <div class="prices">
+      <div class="price reveal">
+        <p class="price__name">Drop-in</p>
+        <p class="price__fig">$22 <span class="price__per">/ class</span></p>
+        <ul>
+          <li>Any class on the schedule</li>
+          <li>Sitting practices are $14</li>
+          <li>Mat and props included</li>
+        </ul>
+        <a href="#visit" class="btn btn--ghost">Book a single class</a>
+      </div>
+
+      <div class="price price--feature reveal">
+        <span class="price__tag">Most chosen</span>
+        <p class="price__name">Monthly unlimited</p>
+        <p class="price__fig">$145 <span class="price__per">/ month</span></p>
+        <ul>
+          <li>Every flow and every sit</li>
+          <li>Priority booking window</li>
+          <li>Pause any month, no fee</li>
+          <li>Cancel whenever you like</li>
+        </ul>
+        <a href="#visit" class="btn btn--solid">Start this month</a>
+      </div>
+
+      <div class="price reveal">
+        <p class="price__name">Ten-class pass</p>
+        <p class="price__fig">$190 <span class="price__per">/ 10 classes</span></p>
+        <ul>
+          <li>Works out at $19 a class</li>
+          <li>Valid for six months</li>
+          <li>Shareable with one other person</li>
+        </ul>
+        <a href="#visit" class="btn btn--ghost">Buy a pass</a>
+      </div>
+    </div>
+
+    <p class="price-note">First class is free for everyone · If cost is the thing standing in your way, email us and we will sort something out</p>
+  </div>
+</section>
+
+<!-- ============================ TESTIMONIALS ============================ -->
+<section class="section section--olive">
+  <div class="wrap">
+    <div class="head reveal">
+      <p class="eyebrow">From the room</p>
+      <h2>What people actually say.</h2>
+    </div>
+    <div class="quotes">
+      <figure class="quote reveal">
+        <blockquote>I had done vinyasa for years without anyone explaining the breath count. One class here and I understood what I had been missing.</blockquote>
+        <figcaption>Priya S. · member since 2023</figcaption>
+      </figure>
+      <figure class="quote reveal">
+        <blockquote>I came for the flow and stayed for the Thursday sit, which is not a sentence I expected to write.</blockquote>
+        <figcaption>Tom W. · Tuesday and Thursday</figcaption>
+      </figure>
+      <figure class="quote reveal">
+        <blockquote>Small classes. Elena knows my name and she knows about my bad shoulder. That is the whole reason I stayed.</blockquote>
+        <figcaption>Dana R. · member since 2019</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ VISIT ============================ -->
+<section class="section" id="visit">
+  <div class="wrap visit">
+    <div class="reveal">
+      <p class="eyebrow">Come in</p>
+      <h2>128 Poplar Street</h2>
+      <p class="lede" style="margin-top:1.4rem">Ground floor, blue door beside the bakery. Wear something you can move in and arrive ten minutes early on your first visit.</p>
+      <dl class="facts">
+        <div>
+          <dt>Reception hours</dt>
+          <dd class="hours">Mon–Fri &nbsp;6:45 am – 8:30 pm<br>Sat–Sun &nbsp;8:00 am – 5:30 pm</dd>
+        </div>
+        <div>
+          <dt>Email</dt>
+          <dd><a href="mailto:hello@loamyoga.com">hello@loamyoga.com</a></dd>
+        </div>
+        <div>
+          <dt>Phone</dt>
+          <dd><a href="tel:+15550001234">(555) 000-1234</a></dd>
+        </div>
+        <div>
+          <dt>Getting here</dt>
+          <dd>Street parking after 6 pm · Bike racks at the side entrance</dd>
+        </div>
+      </dl>
+    </div>
+    <div class="mapcard reveal">
+      <div>
+        <span class="mapcard__pin"></span>
+        <p>Drop your map embed here</p>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ============================ FOOTER ============================ -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__top">
+      <h2>Your first class is on us.</h2>
+      <a href="mailto:hello@loamyoga.com" class="btn btn--solid">Claim a free class</a>
+    </div>
+    <div class="foot__bottom">
+      <span>© 2026 Loam Yoga · 128 Poplar Street</span>
+      <span class="foot__links">
+        <a href="#classes">Classes</a>
+        <a href="#meditation">Meditation</a>
+        <a href="#schedule">Schedule</a>
+        <a href="#pricing">Pricing</a>
+        <a href="mailto:hello@loamyoga.com">Contact</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var els = document.querySelectorAll('.reveal');
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (reduce || !('IntersectionObserver' in window)) {
+    els.forEach(function(el){ el.classList.add('is-in'); });
+    return;
+  }
+
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry, i){
+      if (entry.isIntersecting) {
+        var el = entry.target;
+        setTimeout(function(){ el.classList.add('is-in'); }, i * 80);
+        io.unobserve(el);
+      }
+    });
+  }, { rootMargin: '0px 0px -12% 0px', threshold: 0.08 });
+
+  els.forEach(function(el){ io.observe(el); });
+})();
+</script>
+
+</body>
+</html>
