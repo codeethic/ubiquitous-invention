@@ -132,6 +132,8 @@ button,input,select,textarea{font:inherit;color:inherit}
   padding:.2em .3em;font-family:var(--mono);font-size:.8rem
 }
 .seg__len span{font-family:var(--mono);font-size:.7rem;color:var(--umber-70)}
+.seg__sets{margin-left:.5rem}
+.seg__sets input{border-color:var(--ochre)}
 .step{
   width:1.6em;height:1.6em;border-radius:6px;line-height:1;
   border:1px solid color-mix(in srgb,var(--umber) 18%,transparent);
@@ -355,7 +357,11 @@ var TEMPLATES = {
     {label:"Settle",        p:.15, energy:"still",   bpm:"drone / no pulse"},
     {label:"Breathwork",    p:.30, energy:"rising",  bpm:"58–70"},
     {label:"Silent sit",    p:.40, energy:"still",   bpm:"silence or single tone"},
-    {label:"Return",        p:.15, energy:"falling", bpm:"55–68"}]}
+    {label:"Return",        p:.15, energy:"falling", bpm:"55–68"}]},
+  strength:{ label:"Strength", segs:[
+    {label:"Circuit",       p:.86, energy:"working", bpm:"100–128", rep:2},
+    {label:"Yin",           p:.07, energy:"falling", bpm:"60–75"},
+    {label:"Shavasana",     p:.07, energy:"still",   bpm:"50–65"}]}
 };
 var DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 var KEY = "loam:planner:v1";
@@ -416,6 +422,7 @@ function buildSegs(type, duration){
     var mins = Math.max(1, Math.round(s.p * duration));
     used += mins;
     out.push({ label:s.label, energy:s.energy, bpm:s.bpm, mins:mins,
+               canRep: !!s.rep, repeat: s.rep || 1,
                focus:"", poses:[], mood:"", tracks:[] });
   });
   // push the rounding remainder onto the longest segment
@@ -430,7 +437,8 @@ function buildSegs(type, duration){
 
 function totalMins(c){ return c.segs.reduce(function(a,s){ return a + (+s.mins||0); }, 0); }
 function segTrackSecs(s){ return s.tracks.reduce(function(a,t){ return a + t.secs; }, 0); }
-function totalTrackSecs(c){ return c.segs.reduce(function(a,s){ return a + segTrackSecs(s); }, 0); }
+function segMusicSecs(s){ return segTrackSecs(s) * (s.repeat || 1); }
+function totalTrackSecs(c){ return c.segs.reduce(function(a,s){ return a + segMusicSecs(s); }, 0); }
 
 /* ============================================================
    MODEL
@@ -518,8 +526,8 @@ function renderClass(){
     field("Name","<input id='fName' value='"+esc(c.name)+"' placeholder='"+TEMPLATES[c.type].label+"'>","field--grow") +
     field("Day", sel("fDay", DAYS, c.day)) +
     field("Time","<input id='fTime' value='"+esc(c.time)+"' placeholder='6:00 pm' size='8'>") +
-    field("Style", sel("fType", ["vinyasa","slowflow","meditation"], c.type, function(v){ return TEMPLATES[v].label; })) +
-    field("Minutes", sel("fDur", [30,45,60,75,90], String(c.duration))) +
+    field("Style", sel("fType", ["vinyasa","slowflow","meditation","strength"], c.type, function(v){ return TEMPLATES[v].label; })) +
+    field("Minutes","<input type='number' id='fDur' min='10' max='180' step='1' value='"+c.duration+"' size='4' style='width:5em'>") +
     field("Subbing","<input type='checkbox' id='fSub' "+(c.sub?"checked":"")+" style='width:1.1rem;height:1.1rem;margin-top:.4rem'>") +
     field("Notes","<textarea id='fNotes' placeholder='Room, props, who you're covering, anything you need to remember'>"+esc(c.notes)+"</textarea>","field--grow");
 
@@ -547,7 +555,8 @@ function renderSegs(c){
 
   c.segs.forEach(function(s, i){
     var start = at, end = at + (+s.mins||0); at = end;
-    var secs = segTrackSecs(s), need = s.mins*60;
+    var raw = segTrackSecs(s), reps = s.repeat || 1;
+    var secs = raw * reps, need = s.mins*60;
     var pct = need ? Math.min(140, secs/need*100) : 0;
     var cls = secs === 0 ? "" : (secs > need + 45 ? "over" : (secs >= need - 45 ? "full" : ""));
 
@@ -577,6 +586,13 @@ function renderSegs(c){
             '<button class="step" data-plus="' + i + '" aria-label="One minute more">+</button>' +
             '<span>min</span>' +
           '</span>' +
+          (s.canRep ?
+            '<span class="seg__len seg__sets">' +
+              '<button class="step" data-repminus="' + i + '" aria-label="One set fewer">−</button>' +
+              '<input type="number" min="1" max="9" value="' + reps + '" data-reps="' + i + '">' +
+              '<button class="step" data-repplus="' + i + '" aria-label="One set more">+</button>' +
+              '<span>sets</span>' +
+            '</span>' : '') +
         '</div>' +
         '<textarea class="field-x seg__focus" data-focus="' + i + '" rows="1" ' +
           'placeholder="What this segment is for">' + esc(s.focus) + '</textarea>' +
@@ -584,7 +600,8 @@ function renderSegs(c){
         '<div class="addrow"><input name="title" data-posein="' + i + '" placeholder="Add a pose" size="18">' +
           '<button class="btn btn--ghost btn--sm" data-addpose="' + i + '">Add</button></div>' +
         '<div class="music">' +
-          '<p class="music__brief">' + (s.mood ? esc(s.mood) + " · " : "") + s.bpm + ' · needs ' + mmss(need) + ' of music</p>' +
+          '<p class="music__brief">' + (s.mood ? esc(s.mood) + " · " : "") + s.bpm + ' · needs ' + mmss(need) +
+            (reps > 1 ? ' · one set is ' + mmss(need/reps) : '') + ' of music</p>' +
           (tracks ? '<div class="tracks">' + tracks + '</div>' : '') +
           '<div class="addrow">' +
             '<input name="title" data-track="' + i + '" placeholder="Track and artist" >' +
@@ -593,8 +610,9 @@ function renderSegs(c){
           '</div>' +
           '<div class="fill"><i class="' + cls + '" style="width:' + pct + '%"></i></div>' +
           '<span class="fill__label ' + (cls === "over" ? "over" : "") + '">' +
-            (secs === 0 ? "empty" : mmss(secs) + " of " + mmss(need) +
-              (secs > need ? " · " + mmss(secs-need) + " over" : "")) +
+            (secs === 0 ? "empty"
+              : (reps > 1 ? mmss(raw) + " × " + reps + " = " : "") + mmss(secs) + " of " + mmss(need) +
+                (secs > need ? " · " + mmss(secs-need) + " over" : "")) +
           '</span>' +
         '</div>' +
       '</div>';
@@ -627,6 +645,7 @@ function toast(msg){
    ============================================================ */
 document.addEventListener("click", function(e){
   var t = e.target.closest("[data-open],[data-add],[data-min],[data-plus],[data-addpose]," +
+                           "[data-repminus],[data-repplus]," +
                            "[data-rmpose],[data-addtrack],[data-rmtrack],#backBtn,#delBtn,#teachBtn,#aiGo");
   if(!t) return;
   var c = openId ? find(openId) : null;
@@ -648,6 +667,9 @@ document.addEventListener("click", function(e){
 
   if(t.dataset.min != null){ var s = c.segs[+t.dataset.min]; s.mins = Math.max(1, s.mins-1); save(); renderTally(c); renderSegs(c); return; }
   if(t.dataset.plus != null){ var s2 = c.segs[+t.dataset.plus]; s2.mins = s2.mins+1; save(); renderTally(c); renderSegs(c); return; }
+
+  if(t.dataset.repminus != null){ var r1 = c.segs[+t.dataset.repminus]; r1.repeat = Math.max(1,(r1.repeat||1)-1); save(); renderTally(c); renderSegs(c); return; }
+  if(t.dataset.repplus != null){ var r2 = c.segs[+t.dataset.repplus]; r2.repeat = Math.min(9,(r2.repeat||1)+1); save(); renderTally(c); renderSegs(c); return; }
 
   if(t.dataset.addpose != null){
     var i = +t.dataset.addpose;
@@ -697,6 +719,11 @@ document.addEventListener("input", function(e){
     if(v > 0){ c.segs[+d.mins].mins = v; save(); renderTally(c); }
     return;
   }
+  if(d.reps != null){
+    var rv = parseInt(e.target.value,10);
+    if(rv > 0){ c.segs[+d.reps].repeat = Math.min(9, rv); save(); renderTally(c); }
+    return;
+  }
   if(e.target.id === "fName"){ c.name = e.target.value; document.getElementById("edTitle").textContent = c.name || TEMPLATES[c.type].label; save(); }
   if(e.target.id === "fTime"){ c.time = e.target.value; save(); }
   if(e.target.id === "fNotes"){ c.notes = e.target.value; save(); }
@@ -717,7 +744,7 @@ document.addEventListener("change", function(e){
       renderClass(); return;
     }
     if(e.target.id === "fType") c.type = e.target.value;
-    if(e.target.id === "fDur") c.duration = +e.target.value;
+    if(e.target.id === "fDur") c.duration = Math.max(10, Math.min(180, parseInt(e.target.value,10) || 60));
     c.segs = buildSegs(c.type, c.duration);
     save(); renderClass();
   }
