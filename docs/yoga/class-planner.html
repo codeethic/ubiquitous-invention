@@ -214,7 +214,7 @@ input.track__len:placeholder-shown{border-bottom-color:var(--red)}
   width:52px;height:52px;object-fit:cover;border-radius:8px;
   border:1px solid color-mix(in srgb,var(--umber) 18%,transparent)
 }
-.imp__status{font-family:var(--mono);font-size:.72rem;color:var(--umber-70);margin-top:.6rem;min-height:1.2em}
+.imp__status{font-family:var(--mono);font-size:.72rem;color:var(--umber-70);margin-top:.6rem;min-height:1.2em;line-height:1.6;word-break:break-word}
 .imp__status.err{color:var(--red)}
 
 .sheet{
@@ -832,7 +832,7 @@ function toJpeg(file, maxEdge){
       cv.height = Math.round(img.height * sc);
       cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
       URL.revokeObjectURL(url);
-      try { res(cv.toDataURL("image/jpeg", .85).split(",")[1]); }
+      try { res(cv.toDataURL("image/jpeg", .78).split(",")[1]); }
       catch(e){ rej(new Error("encode")); }
     };
     img.onerror = function(){ URL.revokeObjectURL(url); rej(new Error("decode")); };
@@ -840,13 +840,16 @@ function toJpeg(file, maxEdge){
   });
 }
 
+var lastKb = 0;
+
 function readNotes(file){
   var c = openId ? find(openId) : null; if(!c) return;
   $imp.pick.disabled = true;
   $imp.status.className = "imp__status";
   $imp.status.textContent = "Reading the page…";
 
-  toJpeg(file, 1400).then(function(b64){
+  toJpeg(file, 1100).then(function(b64){
+    lastKb = Math.round(b64.length * 0.75 / 1024);
     $imp.thumb.src = "data:image/jpeg;base64," + b64;
     $imp.thumb.classList.remove("hidden");
 
@@ -875,9 +878,21 @@ function readNotes(file){
         ]}]
       })
     });
-  }).then(function(r){ return r.json(); }).then(function(data){
+  }).then(function(r){
+    return r.json().catch(function(){ return null; }).then(function(body){
+      return { ok:r.ok, status:r.status, body:body };
+    });
+  }).then(function(res){
+    if(!res.ok || !res.body || res.body.error){
+      var msg = (res.body && res.body.error && res.body.error.message)
+                  ? res.body.error.message
+                  : ("the reader returned HTTP " + res.status);
+      var ae = new Error("api"); ae.detail = msg; throw ae;
+    }
+    var data = res.body;
     var text = (data.content||[]).filter(function(b){ return b.type==="text"; })
                  .map(function(b){ return b.text; }).join("");
+    if(!text.trim()){ var ee = new Error("api"); ee.detail = "the reader sent back an empty response"; throw ee; }
     var clean = text.replace(/```json/g,"").replace(/```/g,"").trim();
     var parsed;
     try { parsed = JSON.parse(clean); }
@@ -892,8 +907,11 @@ function readNotes(file){
       showSheet(c, { scan: err.raw, segments: [], unplaced:{} });
     } else if(err && err.message === "decode"){
       $imp.status.textContent = "This browser can't open that image. On iPhone, Settings → Camera → Formats → Most Compatible, then retake.";
+    } else if(err && err.detail){
+      $imp.status.textContent = "Import failed — " + err.detail + " (photo sent: " + lastKb + " KB)";
     } else {
-      $imp.status.textContent = "Couldn't read that photo. Try again with more light and the page flat in frame.";
+      $imp.status.textContent = "Import failed before the page could be read: " +
+        (err && err.message ? err.message : "network error") + ". Check your connection and try again.";
     }
   }).then(function(){ $imp.pick.disabled = false; });
 }
