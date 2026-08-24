@@ -158,6 +158,11 @@ button,input,select,textarea{font:inherit;color:inherit}
 .track{display:grid;grid-template-columns:1fr auto auto;gap:.5rem;align-items:center;font-size:.86rem}
 .track--over{color:var(--red)}
 .track__len{font-family:var(--mono);font-size:.78rem}
+input.track__len{
+  width:4.6em;text-align:right;background:none;padding:.1em .2em;
+  border:none;border-bottom:1px dashed color-mix(in srgb,var(--umber) 30%,transparent)
+}
+input.track__len:placeholder-shown{border-bottom-color:var(--red)}
 .track button{background:none;border:none;cursor:pointer;color:var(--umber-70);padding:0 .2em;line-height:1}
 .track button:hover{color:var(--red)}
 .addrow{display:flex;gap:.35rem;flex-wrap:wrap}
@@ -194,8 +199,49 @@ button,input,select,textarea{font:inherit;color:inherit}
 .ai__status{font-family:var(--mono);font-size:.72rem;color:var(--sage);margin-top:.6rem;min-height:1.2em}
 .ai__status.err{color:#E0A08C}
 
+/* ---- import from a photo ---- */
+.imp{
+  background:var(--linen);border:1px solid color-mix(in srgb,var(--umber) 13%,transparent);
+  border-radius:14px;padding:1rem 1.1rem;margin-bottom:1.6rem
+}
+.imp h3{margin-bottom:.3rem}
+.imp p{margin:0 0 .8rem;font-size:.87rem;color:var(--umber-70)}
+.imp__row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.imp input[type=file]{display:none}
+.imp__thumb{
+  width:52px;height:52px;object-fit:cover;border-radius:8px;
+  border:1px solid color-mix(in srgb,var(--umber) 18%,transparent)
+}
+.imp__status{font-family:var(--mono);font-size:.72rem;color:var(--umber-70);margin-top:.6rem;min-height:1.2em}
+.imp__status.err{color:var(--red)}
+
+.sheet{
+  position:fixed;inset:0;z-index:60;background:rgba(51,41,31,.55);
+  display:grid;place-items:end center;padding:1rem
+}
+.sheet__in{
+  background:var(--oat);border-radius:16px;width:min(680px,100%);
+  max-height:88vh;overflow:auto;padding:1.3rem
+}
+.sheet h3{margin-bottom:.8rem}
+.sheet__scan{
+  font-family:var(--mono);font-size:.78rem;line-height:1.65;white-space:pre-wrap;
+  background:var(--linen);border:1px solid color-mix(in srgb,var(--umber) 13%,transparent);
+  border-radius:10px;padding:.7rem .85rem;margin-bottom:1rem;max-height:170px;overflow:auto
+}
+.sheet__seg{
+  border-top:1px solid color-mix(in srgb,var(--umber) 14%,transparent);padding:.7rem 0
+}
+.sheet__seg h4{
+  margin:0 0 .3rem;font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ochre-dp);font-weight:500
+}
+.sheet__line{font-size:.9rem;margin:.15rem 0}
+.sheet__line span{font-family:var(--mono);font-size:.78rem;color:var(--umber-70)}
+.sheet__act{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1.2rem;position:sticky;bottom:0;background:var(--oat);padding-top:.8rem}
+
 /* ---- teach mode strips the chrome ---- */
-body.teach .seg__len,body.teach .addrow,body.teach .ai,body.teach .pose button,
+body.teach .seg__len,body.teach .addrow,body.teach .ai,body.teach .imp,body.teach .pose button,
 body.teach .track button,body.teach .ed__meta,body.teach .seg__focus:placeholder-shown{display:none}
 body.teach .seg__body{background:none;border:none;padding-left:0}
 body.teach .seg__focus{border:none;background:none;padding-left:0;font-size:1rem}
@@ -264,6 +310,17 @@ body.teach h3{font-size:1.2rem}
         <button class="btn btn--solid" id="aiGo">Draft it</button>
       </div>
       <p class="ai__status" id="aiStatus"></p>
+    </div>
+
+    <div class="imp" id="impPanel">
+      <h3>Import your handwriting</h3>
+      <p>Photograph the page. Poses, timings and any song names you've written beside them come across together — a track stays attached to the poses it's written next to.</p>
+      <div class="imp__row">
+        <input type="file" id="impFile" accept="image/*" capture="environment">
+        <button class="btn btn--solid btn--sm" id="impPick">Take or choose a photo</button>
+        <img class="imp__thumb hidden" id="impThumb" alt="Your notes">
+      </div>
+      <p class="imp__status" id="impStatus"></p>
     </div>
 
     <div class="tally" id="tally"></div>
@@ -496,7 +553,8 @@ function renderSegs(c){
 
     var tracks = s.tracks.map(function(t, j){
       return '<div class="track"><span>' + esc(t.title) + '</span>' +
-             '<span class="track__len">' + mmss(t.secs) + '</span>' +
+             '<input class="track__len" data-tlen="' + i + ':' + j + '" size="5" placeholder="0:00" ' +
+               'value="' + (t.secs ? mmss(t.secs) : "") + '" aria-label="Track length">' +
              '<button data-rmtrack="' + i + ':' + j + '" aria-label="Remove track">×</button></div>';
     }).join("");
 
@@ -646,6 +704,11 @@ document.addEventListener("input", function(e){
 
 document.addEventListener("change", function(e){
   var c = openId ? find(openId) : null; if(!c) return;
+  if(e.target.dataset && e.target.dataset.tlen){
+    var p = e.target.dataset.tlen.split(":");
+    c.segs[+p[0]].tracks[+p[1]].secs = parseLen(e.target.value);
+    save(); renderTally(c); renderSegs(c); return;
+  }
   if(e.target.id === "fDay"){ c.day = e.target.value; save(); }
   if(e.target.id === "fSub"){ c.sub = e.target.checked; save(); }
   if(e.target.id === "fType" || e.target.id === "fDur"){
@@ -711,6 +774,174 @@ function draft(c){
     status.className = "ai__status err";
     status.textContent = "Draft failed. Try again, or build the segments by hand.";
   }).then(function(){ btn.disabled = false; });
+}
+
+/* ============================================================
+   IMPORT FROM A PHOTO OF THE NOTEBOOK
+   ============================================================ */
+var $imp = {
+  file:   document.getElementById("impFile"),
+  pick:   document.getElementById("impPick"),
+  thumb:  document.getElementById("impThumb"),
+  status: document.getElementById("impStatus")
+};
+
+$imp.pick.addEventListener("click", function(){ $imp.file.click(); });
+$imp.file.addEventListener("change", function(){
+  var f = this.files && this.files[0];
+  this.value = "";
+  if(f) readNotes(f);
+});
+
+// phone photos are huge and sometimes HEIC — re-encode to a sane JPEG
+function toJpeg(file, maxEdge){
+  return new Promise(function(res, rej){
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+    img.onload = function(){
+      var sc = Math.min(1, maxEdge / Math.max(img.width, img.height));
+      var cv = document.createElement("canvas");
+      cv.width  = Math.round(img.width  * sc);
+      cv.height = Math.round(img.height * sc);
+      cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(url);
+      try { res(cv.toDataURL("image/jpeg", .85).split(",")[1]); }
+      catch(e){ rej(new Error("encode")); }
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); rej(new Error("decode")); };
+    img.src = url;
+  });
+}
+
+function readNotes(file){
+  var c = openId ? find(openId) : null; if(!c) return;
+  $imp.pick.disabled = true;
+  $imp.status.className = "imp__status";
+  $imp.status.textContent = "Reading the page…";
+
+  toJpeg(file, 1400).then(function(b64){
+    $imp.thumb.src = "data:image/jpeg;base64," + b64;
+    $imp.thumb.classList.remove("hidden");
+
+    var labels = c.segs.map(function(s,i){ return (i+1) + ". " + s.label + " (" + s.mins + " min)"; }).join("  ");
+    var prompt =
+      "This is a photo of a yoga teacher's handwritten class plan. Read it exactly as written, including shorthand.\n" +
+      "Her class has these segments in order: " + labels + "\n" +
+      "Map the page onto those segments, keeping the page's own order. If a song title is written beside a group of " +
+      "poses, attach that track to the same segment as those poses — the pairing matters more than anything else. " +
+      "Expand common shorthand (chat = chaturanga, ddog = downward dog, w1 = warrior one, uttan = uttanasana). " +
+      "Write pose names the way a teacher says them aloud.\n" +
+      "Anything you cannot place into a segment goes in unplaced.\n" +
+      "Respond with JSON only. No markdown fences, no preamble:\n" +
+      '{"scan":"<what is written, under 90 words>","segments":[{"focus":"","poses":[""],"tracks":[{"title":"","len":"4:32"}]}],"unplaced":{"poses":[],"tracks":[]}}\n' +
+      "segments must have exactly " + c.segs.length + " items, in order. len is mm:ss, or \"\" if no length is written.";
+
+    return fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens:1000,
+        messages:[{ role:"user", content:[
+          { type:"image", source:{ type:"base64", media_type:"image/jpeg", data:b64 } },
+          { type:"text", text:prompt }
+        ]}]
+      })
+    });
+  }).then(function(r){ return r.json(); }).then(function(data){
+    var text = (data.content||[]).filter(function(b){ return b.type==="text"; })
+                 .map(function(b){ return b.text; }).join("");
+    var clean = text.replace(/```json/g,"").replace(/```/g,"").trim();
+    var parsed;
+    try { parsed = JSON.parse(clean); }
+    catch(e){ var err = new Error("shape"); err.raw = clean; throw err; }
+    if(!parsed.segments) { var e2 = new Error("shape"); e2.raw = clean; throw e2; }
+    $imp.status.textContent = "";
+    showSheet(c, parsed);
+  }).catch(function(err){
+    $imp.status.className = "imp__status err";
+    if(err && err.raw){
+      $imp.status.textContent = "Read the page but couldn't structure it — the transcription is below.";
+      showSheet(c, { scan: err.raw, segments: [], unplaced:{} });
+    } else if(err && err.message === "decode"){
+      $imp.status.textContent = "This browser can't open that image. On iPhone, Settings → Camera → Formats → Most Compatible, then retake.";
+    } else {
+      $imp.status.textContent = "Couldn't read that photo. Try again with more light and the page flat in frame.";
+    }
+  }).then(function(){ $imp.pick.disabled = false; });
+}
+
+/* ---- review before anything touches the class ---- */
+var sheetEl = null;
+
+function showSheet(c, res){
+  closeSheet();
+  var body = (res.segments||[]).map(function(s, i){
+    var seg = c.segs[i]; if(!seg) return "";
+    var poses = (s.poses||[]).filter(Boolean);
+    var tracks = (s.tracks||[]).filter(function(t){ return t && t.title; });
+    if(!poses.length && !tracks.length && !s.focus) return "";
+    return '<div class="sheet__seg"><h4>' + seg.label + ' · ' + seg.mins + ' min</h4>' +
+      (s.focus ? '<p class="sheet__line">' + esc(s.focus) + '</p>' : '') +
+      (poses.length ? '<p class="sheet__line">' + esc(poses.join(" · ")) + '</p>' : '') +
+      (tracks.length ? tracks.map(function(t){
+         return '<p class="sheet__line"><span>♪ ' + esc(t.title) +
+                (t.len ? " — " + esc(t.len) : " — no length written") + '</span></p>'; }).join("") : '') +
+      '</div>';
+  }).join("");
+
+  var un = res.unplaced || {};
+  var unBits = [].concat(un.poses||[], (un.tracks||[]).map(function(t){ return t.title || t; })).filter(Boolean);
+
+  sheetEl = document.createElement("div");
+  sheetEl.className = "sheet";
+  sheetEl.innerHTML =
+    '<div class="sheet__in" role="dialog" aria-label="Review your notes">' +
+      '<h3>What I read</h3>' +
+      (res.scan ? '<div class="sheet__scan">' + esc(res.scan) + '</div>' : '') +
+      (body || '<p class="empty">Nothing mapped onto the segments. Copy from the transcription above.</p>') +
+      (unBits.length ? '<div class="sheet__seg"><h4>Couldn\'t place — goes to notes</h4><p class="sheet__line">' +
+        esc(unBits.join(" · ")) + '</p></div>' : '') +
+      '<div class="sheet__act">' +
+        (body ? '<button class="btn btn--solid btn--sm" id="shAdd">Add to this class</button>' +
+                '<button class="btn btn--ghost btn--sm" id="shRep">Replace what\'s there</button>' : '') +
+        '<button class="btn btn--ghost btn--sm" id="shNo">Discard</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(sheetEl);
+
+  var add = document.getElementById("shAdd"), rep = document.getElementById("shRep");
+  if(add) add.onclick = function(){ applyImport(c, res, "add"); };
+  if(rep) rep.onclick = function(){ applyImport(c, res, "replace"); };
+  document.getElementById("shNo").onclick = closeSheet;
+  sheetEl.addEventListener("click", function(e){ if(e.target === sheetEl) closeSheet(); });
+}
+
+function closeSheet(){ if(sheetEl){ sheetEl.remove(); sheetEl = null; } }
+document.addEventListener("keydown", function(e){ if(e.key === "Escape") closeSheet(); });
+
+function applyImport(c, res, mode){
+  (res.segments||[]).forEach(function(s, i){
+    var seg = c.segs[i]; if(!seg) return;
+    if(mode === "replace"){ seg.poses = []; seg.tracks = []; seg.focus = ""; }
+    if(s.focus && (mode === "replace" || !seg.focus)) seg.focus = s.focus;
+    (s.poses||[]).forEach(function(p){ if(p) seg.poses.push(String(p)); });
+    (s.tracks||[]).forEach(function(t){
+      if(t && t.title) seg.tracks.push({ title:String(t.title), secs:parseLen(t.len) });
+    });
+  });
+
+  var un = res.unplaced || {};
+  var bits = [];
+  if((un.poses||[]).length)  bits.push("From the page, unplaced: " + un.poses.join(", "));
+  if((un.tracks||[]).length) bits.push("Tracks, unplaced: " + un.tracks.map(function(t){ return t.title || t; }).join(", "));
+  if(bits.length) c.notes = (c.notes ? c.notes + "\n" : "") + bits.join("\n");
+
+  save(); closeSheet(); renderClass();
+  var missing = c.segs.reduce(function(a,s){
+    return a + s.tracks.filter(function(t){ return !t.secs; }).length; }, 0);
+  toast(missing ? "Imported · " + missing + " track" + (missing>1?"s need":" needs") + " a length"
+                : "Imported from your notes");
 }
 
 load();
