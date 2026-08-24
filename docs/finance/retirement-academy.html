@@ -313,6 +313,11 @@ canvas{display:block;width:100%;height:auto}
 .cap-msg{font-size:.85rem;margin-top:.6rem}
 .cap-msg.ok{color:var(--keep)} .cap-msg.err{color:var(--tax)}
 
+/* buy me a coffee */
+.coffee{display:inline-flex;align-items:center;gap:.45rem;font-family:inherit;font-weight:600;font-size:.9rem;padding:.5rem .95rem;border-radius:10px;background:#ffdd00;color:#1a1a1a;border:1px solid rgba(0,0,0,.14);text-decoration:none;transition:transform .12s,box-shadow .12s}
+.coffee:hover{transform:translateY(-1px);box-shadow:var(--shadow);text-decoration:none}
+.coffee:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
 /* cheat sheet */
 .cheatgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-top:1.4rem}
 @media(max-width:700px){.cheatgrid{grid-template-columns:1fr}}
@@ -1412,8 +1417,12 @@ canvas{display:block;width:100%;height:auto}
   </section>
 
   <footer class="foot wrap">
+    <div id="coffeeWrap" class="noprint" style="display:none;margin-bottom:1.3rem;align-items:center;gap:.7rem;flex-wrap:wrap">
+      <a class="coffee" id="coffeeBtn" href="#" target="_blank" rel="noopener">☕ Buy me a coffee</a>
+      <span style="font-size:.82rem;color:var(--ink-mute)">Free to use — a coffee helps keep it ad-free and growing.</span>
+    </div>
     <p class="disc"><b>Educational only — not financial, tax, or legal advice.</b> Every number here is illustrative and uses simplified, rounded assumptions (2026 estimated brackets, a flat tax approximation on RMDs, fixed return sequences) to make the ideas visible. Your real situation depends on details this tool deliberately ignores. Talk to a qualified professional before acting.</p>
-    <p class="disc" style="margin-top:.8rem;color:var(--ink-mute)">Built as an explorable companion to the Retirement Dashboard. Progress here isn't saved between visits.</p>
+    <p class="disc" style="margin-top:.8rem;color:var(--ink-mute)">Built as an explorable companion to the Retirement Dashboard. Your progress is saved in your browser between visits.</p>
   </footer>
 </main>
 
@@ -2363,6 +2372,14 @@ const ADVISOR_URL="https://www.napfa.org/find-an-advisor";
 const ADVISOR_SPONSORED=false;
 /* Email capture: paste your form service's POST URL (Formspree "https://formspree.io/f/XXXX", Buttondown, ConvertKit, etc.) to switch it on. Empty = the signup box stays hidden, so visitors never see a dead form. Posts JSON {email}. */
 const EMAIL_ENDPOINT="";
+/* Buy Me a Coffee: set to your buymeacoffee.com username (e.g. "joshfriend") to show a tip button in the footer. Empty = hidden. (For Ko-fi/GitHub Sponsors, just point coffeeBtn.href elsewhere.) */
+const BMC_USERNAME="";
+(function(){
+  const w=document.getElementById('coffeeWrap'); if(!w) return;
+  if(!BMC_USERNAME){ w.style.display='none'; return; }
+  const a=document.getElementById('coffeeBtn'); if(a) a.href='https://www.buymeacoffee.com/'+BMC_USERNAME;
+  w.style.display='flex';
+})();
 (function(){
   const wrap=document.getElementById('capture'); if(!wrap) return;
   if(!EMAIL_ENDPOINT){ wrap.style.display='none'; return; }

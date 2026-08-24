@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loam · Class Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..600&family=Karla:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --oat:#EFE7D8; --linen:#F7F2E7; --umber:#33291F; --umber-70:#6B5B4B;
+  --olive:#4E5A3A; --sage:#9BA588; --ochre:#C4922F; --ochre-dp:#9A6F1E;
+  --red:#A33F2B;
+  --display:"Fraunces",Georgia,serif;
+  --body:"Karla",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --mono:"DM Mono",ui-monospace,Menlo,monospace;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  margin:0;background:var(--oat);color:var(--umber);font-family:var(--body);
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:var(--display);font-weight:500;line-height:1.05;letter-spacing:-.02em;margin:0}
+h1{font-size:1.5rem}
+h2{font-size:clamp(1.7rem,3.4vw,2.5rem)}
+h3{font-size:1.05rem}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid var(--ochre);outline-offset:2px;border-radius:3px}
+.wrap{width:min(1080px,100% - 2rem);margin-inline:auto}
+
+/* ---- top bar ---- */
+.bar{
+  position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--oat) 92%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid color-mix(in srgb,var(--umber) 13%,transparent);
+}
+.bar__in{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.7rem 0}
+.brand{display:flex;align-items:center;gap:.55rem;font-family:var(--display);font-size:1.2rem}
+.brand svg{width:15px;height:15px;flex:none;transform:translateY(2px)}
+.bar__act{display:flex;gap:.5rem;align-items:center}
+
+/* ---- buttons ---- */
+.btn{
+  border:1.5px solid transparent;border-radius:999px;padding:.5em 1.1em;
+  font-size:.87rem;font-weight:600;cursor:pointer;background:none;
+  transition:background .2s var(--ease),color .2s var(--ease),border-color .2s var(--ease),transform .2s var(--ease);
+}
+.btn--solid{background:var(--umber);color:var(--oat)}
+.btn--solid:hover{background:var(--ochre-dp);transform:translateY(-1px)}
+.btn--ghost{border-color:color-mix(in srgb,var(--umber) 30%,transparent);color:var(--umber-70)}
+.btn--ghost:hover{border-color:var(--umber);color:var(--umber)}
+.btn--sm{padding:.32em .8em;font-size:.78rem}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+/* ---- week ---- */
+.week{padding:2rem 0 4rem}
+.week__head{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.8rem}
+.load{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--umber-70);text-align:right;line-height:1.7
+}
+.load b{color:var(--ochre-dp);font-weight:500}
+.days{display:grid;gap:.6rem}
+.day{
+  display:grid;grid-template-columns:64px 1fr auto;gap:1rem;align-items:center;
+  background:var(--linen);border:1px solid color-mix(in srgb,var(--umber) 10%,transparent);
+  border-radius:12px;padding:.85rem 1rem;
+}
+.day--empty{background:none;border-style:dashed}
+.day__name{font-family:var(--mono);font-size:.75rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ochre-dp)}
+.day__slots{display:grid;gap:.45rem;min-width:0}
+.slot{
+  display:flex;gap:.7rem;align-items:baseline;flex-wrap:wrap;cursor:pointer;
+  background:none;border:none;padding:0;text-align:left;width:100%
+}
+.slot:hover .slot__name{color:var(--ochre-dp)}
+.slot__time{font-family:var(--mono);font-size:.8rem;color:var(--umber-70);min-width:4.6em}
+.slot__name{font-family:var(--display);font-size:1.06rem;transition:color .2s var(--ease)}
+.slot__tag{
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:.12em .5em;border-radius:999px;background:color-mix(in srgb,var(--sage) 40%,transparent);color:var(--umber)
+}
+.slot__tag--sub{background:var(--ochre);color:var(--umber)}
+.slot__music{font-family:var(--mono);font-size:.7rem;color:var(--umber-70)}
+.empty{color:var(--umber-70);font-size:.9rem;font-style:italic}
+
+/* ---- class editor ---- */
+.editor{padding:1.6rem 0 5rem}
+.ed__top{display:flex;gap:1rem;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:1.4rem}
+.ed__meta{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.9rem}
+.field{display:flex;flex-direction:column;gap:.25rem}
+.field label{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;color:var(--umber-70)}
+.field input,.field select,.field textarea{
+  background:var(--linen);border:1px solid color-mix(in srgb,var(--umber) 16%,transparent);
+  border-radius:8px;padding:.42em .6em;font-size:.9rem
+}
+.field textarea{resize:vertical;min-height:3.2em;width:100%}
+.field--grow{flex:1;min-width:180px}
+
+.tally{
+  display:flex;gap:1.4rem;flex-wrap:wrap;font-family:var(--mono);font-size:.75rem;
+  letter-spacing:.06em;padding:.7rem 0;margin-bottom:1.2rem;
+  border-top:1px solid color-mix(in srgb,var(--umber) 14%,transparent);
+  border-bottom:1px solid color-mix(in srgb,var(--umber) 14%,transparent);
+}
+.tally b{font-weight:500;color:var(--ochre-dp)}
+.tally .over{color:var(--red)}
+
+/* the shared time axis */
+.seg{
+  display:grid;grid-template-columns:58px 1fr;gap:1rem;
+  border-left:2px solid color-mix(in srgb,var(--umber) 15%,transparent);
+  margin-left:.6rem;padding:0 0 1.1rem 1.1rem;position:relative
+}
+.seg::before{
+  content:"";position:absolute;left:-6px;top:.55rem;width:10px;height:10px;
+  border-radius:999px;background:var(--oat);border:2px solid var(--ochre)
+}
+.seg:last-child{border-left-color:transparent}
+.seg__clock{font-family:var(--mono);font-size:.78rem;color:var(--umber-70);padding-top:.3rem;line-height:1.5}
+.seg__clock b{display:block;color:var(--umber);font-weight:500}
+.seg__body{
+  background:var(--linen);border:1px solid color-mix(in srgb,var(--umber) 10%,transparent);
+  border-radius:12px;padding:.9rem 1rem;min-width:0
+}
+.seg__head{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap;margin-bottom:.55rem}
+.seg__len{display:flex;align-items:center;gap:.3rem;margin-left:auto}
+.seg__len input{
+  width:3.2em;text-align:center;background:var(--oat);
+  border:1px solid color-mix(in srgb,var(--umber) 18%,transparent);border-radius:6px;
+  padding:.2em .3em;font-family:var(--mono);font-size:.8rem
+}
+.seg__len span{font-family:var(--mono);font-size:.7rem;color:var(--umber-70)}
+.step{
+  width:1.6em;height:1.6em;border-radius:6px;line-height:1;
+  border:1px solid color-mix(in srgb,var(--umber) 18%,transparent);
+  background:var(--oat);cursor:pointer;font-size:.85rem
+}
+.step:hover{background:var(--ochre);border-color:var(--ochre)}
+.energy{
+  font-family:var(--mono);font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;
+  padding:.14em .5em;border-radius:999px;border:1px solid currentColor;color:var(--ochre-dp)
+}
+.seg__focus{width:100%;margin-bottom:.6rem}
+.poses{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.7rem}
+.pose{
+  font-size:.8rem;background:var(--oat);border:1px solid color-mix(in srgb,var(--umber) 12%,transparent);
+  border-radius:999px;padding:.16em .6em;display:inline-flex;align-items:center;gap:.35rem
+}
+.pose button{background:none;border:none;cursor:pointer;color:var(--umber-70);padding:0;line-height:1;font-size:.9rem}
+.pose button:hover{color:var(--red)}
+
+/* music inside the segment, on the same axis */
+.music{border-top:1px dashed color-mix(in srgb,var(--umber) 20%,transparent);padding-top:.65rem;margin-top:.2rem}
+.music__brief{font-family:var(--mono);font-size:.7rem;color:var(--umber-70);margin-bottom:.5rem;letter-spacing:.04em}
+.tracks{display:grid;gap:.3rem;margin-bottom:.5rem}
+.track{display:grid;grid-template-columns:1fr auto auto;gap:.5rem;align-items:center;font-size:.86rem}
+.track--over{color:var(--red)}
+.track__len{font-family:var(--mono);font-size:.78rem}
+.track button{background:none;border:none;cursor:pointer;color:var(--umber-70);padding:0 .2em;line-height:1}
+.track button:hover{color:var(--red)}
+.addrow{display:flex;gap:.35rem;flex-wrap:wrap}
+.addrow input{
+  background:var(--oat);border:1px solid color-mix(in srgb,var(--umber) 16%,transparent);
+  border-radius:7px;padding:.32em .55em;font-size:.84rem
+}
+.addrow input[name=title]{flex:1;min-width:130px}
+.addrow input[name=len]{width:5.2em;font-family:var(--mono);text-align:center}
+.fill{
+  height:4px;border-radius:999px;background:color-mix(in srgb,var(--umber) 12%,transparent);
+  overflow:hidden;margin-top:.5rem
+}
+.fill i{display:block;height:100%;background:var(--sage);transition:width .3s var(--ease)}
+.fill i.full{background:var(--ochre)}
+.fill i.over{background:var(--red)}
+.fill__label{font-family:var(--mono);font-size:.68rem;color:var(--umber-70);margin-top:.28rem;display:block}
+.fill__label.over{color:var(--red)}
+
+/* ---- ai panel ---- */
+.ai{
+  background:var(--umber);color:var(--oat);border-radius:14px;padding:1rem 1.1rem;margin-bottom:1.6rem
+}
+.ai h3{color:var(--oat);margin-bottom:.3rem}
+.ai p{margin:0 0 .8rem;font-size:.87rem;color:#CFC4B2}
+.ai__row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end}
+.ai input{
+  flex:1;min-width:190px;background:rgba(255,255,255,.08);color:var(--oat);
+  border:1px solid rgba(239,231,216,.28);border-radius:8px;padding:.45em .65em;font-size:.88rem
+}
+.ai input::placeholder{color:#9A8B79}
+.ai .btn--solid{background:var(--ochre);color:var(--umber)}
+.ai .btn--solid:hover{background:var(--oat)}
+.ai__status{font-family:var(--mono);font-size:.72rem;color:var(--sage);margin-top:.6rem;min-height:1.2em}
+.ai__status.err{color:#E0A08C}
+
+/* ---- teach mode strips the chrome ---- */
+body.teach .seg__len,body.teach .addrow,body.teach .ai,body.teach .pose button,
+body.teach .track button,body.teach .ed__meta,body.teach .seg__focus:placeholder-shown{display:none}
+body.teach .seg__body{background:none;border:none;padding-left:0}
+body.teach .seg__focus{border:none;background:none;padding-left:0;font-size:1rem}
+body.teach .track{font-size:.95rem}
+body.teach h3{font-size:1.2rem}
+
+.hidden{display:none !important}
+.toast{
+  position:fixed;left:50%;bottom:1.4rem;transform:translateX(-50%);
+  background:var(--umber);color:var(--oat);padding:.6em 1.1em;border-radius:999px;
+  font-size:.85rem;z-index:50;opacity:0;pointer-events:none;transition:opacity .3s var(--ease)
+}
+.toast.show{opacity:1}
+
+@media (max-width:640px){
+  .day{grid-template-columns:52px 1fr;row-gap:.6rem}
+  .day > .btn{grid-column:2}
+  .seg{grid-template-columns:1fr;gap:.4rem;padding-left:.9rem}
+  .seg__clock{display:flex;gap:.6rem;padding-top:0}
+  .seg__clock b{display:inline}
+}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.001ms !important}}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap bar__in">
+    <span class="brand">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M18 48V30a14 14 0 0 1 28 0v18z" fill="#C4922F"/>
+        <circle cx="32" cy="32" r="7.5" fill="#33291F"/>
+      </svg>Class Planner
+    </span>
+    <div class="bar__act" id="barAct"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- ============ WEEK ============ -->
+  <section id="weekView" class="week">
+    <div class="week__head">
+      <div>
+        <h2>This week</h2>
+        <p class="empty" id="weekHint"></p>
+      </div>
+      <p class="load" id="weekLoad"></p>
+    </div>
+    <div class="days" id="days"></div>
+  </section>
+
+  <!-- ============ CLASS ============ -->
+  <section id="classView" class="editor hidden">
+    <div class="ed__top">
+      <div style="flex:1;min-width:240px">
+        <h2 id="edTitle">Class</h2>
+        <div class="ed__meta" id="edMeta"></div>
+      </div>
+    </div>
+
+    <div class="ai" id="aiPanel">
+      <h3>Draft the sequence</h3>
+      <p>Fills every segment with poses, a focus, and a music brief sized to its minutes. Edit anything after.</p>
+      <div class="ai__row">
+        <input id="aiAvoid" placeholder="Anything to avoid or work toward — e.g. no deep backbends, build to bird of paradise">
+        <button class="btn btn--solid" id="aiGo">Draft it</button>
+      </div>
+      <p class="ai__status" id="aiStatus"></p>
+    </div>
+
+    <div class="tally" id="tally"></div>
+    <div id="segs"></div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   TEMPLATES — proportions of the class, per style
+   ============================================================ */
+var TEMPLATES = {
+  vinyasa:{ label:"Vinyasa", segs:[
+    {label:"Arrive",        p:.08, energy:"still",   bpm:"60–70"},
+    {label:"Warm — surya",  p:.17, energy:"rising",  bpm:"80–95"},
+    {label:"Build",         p:.22, energy:"steady",  bpm:"95–110"},
+    {label:"Peak",          p:.23, energy:"peak",    bpm:"105–120"},
+    {label:"Cool",          p:.18, energy:"falling", bpm:"70–85"},
+    {label:"Savasana",      p:.12, energy:"still",   bpm:"55–70"}]},
+  slowflow:{ label:"Slow Flow", segs:[
+    {label:"Arrive",        p:.10, energy:"still",   bpm:"55–68"},
+    {label:"Warm",          p:.18, energy:"rising",  bpm:"70–82"},
+    {label:"Long holds",    p:.30, energy:"steady",  bpm:"72–88"},
+    {label:"Floor",         p:.24, energy:"falling", bpm:"62–75"},
+    {label:"Savasana",      p:.18, energy:"still",   bpm:"50–65"}]},
+  meditation:{ label:"Meditation", segs:[
+    {label:"Settle",        p:.15, energy:"still",   bpm:"drone / no pulse"},
+    {label:"Breathwork",    p:.30, energy:"rising",  bpm:"58–70"},
+    {label:"Silent sit",    p:.40, energy:"still",   bpm:"silence or single tone"},
+    {label:"Return",        p:.15, energy:"falling", bpm:"55–68"}]}
+};
+var DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+var KEY = "loam:planner:v1";
+
+var state = { classes: [] };
+var openId = null;
+var saveTimer = null;
+
+/* ============================================================
+   STORAGE
+   ============================================================ */
+function hasStore(){ return typeof window.storage !== "undefined" && window.storage; }
+
+function load(){
+  if(!hasStore()){ render(); return; }
+  window.storage.get(KEY).then(function(r){
+    if(r && r.value){
+      try{ var d = JSON.parse(r.value); if(d && d.classes) state = d; }catch(e){}
+    }
+    render();
+  }).catch(function(){ render(); });
+}
+
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(function(){
+    if(!hasStore()) return;
+    window.storage.set(KEY, JSON.stringify(state)).catch(function(){
+      toast("Couldn't save — changes are only in this tab");
+    });
+  }, 400);
+}
+
+/* ============================================================
+   TIME
+   ============================================================ */
+function parseLen(s){
+  if(!s) return 0;
+  s = String(s).trim();
+  var m = s.match(/^(\d+):(\d{1,2})$/);
+  if(m) return (+m[1])*60 + (+m[2]);
+  if(/^\d+$/.test(s)) return (+s)*60;   // bare number = minutes
+  return 0;
+}
+function mmss(sec){
+  sec = Math.max(0, Math.round(sec));
+  var m = Math.floor(sec/60), s = sec%60;
+  return m + ":" + (s<10?"0":"") + s;
+}
+function clock(min){
+  var h = Math.floor(min/60), m = min%60;
+  return h + ":" + (m<10?"0":"") + m;
+}
+
+function buildSegs(type, duration){
+  var t = TEMPLATES[type], out = [], used = 0;
+  t.segs.forEach(function(s, i){
+    var mins = Math.max(1, Math.round(s.p * duration));
+    used += mins;
+    out.push({ label:s.label, energy:s.energy, bpm:s.bpm, mins:mins,
+               focus:"", poses:[], mood:"", tracks:[] });
+  });
+  // push the rounding remainder onto the longest segment
+  var diff = duration - used;
+  if(diff !== 0){
+    var big = 0;
+    out.forEach(function(s,i){ if(s.mins > out[big].mins) big = i; });
+    out[big].mins = Math.max(1, out[big].mins + diff);
+  }
+  return out;
+}
+
+function totalMins(c){ return c.segs.reduce(function(a,s){ return a + (+s.mins||0); }, 0); }
+function segTrackSecs(s){ return s.tracks.reduce(function(a,t){ return a + t.secs; }, 0); }
+function totalTrackSecs(c){ return c.segs.reduce(function(a,s){ return a + segTrackSecs(s); }, 0); }
+
+/* ============================================================
+   MODEL
+   ============================================================ */
+function newClass(day){
+  return { id:"c"+Date.now()+Math.floor(Math.random()*999),
+           day:day, time:"", name:"", type:"vinyasa", duration:60,
+           sub:false, notes:"", segs:buildSegs("vinyasa",60) };
+}
+function find(id){ return state.classes.filter(function(c){ return c.id===id; })[0]; }
+
+/* ============================================================
+   RENDER — week
+   ============================================================ */
+function render(){
+  if(openId){ renderClass(); } else { renderWeek(); }
+}
+
+function renderWeek(){
+  document.getElementById("weekView").classList.remove("hidden");
+  document.getElementById("classView").classList.add("hidden");
+  document.body.classList.remove("teach");
+  document.getElementById("barAct").innerHTML = "";
+
+  var n = state.classes.length;
+  var mins = state.classes.reduce(function(a,c){ return a + totalMins(c); }, 0);
+  var planned = state.classes.filter(function(c){
+    return c.segs.some(function(s){ return s.poses.length || s.focus; });
+  }).length;
+
+  document.getElementById("weekHint").textContent =
+    n === 0 ? "Add the classes you're teaching, then build each one." : "";
+  document.getElementById("weekLoad").innerHTML = n === 0 ? "" :
+    "<b>" + n + "</b> classes · <b>" + Math.round(mins/60*10)/10 + "</b> hrs on the mat<br>" +
+    "<b>" + planned + "</b> of " + n + " sequenced";
+
+  var host = document.getElementById("days");
+  host.innerHTML = "";
+
+  DAYS.forEach(function(day){
+    var list = state.classes.filter(function(c){ return c.day === day; })
+      .sort(function(a,b){ return (a.time||"").localeCompare(b.time||""); });
+
+    var el = document.createElement("div");
+    el.className = "day" + (list.length ? "" : " day--empty");
+
+    var slots = list.map(function(c){
+      var secs = totalTrackSecs(c), need = totalMins(c)*60;
+      var music = secs === 0 ? "no music yet"
+                : Math.round(secs/60) + " min of " + totalMins(c) + " min";
+      return '<button class="slot" data-open="' + c.id + '">' +
+             '<span class="slot__time">' + (c.time || "—") + '</span>' +
+             '<span class="slot__name">' + esc(c.name || TEMPLATES[c.type].label) + '</span>' +
+             '<span class="slot__tag' + (c.sub ? ' slot__tag--sub' : '') + '">' +
+                (c.sub ? "subbing" : TEMPLATES[c.type].label) + '</span>' +
+             '<span class="slot__music">' + music + '</span></button>';
+    }).join("");
+
+    el.innerHTML =
+      '<span class="day__name">' + day.slice(0,3) + '</span>' +
+      '<div class="day__slots">' + (slots || '<span class="empty">—</span>') + '</div>' +
+      '<button class="btn btn--ghost btn--sm" data-add="' + day + '">Add class</button>';
+    host.appendChild(el);
+  });
+}
+
+/* ============================================================
+   RENDER — class
+   ============================================================ */
+function renderClass(){
+  var c = find(openId);
+  if(!c){ openId = null; renderWeek(); return; }
+
+  document.getElementById("weekView").classList.add("hidden");
+  document.getElementById("classView").classList.remove("hidden");
+
+  document.getElementById("barAct").innerHTML =
+    '<button class="btn btn--ghost btn--sm" id="teachBtn">Teach view</button>' +
+    '<button class="btn btn--ghost btn--sm" id="delBtn">Delete</button>' +
+    '<button class="btn btn--solid btn--sm" id="backBtn">Done</button>';
+
+  document.getElementById("edTitle").textContent = c.name || TEMPLATES[c.type].label;
+
+  document.getElementById("edMeta").innerHTML =
+    field("Name","<input id='fName' value='"+esc(c.name)+"' placeholder='"+TEMPLATES[c.type].label+"'>","field--grow") +
+    field("Day", sel("fDay", DAYS, c.day)) +
+    field("Time","<input id='fTime' value='"+esc(c.time)+"' placeholder='6:00 pm' size='8'>") +
+    field("Style", sel("fType", ["vinyasa","slowflow","meditation"], c.type, function(v){ return TEMPLATES[v].label; })) +
+    field("Minutes", sel("fDur", [30,45,60,75,90], String(c.duration))) +
+    field("Subbing","<input type='checkbox' id='fSub' "+(c.sub?"checked":"")+" style='width:1.1rem;height:1.1rem;margin-top:.4rem'>") +
+    field("Notes","<textarea id='fNotes' placeholder='Room, props, who you're covering, anything you need to remember'>"+esc(c.notes)+"</textarea>","field--grow");
+
+  renderTally(c);
+  renderSegs(c);
+}
+
+function renderTally(c){
+  var planned = totalMins(c), secs = totalTrackSecs(c), need = planned*60;
+  var gap = secs - need;
+  var gapTxt = secs === 0 ? "no tracks yet"
+    : (Math.abs(gap) < 60 ? "matched to the minute"
+      : (gap > 0 ? mmss(gap) + " over" : mmss(-gap) + " short"));
+  document.getElementById("tally").innerHTML =
+    "<span>Sequence <b>" + planned + " min</b>" + (planned !== c.duration ? " of " + c.duration : "") + "</span>" +
+    "<span>Music <b>" + mmss(secs) + "</b></span>" +
+    "<span class='" + (secs && Math.abs(gap) >= 60 ? "over" : "") + "'>" + gapTxt + "</span>" +
+    "<span>" + c.segs.reduce(function(a,s){ return a + s.tracks.length; },0) + " tracks</span>";
+}
+
+function renderSegs(c){
+  var host = document.getElementById("segs");
+  host.innerHTML = "";
+  var at = 0;
+
+  c.segs.forEach(function(s, i){
+    var start = at, end = at + (+s.mins||0); at = end;
+    var secs = segTrackSecs(s), need = s.mins*60;
+    var pct = need ? Math.min(140, secs/need*100) : 0;
+    var cls = secs === 0 ? "" : (secs > need + 45 ? "over" : (secs >= need - 45 ? "full" : ""));
+
+    var tracks = s.tracks.map(function(t, j){
+      return '<div class="track"><span>' + esc(t.title) + '</span>' +
+             '<span class="track__len">' + mmss(t.secs) + '</span>' +
+             '<button data-rmtrack="' + i + ':' + j + '" aria-label="Remove track">×</button></div>';
+    }).join("");
+
+    var poses = s.poses.map(function(p, j){
+      return '<span class="pose">' + esc(p) +
+             '<button data-rmpose="' + i + ':' + j + '" aria-label="Remove pose">×</button></span>';
+    }).join("");
+
+    var el = document.createElement("div");
+    el.className = "seg";
+    el.innerHTML =
+      '<div class="seg__clock"><b>' + clock(start) + '</b>' + s.mins + ' min</div>' +
+      '<div class="seg__body">' +
+        '<div class="seg__head">' +
+          '<h3>' + s.label + '</h3>' +
+          '<span class="energy">' + s.energy + '</span>' +
+          '<span class="seg__len">' +
+            '<button class="step" data-min="' + i + '" aria-label="One minute less">−</button>' +
+            '<input type="number" min="1" max="60" value="' + s.mins + '" data-mins="' + i + '">' +
+            '<button class="step" data-plus="' + i + '" aria-label="One minute more">+</button>' +
+            '<span>min</span>' +
+          '</span>' +
+        '</div>' +
+        '<textarea class="field-x seg__focus" data-focus="' + i + '" rows="1" ' +
+          'placeholder="What this segment is for">' + esc(s.focus) + '</textarea>' +
+        (poses ? '<div class="poses">' + poses + '</div>' : '') +
+        '<div class="addrow"><input name="title" data-posein="' + i + '" placeholder="Add a pose" size="18">' +
+          '<button class="btn btn--ghost btn--sm" data-addpose="' + i + '">Add</button></div>' +
+        '<div class="music">' +
+          '<p class="music__brief">' + (s.mood ? esc(s.mood) + " · " : "") + s.bpm + ' · needs ' + mmss(need) + ' of music</p>' +
+          (tracks ? '<div class="tracks">' + tracks + '</div>' : '') +
+          '<div class="addrow">' +
+            '<input name="title" data-track="' + i + '" placeholder="Track and artist" >' +
+            '<input name="len" data-tracklen="' + i + '" placeholder="4:32">' +
+            '<button class="btn btn--ghost btn--sm" data-addtrack="' + i + '">Add</button>' +
+          '</div>' +
+          '<div class="fill"><i class="' + cls + '" style="width:' + pct + '%"></i></div>' +
+          '<span class="fill__label ' + (cls === "over" ? "over" : "") + '">' +
+            (secs === 0 ? "empty" : mmss(secs) + " of " + mmss(need) +
+              (secs > need ? " · " + mmss(secs-need) + " over" : "")) +
+          '</span>' +
+        '</div>' +
+      '</div>';
+    host.appendChild(el);
+  });
+}
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(m){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]; }); }
+
+function field(label, inner, extra){
+  return '<div class="field ' + (extra||"") + '"><label>' + label + '</label>' + inner + '</div>';
+}
+function sel(id, opts, val, fmt){
+  return '<select id="' + id + '">' + opts.map(function(o){
+    return '<option value="' + o + '"' + (String(o)===String(val)?" selected":"") + '>' +
+           (fmt?fmt(o):o) + '</option>'; }).join("") + '</select>';
+}
+function toast(msg){
+  var t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(function(){ t.classList.remove("show"); }, 2600);
+}
+
+/* ============================================================
+   EVENTS
+   ============================================================ */
+document.addEventListener("click", function(e){
+  var t = e.target.closest("[data-open],[data-add],[data-min],[data-plus],[data-addpose]," +
+                           "[data-rmpose],[data-addtrack],[data-rmtrack],#backBtn,#delBtn,#teachBtn,#aiGo");
+  if(!t) return;
+  var c = openId ? find(openId) : null;
+
+  if(t.dataset.open){ openId = t.dataset.open; render(); return; }
+
+  if(t.dataset.add){
+    var c2 = newClass(t.dataset.add);
+    state.classes.push(c2); openId = c2.id; save(); render(); return;
+  }
+  if(t.id === "backBtn"){ openId = null; render(); return; }
+  if(t.id === "teachBtn"){ document.body.classList.toggle("teach"); return; }
+  if(t.id === "delBtn"){
+    if(!confirm("Delete this class and its playlist?")) return;
+    state.classes = state.classes.filter(function(x){ return x.id !== openId; });
+    openId = null; save(); render(); return;
+  }
+  if(t.id === "aiGo"){ draft(c); return; }
+
+  if(t.dataset.min != null){ var s = c.segs[+t.dataset.min]; s.mins = Math.max(1, s.mins-1); save(); renderTally(c); renderSegs(c); return; }
+  if(t.dataset.plus != null){ var s2 = c.segs[+t.dataset.plus]; s2.mins = s2.mins+1; save(); renderTally(c); renderSegs(c); return; }
+
+  if(t.dataset.addpose != null){
+    var i = +t.dataset.addpose;
+    var inp = document.querySelector('[data-posein="' + i + '"]');
+    var v = inp.value.trim(); if(!v) return;
+    c.segs[i].poses.push(v); inp.value = ""; save(); renderSegs(c);
+    var again = document.querySelector('[data-posein="' + i + '"]'); if(again) again.focus();
+    return;
+  }
+  if(t.dataset.rmpose){
+    var a = t.dataset.rmpose.split(":");
+    c.segs[+a[0]].poses.splice(+a[1],1); save(); renderSegs(c); return;
+  }
+  if(t.dataset.addtrack != null){
+    var k = +t.dataset.addtrack;
+    var ti = document.querySelector('[data-track="' + k + '"]');
+    var le = document.querySelector('[data-tracklen="' + k + '"]');
+    var secs = parseLen(le.value);
+    if(!ti.value.trim()) return;
+    if(!secs){ toast("Add a length like 4:32"); le.focus(); return; }
+    c.segs[k].tracks.push({ title:ti.value.trim(), secs:secs });
+    ti.value = ""; le.value = ""; save(); renderTally(c); renderSegs(c);
+    var t2 = document.querySelector('[data-track="' + k + '"]'); if(t2) t2.focus();
+    return;
+  }
+  if(t.dataset.rmtrack){
+    var b = t.dataset.rmtrack.split(":");
+    c.segs[+b[0]].tracks.splice(+b[1],1); save(); renderTally(c); renderSegs(c); return;
+  }
+});
+
+// enter-to-add inside the little input rows
+document.addEventListener("keydown", function(e){
+  if(e.key !== "Enter") return;
+  var d = e.target.dataset || {};
+  if(d.posein != null){ e.preventDefault(); document.querySelector('[data-addpose="' + d.posein + '"]').click(); }
+  if(d.track != null){ e.preventDefault(); document.querySelector('[data-tracklen="' + d.track + '"]').focus(); }
+  if(d.tracklen != null){ e.preventDefault(); document.querySelector('[data-addtrack="' + d.tracklen + '"]').click(); }
+});
+
+document.addEventListener("input", function(e){
+  var c = openId ? find(openId) : null; if(!c) return;
+  var d = e.target.dataset || {};
+  if(d.focus != null){ c.segs[+d.focus].focus = e.target.value; save(); return; }
+  if(d.mins != null){
+    var v = parseInt(e.target.value,10);
+    if(v > 0){ c.segs[+d.mins].mins = v; save(); renderTally(c); }
+    return;
+  }
+  if(e.target.id === "fName"){ c.name = e.target.value; document.getElementById("edTitle").textContent = c.name || TEMPLATES[c.type].label; save(); }
+  if(e.target.id === "fTime"){ c.time = e.target.value; save(); }
+  if(e.target.id === "fNotes"){ c.notes = e.target.value; save(); }
+});
+
+document.addEventListener("change", function(e){
+  var c = openId ? find(openId) : null; if(!c) return;
+  if(e.target.id === "fDay"){ c.day = e.target.value; save(); }
+  if(e.target.id === "fSub"){ c.sub = e.target.checked; save(); }
+  if(e.target.id === "fType" || e.target.id === "fDur"){
+    var written = c.segs.some(function(s){ return s.poses.length || s.focus || s.tracks.length; });
+    if(written && !confirm("Rebuild the segments? Poses, notes and tracks in this class will be cleared.")){
+      renderClass(); return;
+    }
+    if(e.target.id === "fType") c.type = e.target.value;
+    if(e.target.id === "fDur") c.duration = +e.target.value;
+    c.segs = buildSegs(c.type, c.duration);
+    save(); renderClass();
+  }
+});
+
+/* ============================================================
+   DRAFTING
+   ============================================================ */
+function draft(c){
+  var btn = document.getElementById("aiGo");
+  var status = document.getElementById("aiStatus");
+  var avoid = document.getElementById("aiAvoid").value.trim();
+
+  btn.disabled = true;
+  status.className = "ai__status";
+  status.textContent = "Drafting…";
+
+  var shape = c.segs.map(function(s){ return s.label + " (" + s.mins + " min, " + s.energy + ")"; }).join(", ");
+
+  var prompt =
+    "You are helping an experienced yoga teacher plan one class. Style: " + TEMPLATES[c.type].label +
+    ". Length: " + c.duration + " minutes. Segments in order: " + shape + ".\n" +
+    (avoid ? "Teacher's note: " + avoid + "\n" : "") +
+    "For each segment in order, give a one-sentence focus, 3 to 6 pose names (English or Sanskrit, as a teacher would say them aloud), " +
+    "and a short music mood description (no song or artist names — describe texture and feel so she can search her own library).\n" +
+    "Respond with JSON only, no markdown fences, no preamble, in exactly this shape:\n" +
+    '{"segments":[{"focus":"...","poses":["..."],"mood":"..."}]}\n' +
+    "The segments array must have exactly " + c.segs.length + " items.";
+
+  fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      model:"claude-sonnet-4-6",
+      max_tokens:1000,
+      messages:[{role:"user", content:prompt}]
+    })
+  }).then(function(r){ return r.json(); }).then(function(data){
+    var text = (data.content||[]).filter(function(b){ return b.type === "text"; })
+                 .map(function(b){ return b.text; }).join("");
+    var clean = text.replace(/```json/g,"").replace(/```/g,"").trim();
+    var parsed = JSON.parse(clean);
+    if(!parsed.segments || !parsed.segments.length) throw new Error("shape");
+
+    parsed.segments.forEach(function(s, i){
+      if(!c.segs[i]) return;
+      if(s.focus) c.segs[i].focus = s.focus;
+      if(Array.isArray(s.poses)) c.segs[i].poses = s.poses.slice(0,8);
+      if(s.mood) c.segs[i].mood = s.mood;
+    });
+    save(); renderTally(c); renderSegs(c);
+    status.textContent = "Drafted. Edit anything that isn't yours.";
+  }).catch(function(){
+    status.className = "ai__status err";
+    status.textContent = "Draft failed. Try again, or build the segments by hand.";
+  }).then(function(){ btn.disabled = false; });
+}
+
+load();
+})();
+</script>
+</body>
+</html>
