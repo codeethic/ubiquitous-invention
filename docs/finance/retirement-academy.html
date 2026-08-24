@@ -218,6 +218,12 @@ canvas{display:block;width:100%;height:auto}
 .quiz-meter .m{height:100%;width:0;background:var(--keep);transition:width .5s ease}
 .qitem{padding:1.3rem 1.5rem;border-bottom:1px solid var(--line-soft)}
 .qitem:last-child{border-bottom:none}
+.quiz-ctrls{display:flex;gap:.5rem;flex-wrap:wrap}
+.quiz-ctrls .btn{padding:.4rem .8rem;font-size:.82rem}
+.quiz-actions{padding:1.2rem 1.5rem;border-top:1px solid var(--line-soft);display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;background:var(--surface-2)}
+.qz-hint{font-size:.85rem;color:var(--ink-mute)}
+.opt.sel{border-color:var(--brand);background:var(--brand-wash)}
+.opt.sel .mk{border-color:var(--brand);background:var(--brand);color:#fff}
 
 /* ---- FOOTER ---- */
 .foot{border-top:1px solid var(--line);margin-top:3rem;padding-top:1.6rem;color:var(--ink-mute);font-size:.82rem}
@@ -1297,14 +1303,19 @@ canvas{display:block;width:100%;height:auto}
         <h2>Put it together</h2>
       </div>
     </div>
-    <p class="prose" style="margin-top:1rem">Sixteen questions spanning every module. Pick an answer and you'll see why it's right or wrong immediately — your score updates as you go.</p>
+    <p class="prose" style="margin-top:1rem">A dozen questions, drawn at random from a bank of 30+ and reshuffled every time — answer order included. Pick your answers (change them as often as you like), then <b>Check answers</b>. <b>Reset</b> clears your picks; <b>New questions</b> deals a fresh set.</p>
 
     <div class="quiz-panel" style="margin-top:1.6rem">
       <div class="quiz-score">
-        <div><span class="big" id="qz-score">0</span><span style="color:var(--ink-mute);font-size:1.1rem"> / <span id="qz-total">6</span> correct</span></div>
+        <div><span class="big" id="qz-score">0</span><span style="color:var(--ink-mute);font-size:1.1rem"> / <span id="qz-total">12</span></span> <span id="qz-status" style="color:var(--ink-mute);font-size:.9rem;margin-left:.35rem">not checked yet</span></div>
         <div class="quiz-meter"><div class="m" id="qz-meter"></div></div>
+        <div class="quiz-ctrls">
+          <button class="btn btn-ghost" id="qz-reset" type="button">Reset</button>
+          <button class="btn btn-ghost" id="qz-new" type="button">New questions</button>
+        </div>
       </div>
       <div id="qz-items"></div>
+      <div class="quiz-actions"><button class="btn btn-primary" id="qz-check" type="button">Check answers</button><span class="qz-hint" id="qz-hint">Answer the questions above, then check.</span></div>
     </div>
     <div style="margin-top:1.4rem" id="qz-done"></div>
   </section>
@@ -2174,8 +2185,9 @@ $$('.check').forEach(chk=>{
   });
 });
 
-/* ============================ FINAL QUIZ ============================ */
-const QUIZ=[
+/* ============================ FINAL QUIZ (random set drawn from a larger bank) ============================ */
+const QUIZ_N=12;
+const POOL=[
   {q:"You have a 22% credit-card balance and you're already getting your full 401(k) match. What's the best use of the next dollar?",
    a:["Invest more in the 401(k) beyond the match.","Pay off the 22% credit card — a guaranteed, risk-free 22% return.","Open a taxable brokerage and buy index funds."],c:1,
    x:"After the free match, clearing high-interest debt is the highest-value move: a guaranteed return equal to the rate, with no risk. No investment reliably beats a certain 22%."},
@@ -2223,41 +2235,125 @@ const QUIZ=[
    x:"Above 400% of poverty the entire premium tax credit disappears and is reconciled on your tax return. Steering MAGI with Roth and taxable buckets is how early retirees stay under the line."},
   {q:"A healthy 62-year-old with other income to live on is deciding when to claim Social Security. What's the usual case for waiting until 70?",
    a:["You get more checks overall by starting later.","Each check is permanently ~8%/year larger, which wins if you live past the break-even age and protects a surviving spouse.","Benefits claimed at 70 are tax-free."],c:1,
-   x:"Delaying raises the monthly benefit about 8% a year to 70. You collect fewer but larger checks; past the break-even age (usually early-to-mid 80s) the total pulls ahead — and the bigger benefit carries over as a survivor's benefit. It's longevity insurance."}
+   x:"Delaying raises the monthly benefit about 8% a year to 70. You collect fewer but larger checks; past the break-even age (usually early-to-mid 80s) the total pulls ahead — and the bigger benefit carries over as a survivor's benefit. It's longevity insurance."},
+  {q:"Before investing beyond an employer match, most plans say to first…",
+   a:["Max out a Roth IRA.","Build a starter emergency fund and clear high-interest debt.","Buy a few individual stocks."],c:1,
+   x:"A cash cushion keeps a surprise from becoming debt, and high-interest debt is a guaranteed loss — both come before investing further."},
+  {q:"Which single habit most reliably grows a portfolio over a career?",
+   a:["Timing market dips.","Automating contributions and leaving them invested.","Switching funds based on the headlines."],c:1,
+   x:"Automatic, consistent investing beats trying to time the market — which even professionals rarely manage."},
+  {q:"For someone who starts investing young, most of the final balance usually comes from…",
+   a:["The dollars they contributed.","Investment growth — compounding.","The employer match alone."],c:1,
+   x:"Over decades, compounding growth typically dwarfs the total of contributions."},
+  {q:"What makes the HSA uniquely tax-advantaged?",
+   a:["It's tax-free going in only.","It can be untaxed on the way in, on growth, and on qualified medical withdrawals.","It has no contribution limit."],c:1,
+   x:"Used for medical costs, the HSA is the only triple-tax-free account."},
+  {q:"After capturing the employer match, a common funding order is…",
+   a:["Taxable → Roth → HSA.","HSA → Roth IRA/401(k) → taxable.","Whatever account has the nicest app."],c:1,
+   x:"Fill tax-advantaged space first: match → HSA → Roth/401(k) → taxable."},
+  {q:"For most investors, the simplest sound choice is…",
+   a:["Hand-picking a few winning stocks.","A low-cost, broad index fund that owns the whole market.","Whatever fund had the best year."],c:1,
+   x:"After fees, most active funds trail a simple index over long periods — owning everything cheaply wins."},
+  {q:"Which investing cost do you most control?",
+   a:["Market returns.","The expense ratio you pay.","Inflation."],c:1,
+   x:"You can't control markets, but you can choose low-cost funds — the closest thing to a free lunch."},
+  {q:"Shifting your mix from bonds toward more stocks generally…",
+   a:["Raises expected return and widens the range of outcomes.","Raises return with no added risk.","Lowers both risk and return."],c:0,
+   x:"More stocks means higher expected growth but a wider band of results — there's no free lunch."},
+  {q:"In a market crash, the costliest real-world mistake is usually…",
+   a:["Holding through it.","Panic-selling near the bottom.","Rebalancing back to your target."],c:1,
+   x:"Selling low locks in the loss. The mix you'll actually hold through a downturn is the right one for you."},
+  {q:"At about 3% inflation, buying power roughly halves in about…",
+   a:["5 years.","24 years.","100 years."],c:1,
+   x:"Rule of 72: 72 ÷ 3 ≈ 24 years to halve purchasing power."},
+  {q:"A traditional 401(k) and a Roth 401(k) differ mainly in that…",
+   a:["They're taxed the same way.","Traditional is deducted now and taxed at withdrawal; Roth is taxed now and comes out tax-free.","Both are taxed now and again later."],c:1,
+   x:"Same investment, opposite tax timing. Holding some of each gives you dials to turn in retirement."},
+  {q:"A 23-year-old in a low tax bracket usually benefits most from…",
+   a:["Traditional (pre-tax) contributions.","Roth contributions — lock in today's low rate.","Waiting until income is higher."],c:1,
+   x:"Pay tax cheaply now and never again — a low bracket favors Roth."},
+  {q:"You have $18,000 of room left in the 22% bracket and convert $30,000 to Roth. It's taxed…",
+   a:["All at 24%.","$18,000 at 22% and $12,000 at 24%.","All at 22%."],c:1,
+   x:"Only the $12,000 that spills over hits 24% — which is why 'convert to the top of a bracket' is common."},
+  {q:"At most, what share of Social Security benefits can be federally taxable?",
+   a:["50%.","85%.","100%."],c:1,
+   x:"Once provisional income is high enough, up to 85% of benefits become taxable."},
+  {q:"An early retiree keeps their ACA subsidy by managing…",
+   a:["Their home value.","Their MAGI — leaning on Roth and taxable withdrawals.","Their credit score."],c:1,
+   x:"Roth and taxable spending add little to MAGI; traditional withdrawals and conversions add fully."},
+  {q:"For a married couple, delaying Social Security is most valuable for…",
+   a:["The lower earner.","The higher earner — it sets the survivor benefit.","Neither — timing is irrelevant for couples."],c:1,
+   x:"The higher earner's benefit continues as the survivor benefit, so delaying it protects the surviving spouse."},
+  {q:"A common defense against a bad market early in retirement is…",
+   a:["Selling more stock during the crash.","Holding 2–3 years of spending in cash to avoid selling equities low.","Halting all withdrawals entirely."],c:1,
+   x:"A cash buffer lets you ride out downturns without selling depressed shares; refill it in up years."},
+  {q:"The retirement-spending 'smile' means real spending often…",
+   a:["Rises steadily every single year.","Starts higher in active years, eases through the 70s, then ticks up late for health costs.","Stays perfectly flat for life."],c:1,
+   x:"Spending tends to follow a smile — busier, higher-spend early years, a slower middle, then rising health costs late."}
 ];
 (function(){
-  const wrap=$('#qz-items');$('#qz-total').textContent=QUIZ.length;
-  const saved=STORE.get('quiz',{});
-  let score=0, answered=0;
-  function tally(){
-    $('#qz-score').textContent=score;
-    $('#qz-meter').style.width=(score/QUIZ.length*100)+'%';
-    if(answered===QUIZ.length){
-      const msg=score===QUIZ.length?"Perfect score — you've got the core mechanics of building and spending a nest egg down.":score>=12?"Strong. You understand the big levers; revisit the ones you missed above.":"Good start — scroll back up and replay the playgrounds, then retry.";
-      $('#qz-done').innerHTML=`<div class="callout" style="border-color:var(--keep);background:var(--keep-wash)"><span class="tag">Your result</span><b>${score} / ${QUIZ.length}.</b> ${msg}</div>`;
+  const wrap=$('#qz-items'), scoreEl=$('#qz-score'), meterEl=$('#qz-meter'), statusEl=$('#qz-status'),
+        doneEl=$('#qz-done'), hintEl=$('#qz-hint'),
+        checkBtn=$('#qz-check'), resetBtn=$('#qz-reset'), newBtn=$('#qz-new');
+  const N=Math.min(QUIZ_N, POOL.length);
+  let state=null;   // {items:[{qi, order:[texts], picked}], checked}
+  const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+  const correctText=qi=>POOL[qi].a[POOL[qi].c];
+  const score=()=>state.items.filter(it=>it.picked!=null && it.order[it.picked]===correctText(it.qi)).length;
+  const nAnswered=()=>state.items.filter(it=>it.picked!=null).length;
+
+  function fresh(){
+    const pick=shuffle(POOL.map((_,i)=>i)).slice(0,N);
+    state={items:pick.map(qi=>({qi, order:shuffle(POOL[qi].a), picked:null})), checked:false};
+    persist(); render();
+  }
+  function persist(){ try{STORE.set('quizv2',state);}catch(e){} }
+  function load(){ try{ const s=STORE.get('quizv2',null);
+    if(s&&s.items&&s.items.length===Math.min(QUIZ_N,POOL.length)&&s.items.every(it=>POOL[it.qi]&&Array.isArray(it.order))){ state=s; return true; } }catch(e){} return false; }
+
+  function updateStatus(){
+    const sc=score();
+    scoreEl.textContent = state.checked? sc : nAnswered();
+    meterEl.style.width = ((state.checked? sc : nAnswered())/N*100)+'%';
+    if(state.checked){
+      statusEl.textContent='checked';
+      const msg=sc===N?"Perfect score — you've got the core mechanics of building and spending a nest egg down.":sc>=Math.ceil(N*0.7)?"Strong. You understand the big levers; revisit the ones you missed above.":"Good start — replay the playgrounds above, then try a new set.";
+      doneEl.innerHTML=`<div class="callout" style="border-color:var(--keep);background:var(--keep-wash)"><span class="tag">Your result</span><b>${sc} / ${N}.</b> ${msg}</div>`;
+      hintEl.textContent='Change any answer and the score updates live — or deal a new set.';
+    } else {
+      statusEl.textContent = nAnswered()===N? 'all answered' : nAnswered()+' answered';
+      doneEl.innerHTML='';
+      hintEl.textContent = nAnswered()===N? 'All answered — hit “Check answers.”' : 'Answer the questions above, then check.';
     }
   }
-  QUIZ.forEach((item,qi)=>{
-    const d=document.createElement('div');d.className='qitem';
-    d.innerHTML=`<div class="q" style="font-weight:600;font-size:1.02rem;margin-bottom:.85rem;display:flex;gap:.6rem;align-items:flex-start"><span class="qm mono" style="color:var(--brand);font-size:.85rem;padding-top:.15rem">${String(qi+1).padStart(2,'0')}</span><span>${item.q}</span></div>`;
-    const opts=document.createElement('div');opts.className='opts';
-    function apply(ai,persist){
-      if(d.dataset.answered)return;d.dataset.answered='1';answered++;
-      const btns=$$('.opt',opts);btns.forEach(o=>o.disabled=true);
-      if(ai===item.c){btns[ai].classList.add('correct');score++;}
-      else{btns[ai].classList.add('wrong');btns[item.c].classList.add('correct');}
-      const ex=document.createElement('div');ex.className='explain show';ex.innerHTML=item.x;d.appendChild(ex);
-      if(persist){const s=STORE.get('quiz',{});s[qi]=ai;STORE.set('quiz',s);markDone('quiz');}
-      tally();
-    }
-    item.a.forEach((txt,ai)=>{
-      const b=document.createElement('button');b.className='opt';b.innerHTML=`<span class="mk">✓</span><span>${txt}</span>`;
-      b.onclick=()=>apply(ai,true);
-      opts.appendChild(b);
+  function render(){
+    $('#qz-total').textContent=N;
+    wrap.innerHTML='';
+    state.items.forEach((it,idx)=>{
+      const item=POOL[it.qi];
+      const d=document.createElement('div'); d.className='qitem';
+      d.innerHTML=`<div class="q" style="font-weight:600;font-size:1.02rem;margin-bottom:.85rem;display:flex;gap:.6rem;align-items:flex-start"><span class="qm mono" style="color:var(--brand);font-size:.85rem;padding-top:.15rem">${String(idx+1).padStart(2,'0')}</span><span>${item.q}</span></div>`;
+      const opts=document.createElement('div'); opts.className='opts';
+      it.order.forEach((txt,ai)=>{
+        const b=document.createElement('button'); b.type='button'; b.className='opt'; b.innerHTML=`<span class="mk">✓</span><span>${txt}</span>`;
+        if(state.checked){
+          if(txt===correctText(it.qi)) b.classList.add('correct');
+          else if(it.picked===ai) b.classList.add('wrong');
+        } else if(it.picked===ai){ b.classList.add('sel'); }
+        b.onclick=()=>{ it.picked=ai; persist(); render(); };
+        opts.appendChild(b);
+      });
+      d.appendChild(opts);
+      if(state.checked){ const ex=document.createElement('div'); ex.className='explain show'; ex.innerHTML=item.x; d.appendChild(ex); }
+      wrap.appendChild(d);
     });
-    d.appendChild(opts);wrap.appendChild(d);
-    if(saved[qi]!=null) apply(saved[qi],false);
-  });
+    updateStatus();
+  }
+  checkBtn.onclick=()=>{ state.checked=true; persist(); render(); markDone('quiz'); };
+  resetBtn.onclick=()=>{ state.items.forEach(it=>it.picked=null); state.checked=false; persist(); render(); };
+  newBtn.onclick=()=>{ fresh(); };
+
+  if(!load()) fresh(); else render();
 })();
 
 /* ---- restore saved progress, wire dashboard link, then arm persistence ---- */
