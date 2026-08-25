@@ -2397,20 +2397,29 @@ const BMC_USERNAME="codeethic";
   const a=document.getElementById('coffeeBtn'); if(a) a.href='https://www.buymeacoffee.com/'+BMC_USERNAME;
   w.style.display='flex';
 })();
-/* floating coffee button: delayed, dismissible, non-intrusive */
+/* floating coffee button: appears as the reader reaches the Habits section,
+   dismissible for this visit (not remembered across reloads — not sticky) */
 (function(){
   const f=document.getElementById('coffeeFloat'); if(!f) return;
   if(!BMC_USERNAME){ f.remove(); return; }
-  let dismissed=false; try{dismissed=STORE.get('coffeeDismissed',false);}catch(e){}
-  if(dismissed){ f.remove(); return; }
   document.getElementById('coffeeFloatLink').href='https://www.buymeacoffee.com/'+BMC_USERNAME;
+  let closed=false;
   document.getElementById('coffeeFloatX').addEventListener('click',e=>{
-    e.preventDefault(); e.stopPropagation(); f.classList.remove('show');
-    try{STORE.set('coffeeDismissed',true);}catch(_){}
-    setTimeout(()=>{try{f.remove();}catch(_){}} ,260);
+    e.preventDefault(); e.stopPropagation(); closed=true; f.classList.remove('show');
   });
-  const onScroll=()=>{ if(window.scrollY>600){ f.classList.add('show'); removeEventListener('scroll',onScroll); } };
-  addEventListener('scroll',onScroll,{passive:true}); onScroll();
+  const reveal=()=>{ if(!closed) f.classList.add('show'); };
+  const anchor=document.getElementById('m10'); // Habits section
+  if(anchor && 'IntersectionObserver' in window){
+    const io=new IntersectionObserver((ents,obs)=>{
+      if(ents.some(en=>en.isIntersecting)){ reveal(); obs.disconnect(); }
+    },{rootMargin:'0px 0px -35% 0px'}); // fire just before Habits scrolls into view
+    io.observe(anchor);
+  } else {
+    // fallback: reveal once the reader passes the Habits section's top
+    const onScroll=()=>{ const t=anchor?anchor.getBoundingClientRect().top:0;
+      if(!anchor || t < innerHeight*0.65){ reveal(); removeEventListener('scroll',onScroll); } };
+    addEventListener('scroll',onScroll,{passive:true}); onScroll();
+  }
 })();
 (function(){
   const wrap=document.getElementById('capture'); if(!wrap) return;
