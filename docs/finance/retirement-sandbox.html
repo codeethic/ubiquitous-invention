@@ -180,6 +180,14 @@ h1,.kpi .val,.big{font-family:"Spectral",Georgia,"Times New Roman",serif;letter-
 h1{display:flex;align-items:center;gap:10px;}
 .rglyph{width:30px;height:30px;flex:0 0 auto;display:grid;place-items:center;border-radius:8px;background:#0c6e66;color:#fff;font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-weight:600;font-size:16px;line-height:1;}
 .ctrl output,.secsum,.meter .tick{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;}
+/* floating coffee button */
+.coffee-float{position:fixed;right:18px;bottom:18px;z-index:200;display:flex;align-items:center;gap:.15rem;padding:.5rem .55rem .5rem .85rem;border-radius:999px;background:#ffdd00;border:1px solid rgba(0,0,0,.16);box-shadow:0 8px 22px -8px rgba(0,0,0,.5);opacity:0;transform:translateY(14px);pointer-events:none;transition:opacity .25s ease,transform .25s ease;}
+.coffee-float.show{opacity:1;transform:none;pointer-events:auto;}
+.coffee-float .cf-link{display:flex;align-items:center;gap:.45rem;color:#1a1a1a;text-decoration:none;font-family:"IBM Plex Sans",system-ui,sans-serif;font-weight:600;font-size:13.5px;}
+.coffee-float .cf-x{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border:0;border-radius:50%;background:rgba(0,0,0,.12);color:#1a1a1a;font-size:14px;line-height:1;cursor:pointer;}
+.coffee-float .cf-x:hover{background:rgba(0,0,0,.24);}
+@media(max-width:520px){.coffee-float .cf-label{display:none} .coffee-float{padding:.6rem;gap:0}}
+@media(prefers-reduced-motion:reduce){.coffee-float{transition:none;transform:none}}
 </style>
 </head>
 <body>
@@ -1367,6 +1375,24 @@ document.getElementById('wpAge').addEventListener('input',()=>{ document.getElem
 document.getElementById('ssOptBtn').addEventListener('click',optimizeClaim);
 
 render();
+</script>
+<div class="coffee-float" id="coffeeFloat" role="complementary" aria-label="Support">
+  <a class="cf-link" href="https://www.buymeacoffee.com/codeethic" target="_blank" rel="noopener"><span aria-hidden="true">☕</span><span class="cf-label">Buy me a coffee</span></a>
+  <button class="cf-x" id="coffeeFloatX" type="button" aria-label="Dismiss">×</button>
+</div>
+<script>
+(function(){
+  var f=document.getElementById('coffeeFloat'); if(!f) return;
+  var dismissed=false; try{dismissed=localStorage.getItem('rs_coffeeDismissed')==='1';}catch(e){}
+  if(dismissed){ if(f.parentNode) f.parentNode.removeChild(f); return; }
+  document.getElementById('coffeeFloatX').addEventListener('click',function(e){
+    e.preventDefault(); e.stopPropagation(); f.classList.remove('show');
+    try{localStorage.setItem('rs_coffeeDismissed','1');}catch(_){}
+    setTimeout(function(){ if(f.parentNode) f.parentNode.removeChild(f); },260);
+  });
+  function onScroll(){ if(window.scrollY>600){ f.classList.add('show'); window.removeEventListener('scroll',onScroll); } }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+})();
 </script>
 </body>
 </html>
