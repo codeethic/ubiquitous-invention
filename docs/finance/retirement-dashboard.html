@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Retirement Planning Sandbox</title>
+<title>Retirement Sandbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <script>
 /*!
  * Chart.js v4.4.1
@@ -154,13 +157,37 @@ a{color:var(--s1);}
 .optmsg{font-size:11.5px; color:var(--good-ink); margin-top:7px; min-height:1px;}
 :root[data-theme="dark"] .optmsg{color:var(--good);}
 </style>
+<style>
+/* ===== Match the Retirement Academy theme (palette + typography) ===== */
+:root{
+  --page:#eef0f4; --surface:#fbfcfd; --surface-2:#f2f4f8;
+  --ink:#141b24; --ink-2:#48545f; --muted:#79838d;
+  --grid:#e5e9ef; --axis:#c8d0da; --border:rgba(20,27,36,0.10);
+  --s1:#0c6e66; --s3:#1a8a54;
+  --good:#1a8a54; --good-ink:#136b41; --warn:#c98a06; --serious:#c07a3a; --critical:#c04327;
+  --band:rgba(12,110,102,0.14);
+}
+:root[data-theme="dark"]{
+  --page:#0d1218; --surface:#151d26; --surface-2:#1b242f;
+  --ink:#eef2f6; --ink-2:#b3bdc7; --muted:#7d8893;
+  --grid:#28323d; --axis:#3a4652; --border:rgba(255,255,255,0.10);
+  --s1:#3fb8ac; --s3:#41c07e;
+  --good:#41c07e; --good-ink:#41c07e; --warn:#e6b13e; --serious:#e0a15f; --critical:#e77a5c;
+  --band:rgba(63,184,172,0.20);
+}
+body{font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;}
+h1,.kpi .val,.big{font-family:"Spectral",Georgia,"Times New Roman",serif;letter-spacing:normal;}
+h1{display:flex;align-items:center;gap:10px;}
+.rglyph{width:30px;height:30px;flex:0 0 auto;display:grid;place-items:center;border-radius:8px;background:#0c6e66;color:#fff;font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-weight:600;font-size:16px;line-height:1;}
+.ctrl output,.secsum,.meter .tick{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;}
+</style>
 </head>
 <body>
 <div class="wrap">
 
 <header class="top">
   <div>
-    <h1>Retirement Dashboard</h1>
+    <h1><span class="rglyph">R</span>Retirement Sandbox</h1>
     <div class="sub">A hands-on sandbox — move the sliders to model your own plan. Nothing is saved or shared.</div>
   </div>
   <div class="topmeta">
