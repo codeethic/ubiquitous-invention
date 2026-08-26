@@ -236,6 +236,42 @@ select{
 .guess button:hover{border-color:var(--amber-dim);color:var(--chalk)}
 .guess button[aria-pressed="true"]{background:var(--amber);color:var(--deep);border-color:var(--amber)}
 
+/* ---------- discovery ---------- */
+.dq{border:1px solid var(--line);background:var(--slate);margin-bottom:10px}
+.dq-h{display:grid;grid-template-columns:34px 1fr auto;gap:14px;align-items:start;padding:15px 18px 12px}
+.dq-n{font-family:var(--mono);font-size:11px;color:var(--mute2);padding-top:3px;letter-spacing:.06em}
+.dq-q{font-size:15px;font-weight:500;line-height:1.45}
+.dq-b{padding:0 18px 15px 66px}
+.dq-why{margin:0 0 12px;font-size:12.5px;color:var(--mute);line-height:1.65}
+.dq-why b{color:var(--manila-dim);font-weight:600}
+.dq-note{
+  width:100%;background:var(--deep);border:1px solid var(--line-soft);color:var(--chalk);
+  padding:9px 11px;font-family:var(--body);font-size:12.5px;line-height:1.5;resize:vertical;min-height:38px;
+}
+.dq-note:focus{border-color:var(--amber-dim);outline:none}
+.dq-note::placeholder{color:var(--mute2)}
+.sev{
+  font-family:var(--mono);font-size:9px;letter-spacing:.13em;text-transform:uppercase;
+  padding:3px 8px;border:1px solid var(--line);color:var(--mute2);white-space:nowrap;
+}
+.sev.blocker{border-color:var(--neg);color:var(--neg)}
+.sev.shapes{border-color:var(--amber-dim);color:var(--amber)}
+.dsec{margin:30px 0 12px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.dsec h2{font-size:17px}
+.dsec span{font-size:12.5px;color:var(--mute)}
+.five{background:var(--slate);border:1px solid var(--amber-dim);padding:20px 22px;margin-bottom:8px}
+.five ol{margin:14px 0 0;padding-left:20px}
+.five li{font-size:13.5px;color:var(--manila-dim);line-height:1.6;margin-bottom:9px}
+.five li b{color:var(--chalk);font-weight:600}
+.dbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:20px}
+.dbtn{
+  background:var(--amber);color:var(--deep);padding:10px 18px;font-family:var(--display);
+  font-weight:500;font-size:13px;letter-spacing:.08em;text-transform:uppercase;
+}
+.dbtn.ghost{background:none;border:1px solid var(--line);color:var(--mute)}
+.dbtn.ghost:hover{border-color:var(--amber-dim);color:var(--chalk)}
+.dstat{font-family:var(--mono);font-size:11px;color:var(--mute2)}
+
 /* ---------- sign-in gate ---------- */
 .gate{
   position:fixed;inset:0;z-index:100;background:var(--deep);
@@ -333,6 +369,7 @@ footer p{font-size:11.5px;color:var(--mute2);line-height:1.7;margin:0 0 6px;max-
     <button class="tab" role="tab" aria-selected="true" data-view="portfolio">Portfolio</button>
     <button class="tab" role="tab" aria-selected="false" data-view="client">Client</button>
     <button class="tab" role="tab" aria-selected="false" data-view="focus">Focus Day mode</button>
+    <button class="tab" role="tab" aria-selected="false" data-view="discovery">Discovery</button>
   </div>
   <div class="rail-end"><div class="coach">
     <div class="coach-badge">CD</div>
@@ -441,6 +478,42 @@ footer p{font-size:11.5px;color:var(--mute2);line-height:1.7;margin:0 0 6px;max-
         <p class="note" style="margin-top:14px">Drafted from this cycle's two strongest triggers. Edit in the room, then it becomes a Rock.</p>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- ============ DISCOVERY ============ -->
+<section class="view" id="discovery">
+  <div class="wrap">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Before the collection layer can be specified</div>
+        <h1>What we still need to know</h1>
+        <p class="sub">The reporting side is settled — that is what the other three tabs are.
+          These are the questions that decide how responses get collected, and several of them
+          change the schema rather than the styling.</p>
+      </div>
+    </div>
+
+    <div class="five">
+      <div class="eyebrow" style="color:var(--amber)">If there is only time for five</div>
+      <ol>
+        <li><b>Anonymous or confidential?</b> Does anything, anywhere, map a response back to a person?</li>
+        <li><b>How does a field tech with no work email get the survey?</b></li>
+        <li><b>What is BITE7 running on today,</b> and is this a rebuild or a layer on top?</li>
+        <li><b>How does BITE7 currently split 1–10 scores</b> into positive, neutral and negative?</li>
+        <li><b>Who owns the benchmark data</b> across the 300+ companies?</li>
+      </ol>
+    </div>
+
+    <div id="d-list"></div>
+
+    <div class="dbar">
+      <button class="dbtn" id="d-copy">Copy notes</button>
+      <button class="dbtn ghost" id="d-clear">Clear</button>
+      <span class="dstat" id="d-stat"></span>
+    </div>
+    <p class="note" style="margin-top:14px">Notes are held in the page only. Copy them before you
+      close the tab — nothing is saved.</p>
   </div>
 </section>
 
@@ -992,6 +1065,7 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   go(t.dataset.view);
   if(t.dataset.view==='client')renderClient();
   if(t.dataset.view==='focus')renderFocus();
+  if(t.dataset.view==='discovery'&&!document.getElementById('d-list').children.length)renderDiscovery();
 });
 document.getElementById('back').onclick=()=>{go('portfolio');renderPortfolio()};
 document.getElementById('sort').onchange=renderPortfolio;
@@ -1013,6 +1087,117 @@ document.querySelectorAll('#fd-guess button').forEach(b=>b.onclick=()=>{
 });
 document.getElementById('fd-client').innerHTML=DATA.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
 document.getElementById('fd-client').onchange=renderFocus;
+
+/* ============================================================
+   Discovery — the open questions
+   ============================================================ */
+const DQ=[
+ {sec:'Anonymity',note:'This section decides the schema. Nothing else can be built until it is settled.',items:[
+  {q:'Is a 7CN survey anonymous, or confidential?',sev:'blocker',
+   why:'These are different promises. <b>Anonymous</b> means no record anywhere links a response to a person. <b>Confidential</b> means the link exists but is restricted. Both are defensible; only one of them can be said out loud in the survey preamble, and they carry different legal exposure.'},
+  {q:'Can you tell that a person who answered in the spring is the same person who answered in the fall?',sev:'blocker',
+   why:'The band-flow chart on the Client tab needs this. Without per-person matching you can only compare two aggregate shapes, which cannot separate <b>we recovered twelve negatives</b> from <b>twelve negatives quit and we hired twelve positives</b>. Those call for opposite responses from a leadership team.'},
+  {q:'What is the smallest group you will report on, and who chose that number?',sev:'blocker',
+   why:'The prototype assumes five. At $750 per 25 employees the median client is small, so this threshold decides how much of the department view is visible at all. If there is an existing published standard, the product has to match it rather than invent one.'},
+  {q:'Who reads the narrative comments before leadership sees them?',sev:'blocker',
+   why:'Free text is the largest re-identification risk in the system. One comment mentioning a surgery, a shift, or a specific incident undoes the anonymity guarantee no matter how good the aggregation is. Is there a human review step, a redaction pass, or does raw text go straight through?'}]},
+
+ {sec:'Reaching the workforce',note:'Who physically receives the survey, and on what device.',items:[
+  {q:'How does an install tech, a driver, or a machinist actually receive the survey?',sev:'blocker',
+   why:'Much of this client base is frontline and has no work email address. If invitations assume email, the sample skews to office staff and systematically undercounts exactly the population 7CN exists to measure. SMS, a break-room QR code, and a shift kiosk each have different anonymity properties.'},
+  {q:'What response rates do you see, and do they differ between office and frontline?',sev:'shapes',
+   why:'Sets the realistic default in the product and tells us whether reminders are a feature or a nice-to-have. A gap between the two groups is also a finding worth surfacing in the report itself.'},
+  {q:'How long is a survey window open, and how do reminders work today?',sev:'shapes',
+   why:'Real-time completion tracking is on the pricing page. Tracking completion without tracking who completed is a genuine design problem, and the answer depends on the anonymity model above.'}]},
+
+ {sec:'Segments',note:'Department, location and job type are the whole comparison story.',items:[
+  {q:'Where do department, location and job type come from — the respondent or a client roster?',sev:'blocker',
+   why:'Self-reported is a dropdown. Roster-supplied is a whole feature: upload, mapping, maintenance, and a place where the client sees a list of their own people. It also changes the suppression logic, because self-reported segments get skipped or misreported by exactly the people in small teams.'},
+  {q:'Who keeps the roster current between cycles, and how do you handle joiners and leavers?',sev:'shapes',
+   why:'Attrition is not incidental here — the negative band leaving is a real part of the story. Whether the product can see that depends on whether anyone maintains the roster.'}]},
+
+ {sec:'The instrument',note:'Which questions ship, and how scores become bands.',items:[
+  {q:'Is the 7-question or the 21-question survey the production instrument?',sev:'shapes',
+   why:'Only the 7-question version is published as page copy. The 21-question version sits behind a Drive link I could not open. If 21 is production — presumably three items per need — then every need has a sub-score and the reporting gets a whole extra layer.'},
+  {q:'How does BITE7 currently turn a 1–10 score into positive, neutral or negative?',sev:'blocker',
+   why:'The single most consequential decision in the product. The prototype proposes <b>positive = 7 or higher on all seven</b>, <b>negative = a 5 or below anywhere</b>. Toggling to an average-based rule moves one demo client from −5 to +27 on identical responses. It must be one rule, applied identically across every company, or the benchmark is meaningless.'},
+  {q:'Is the offset ratio fixed at one-to-one in the product, or is it a setting?',sev:'shapes',
+   why:'The Focus Day exercise asks the room to guess, then reveals one-to-one. If it is a customer-visible setting, indices stop being comparable between companies. It is probably better as a teaching device only.'}]},
+
+ {sec:'The existing platform',note:'BITE7 is the predecessor brand and 7q7p.com now redirects here.',items:[
+  {q:'What is BITE7 built on today, and what does it already do well?',sev:'blocker',
+   why:'Old testimonials describe seeing gains over time and comparing many data points, so longitudinal reporting exists in some form. This is a migration or an extension, not a greenfield build, and the prototype should stop pretending otherwise.'},
+  {q:'Is the goal a rebuild, a re-skin, or a new implementer layer over what exists?',sev:'blocker',
+   why:'Three very different projects. The console demo is the third one, and it is the cheapest of the three if the underlying data is already there.'},
+  {q:'Who owns the response data and the right to benchmark across the 300+ companies?',sev:'blocker',
+   why:'The benchmark is the only asset here that gets more defensible with scale — the seven questions themselves are a free PDF. If client contracts do not permit pooled comparison, that whole line of product value closes.'}]},
+
+ {sec:'Compliance',note:'Worth settling before anything stores a real employee response.',items:[
+  {q:'What is behind the 5 CFR Part 297 reference on the pricing page?',sev:'blocker',
+   why:'That is a federal Privacy Act regulation covering OPM personnel records. It is not the governing standard for a private employer engagement survey. Either there is a rationale I am missing, or the claim needs rewording before it is tested by a client&rsquo;s counsel.'},
+  {q:'Any headcount in the EU, UK or Canada across the client base?',sev:'shapes',
+   why:'Changes retention, consent language, deletion rights and where the data can physically sit. Cheaper to know now than to retrofit.'},
+  {q:'How long are raw individual responses kept, and what gets deleted at the end of a cycle?',sev:'shapes',
+   why:'Cross-cycle comparison pushes toward keeping raw rows indefinitely. A tight retention policy pushes the other way. This has to be decided alongside the anonymity model, not after it.'}]},
+
+ {sec:'Commercial',note:'Who the product is actually for.',items:[
+  {q:'What does an implementer get today that a company buyer does not?',sev:'shapes',
+   why:'Determines whether the portfolio view is the product or a bonus. The whole console is built on the assumption that implementers are the channel.'},
+  {q:'Does the $8,000 coaching line compete with the implementers you want distributing this?',sev:'shapes',
+   why:'Classic channel conflict, and implementers talk to each other. If they see the coaching as poaching the client relationship, the partner path stays lukewarm no matter how good the software is.'}]}
+];
+
+function renderDiscovery(){
+  let n=0;
+  document.getElementById('d-list').innerHTML=DQ.map(sec=>`
+    <div class="dsec"><h2>${sec.sec}</h2><span>${sec.note}</span></div>
+    ${sec.items.map(it=>{
+      n++;
+      return `<div class="dq">
+        <div class="dq-h">
+          <div class="dq-n">${String(n).padStart(2,'0')}</div>
+          <div class="dq-q">${it.q}</div>
+          <div class="sev ${it.sev}">${it.sev==='blocker'?'Blocks build':'Shapes build'}</div>
+        </div>
+        <div class="dq-b">
+          <p class="dq-why">${it.why}</p>
+          <textarea class="dq-note" rows="1" data-q="${it.q.replace(/"/g,'&quot;')}"
+            placeholder="His answer…"></textarea>
+        </div>
+      </div>`;
+    }).join('')}`).join('');
+
+  const notes=()=>[...document.querySelectorAll('.dq-note')];
+  function stat(){
+    const done=notes().filter(t=>t.value.trim()).length;
+    document.getElementById('d-stat').textContent=`${done} of ${notes().length} answered`;
+  }
+  notes().forEach(t=>{
+    t.addEventListener('input',()=>{
+      t.style.height='auto'; t.style.height=t.scrollHeight+'px'; stat();
+    });
+  });
+  stat();
+
+  document.getElementById('d-copy').onclick=()=>{
+    const out=DQ.map(sec=>{
+      const body=sec.items.map(it=>{
+        const el=notes().find(t=>t.dataset.q===it.q);
+        const a=el&&el.value.trim()?el.value.trim():'—';
+        return `Q: ${it.q}\nA: ${a}`;
+      }).join('\n\n');
+      return `## ${sec.sec}\n\n${body}`;
+    }).join('\n\n');
+    const txt=`7CN — collection layer discovery\n\n${out}\n`;
+    navigator.clipboard.writeText(txt).then(
+      ()=>{document.getElementById('d-stat').textContent='Copied to clipboard.'},
+      ()=>{document.getElementById('d-stat').textContent='Copy blocked — select and copy manually.'}
+    );
+  };
+  document.getElementById('d-clear').onclick=()=>{
+    notes().forEach(t=>{t.value='';t.style.height='auto'}); stat();
+  };
+}
 
 /* ============================================================
    Sign-in gate
