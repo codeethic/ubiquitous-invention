@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laith Marjan — Placekicker</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzA3MUYyNCIvPgogIDxwYXRoIGQ9Ik01IDI1LjUgQyAxMSA4LjUsIDIyIDYuNSwgMjguNSAxMy41IiBmaWxsPSJub25lIiBzdHJva2U9IiNFOUEzM0EiIHN0cm9rZS13aWR0aD0iMy4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICA8Y2lyY2xlIGN4PSI1IiBjeT0iMjUuNSIgcj0iMi42IiBmaWxsPSIjRTlBMzNBIi8+Cjwvc3ZnPgo=">
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,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">
+<meta name="theme-color" content="#071F24">
+<meta name="description" content="Laith Marjan, placekicker. 30 of 34 on career field goals, 40 of 40 on extra points at Kansas, career long 55. Free agent, available for workouts.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@400;600;800&family=Spline+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#071F24;
+    --ink-2:#0C3038;
+    --ink-3:#134048;
+    --paper:#E7EEEB;
+    --paper-dim:rgba(231,238,235,.62);
+    --paper-faint:rgba(231,238,235,.28);
+    --saffron:#E9A33A;
+    --clay:#C1553A;
+    --rule:rgba(231,238,235,.16);
+
+    --display:"Big Shoulders Display","Haettenschweiler","Arial Narrow",sans-serif;
+    --body:"Spline Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+
+    --gut:clamp(20px,5vw,72px);
+    --stack:clamp(64px,9vw,132px);
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--body);
+    font-size:clamp(15px,1.05vw,17px);
+    line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 var(--gut)}
+
+  a{color:inherit}
+
+  :focus-visible{outline:2px solid var(--saffron);outline-offset:3px;border-radius:2px}
+
+  /* ---------- shared type ---------- */
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--saffron);
+    margin:0 0 18px;
+  }
+  .eyebrow--quiet{color:var(--paper-dim)}
+
+  h2.head{
+    font-family:var(--display);
+    font-weight:800;
+    font-size:clamp(38px,6vw,74px);
+    line-height:.94;
+    letter-spacing:-.005em;
+    text-transform:uppercase;
+    margin:0 0 28px;
+  }
+
+  p.lede{
+    font-size:clamp(17px,1.6vw,21px);
+    line-height:1.5;
+    color:var(--paper);
+    max-width:62ch;
+    margin:0 0 22px;
+  }
+
+  p{color:var(--paper-dim);max-width:64ch}
+  p strong{color:var(--paper);font-weight:600}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:60;
+    background:rgba(7,31,36,.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--rule);
+  }
+  .topbar__inner{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:20px;padding:13px 0;
+  }
+  .mark{
+    font-family:var(--display);font-weight:800;text-transform:uppercase;
+    font-size:20px;letter-spacing:.02em;text-decoration:none;line-height:1;
+  }
+  .mark span{color:var(--saffron)}
+  .navlinks{display:flex;gap:26px;align-items:center}
+  .navlinks a{
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;text-decoration:none;color:var(--paper-dim);
+    transition:color .18s ease;
+  }
+  .navlinks a:hover{color:var(--saffron)}
+  @media (max-width:720px){.navlinks a:not(.navlinks a:last-child){display:none}}
+
+  /* ---------- hero ---------- */
+  .hero{padding:clamp(48px,7vw,86px) 0 clamp(30px,4vw,52px)}
+
+  .status{
+    display:inline-flex;align-items:center;gap:9px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--paper);
+    border:1px solid var(--rule);border-radius:999px;
+    padding:7px 15px 7px 12px;margin-bottom:26px;
+  }
+  .dot{
+    width:7px;height:7px;border-radius:50%;background:var(--saffron);
+    box-shadow:0 0 0 0 rgba(233,163,58,.55);
+    animation:pulse 2.6s ease-out infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(233,163,58,.5)}
+    70%{box-shadow:0 0 0 9px rgba(233,163,58,0)}
+    100%{box-shadow:0 0 0 0 rgba(233,163,58,0)}
+  }
+  @media (prefers-reduced-motion:reduce){.dot{animation:none}}
+
+  .hero__name{
+    font-family:var(--display);font-weight:800;
+    font-size:clamp(62px,15.5vw,190px);
+    line-height:.82;letter-spacing:-.015em;text-transform:uppercase;
+    margin:0 0 22px;
+  }
+  .hero__name .sur{display:block;color:var(--saffron)}
+
+  .hero__meta{
+    display:flex;flex-wrap:wrap;gap:10px 26px;align-items:baseline;
+    font-family:var(--mono);font-size:12px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--paper-dim);
+    border-top:1px solid var(--rule);padding-top:18px;
+  }
+  .hero__meta b{color:var(--paper);font-weight:500}
+
+  /* ---------- trajectory (signature) ---------- */
+  .traj{padding:clamp(10px,2vw,26px) 0 var(--stack)}
+  .traj__frame{
+    border:1px solid var(--rule);
+    background:linear-gradient(180deg,var(--ink-2) 0%,var(--ink) 100%);
+    padding:clamp(16px,2.6vw,30px);
+  }
+  .traj__cap{
+    display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--paper-dim);margin-bottom:14px;
+  }
+  .traj svg{display:block;width:100%;height:auto}
+
+  .arc{
+    fill:none;stroke:var(--saffron);stroke-width:3;stroke-linecap:round;
+    stroke-dasharray:1400;stroke-dashoffset:1400;
+    animation:draw 2.1s cubic-bezier(.32,.7,.3,1) .35s forwards;
+  }
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .ball{opacity:0;animation:pop .5s ease .95s forwards}
+  @keyframes pop{to{opacity:1}}
+  @media (prefers-reduced-motion:reduce){
+    .arc{animation:none;stroke-dashoffset:0}
+    .ball{animation:none;opacity:1}
+  }
+  .axis{stroke:var(--rule);stroke-width:1}
+  .tick{stroke:var(--paper-faint);stroke-width:1}
+  .tick--key{stroke:var(--saffron);stroke-width:2}
+  .ticklab{font-family:var(--mono);font-size:13px;fill:var(--paper-faint)}
+  .ticklab--key{fill:var(--saffron)}
+  .post{stroke:var(--paper-dim);stroke-width:2.5;fill:none}
+  .longlab{font-family:var(--display);font-weight:800;font-size:44px;fill:var(--saffron)}
+  .longsub{font-family:var(--mono);font-size:12px;letter-spacing:.14em;fill:var(--paper-dim)}
+
+  /* ---------- ledger ---------- */
+  .sec{padding:var(--stack) 0;border-top:1px solid var(--rule)}
+
+  .ledger{width:100%;border-collapse:collapse;margin-top:8px}
+  .ledger caption{text-align:left;color:var(--paper-dim);font-size:14px;padding-bottom:16px}
+  .ledger th,.ledger td{
+    text-align:left;padding:15px 14px 15px 0;
+    border-bottom:1px solid var(--rule);vertical-align:baseline;
+  }
+  .ledger thead th{
+    font-family:var(--mono);font-size:10px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--paper-dim);font-weight:400;
+    padding-bottom:10px;
+  }
+  .ledger tbody th{
+    font-family:var(--body);font-weight:600;color:var(--paper);font-size:15px;
+  }
+  .ledger tbody th small{
+    display:block;font-family:var(--mono);font-weight:400;font-size:11px;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--paper-faint);margin-top:3px;
+  }
+  .ledger td{font-family:var(--mono);font-size:15px;color:var(--paper-dim)}
+  .ledger td b{color:var(--paper);font-weight:500}
+  .ledger tr.total th,.ledger tr.total td{border-bottom:none;padding-top:20px}
+  .ledger tr.total th{color:var(--saffron)}
+  .ledger tr.total td b{color:var(--saffron)}
+  .fnote{font-family:var(--mono);font-size:11px;color:var(--paper-faint);margin-top:18px;letter-spacing:.04em}
+
+  @media (max-width:640px){
+    .ledger thead{position:absolute;left:-9999px}
+    .ledger tr{display:block;border-bottom:1px solid var(--rule);padding:16px 0}
+    .ledger tbody th,.ledger td{display:block;border:none;padding:0 0 6px}
+    .ledger td::before{
+      content:attr(data-l) " ";
+      font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--paper-faint);
+    }
+    .ledger tbody th{padding-bottom:10px}
+  }
+
+  /* ---------- story ---------- */
+  .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:clamp(28px,5vw,72px)}
+  @media (max-width:880px){.two{grid-template-columns:1fr}}
+  .two__aside{position:relative}
+  .sticky{position:sticky;top:96px}
+
+  .beat{border-left:2px solid var(--rule);padding:0 0 30px 24px;position:relative}
+  .beat:last-child{padding-bottom:0}
+  .beat::before{
+    content:"";position:absolute;left:-5px;top:9px;
+    width:8px;height:8px;background:var(--ink);border:2px solid var(--saffron);border-radius:50%;
+  }
+  .beat__yr{
+    font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+    color:var(--saffron);text-transform:uppercase;display:block;margin-bottom:5px;
+  }
+  .beat__t{font-weight:600;color:var(--paper);margin:0 0 5px;font-size:16px}
+  .beat p{margin:0;font-size:15px}
+
+  /* ---------- specs ---------- */
+  .specs{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));
+    gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:8px;
+  }
+  .spec{background:var(--ink);padding:22px 20px}
+  .spec dt{
+    font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--paper-faint);margin-bottom:9px;
+  }
+  .spec dd{
+    margin:0;font-family:var(--display);font-weight:600;font-size:32px;
+    line-height:1;color:var(--paper);
+  }
+  .spec dd em{font-style:normal;font-size:15px;font-family:var(--mono);color:var(--paper-dim)}
+  .spec .tag{
+    display:inline-block;margin-left:6px;padding:2px 6px;
+    border:1px solid rgba(233,163,58,.4);color:var(--saffron);
+    font-size:9px;letter-spacing:.12em;
+  }
+
+  /* ---------- brand cards ---------- */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:clamp(16px,2.4vw,26px);margin-top:10px}
+  .card{border:1px solid var(--rule);padding:clamp(22px,3vw,32px);background:var(--ink-2)}
+  .card h3{
+    font-family:var(--display);font-weight:600;text-transform:uppercase;
+    font-size:26px;line-height:1;margin:0 0 12px;letter-spacing:.01em;
+  }
+  .card p{margin:0;font-size:15px}
+  .card__n{
+    font-family:var(--mono);font-size:11px;color:var(--saffron);
+    letter-spacing:.16em;display:block;margin-bottom:16px;
+  }
+
+  /* ---------- pull ---------- */
+  .pull{
+    border-left:3px solid var(--saffron);padding:6px 0 6px clamp(18px,3vw,32px);
+    margin:clamp(30px,5vw,54px) 0;max-width:none;
+  }
+  .pull p{
+    font-family:var(--display);font-weight:400;
+    font-size:clamp(24px,3.6vw,44px);line-height:1.06;
+    color:var(--paper);text-transform:uppercase;margin:0;max-width:22ch;
+  }
+  .pull span{color:var(--saffron)}
+
+  /* ---------- contact ---------- */
+  .contact{background:var(--paper);color:var(--ink);padding:var(--stack) 0}
+  .contact h2.head{color:var(--ink)}
+  .contact .eyebrow{color:var(--clay)}
+  .contact p{color:rgba(7,31,36,.72)}
+  .contact p strong{color:var(--ink)}
+
+  .ctas{display:flex;flex-wrap:wrap;gap:14px;margin-top:34px}
+  .btn{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    text-decoration:none;padding:16px 26px;border:1px solid var(--ink);
+    transition:background .18s ease,color .18s ease,transform .18s ease;
+  }
+  .btn--solid{background:var(--ink);color:var(--paper)}
+  .btn--solid:hover{background:var(--clay);border-color:var(--clay);transform:translateY(-2px)}
+  .btn--ghost{color:var(--ink)}
+  .btn--ghost:hover{background:var(--ink);color:var(--paper);transform:translateY(-2px)}
+  @media (prefers-reduced-motion:reduce){.btn:hover{transform:none}}
+
+  .repline{
+    margin-top:40px;padding-top:24px;border-top:1px solid rgba(7,31,36,.16);
+    font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(7,31,36,.62);
+  }
+  .repline b{color:var(--ink);font-weight:500}
+
+  /* ---------- footer ---------- */
+  footer{padding:44px 0;border-top:1px solid var(--rule)}
+  .foot{
+    display:flex;flex-wrap:wrap;gap:16px 30px;justify-content:space-between;align-items:center;
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--paper-faint);
+  }
+  .foot a{color:var(--paper-dim);text-decoration:none;transition:color .18s ease}
+  .foot a:hover{color:var(--saffron)}
+  .foot ul{display:flex;gap:22px;list-style:none;margin:0;padding:0;flex-wrap:wrap}
+
+  .skip{
+    position:absolute;left:-9999px;top:0;background:var(--saffron);color:var(--ink);
+    padding:10px 16px;font-family:var(--mono);font-size:12px;z-index:100;
+  }
+  .skip:focus{left:12px;top:12px}
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap topbar__inner">
+    <a class="mark" href="#top">Laith <span>Marjan</span></a>
+    <nav class="navlinks" aria-label="Sections">
+      <a href="#numbers">Numbers</a>
+      <a href="#path">Path</a>
+      <a href="#measurables">Measurables</a>
+      <a href="#partners">Partners</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero" id="top">
+    <div class="wrap">
+      <p class="status"><span class="dot" aria-hidden="true"></span> Free agent — available for workouts</p>
+      <h1 class="hero__name">Laith<span class="sur">Marjan</span></h1>
+      <div class="hero__meta">
+        <span>Placekicker</span>
+        <span><b>6&#8242;2&#8243;</b> · <b>215 lb</b></span>
+        <span>Raleigh, <b>North Carolina</b></span>
+        <span>East Carolina · South Alabama · <b>Kansas</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIGNATURE: trajectory -->
+  <section class="traj" aria-labelledby="rangehead">
+    <div class="wrap">
+      <div class="traj__frame">
+        <div class="traj__cap">
+          <span id="rangehead">Field goal range — career long</span>
+          <span>Kansas, 2025 season</span>
+        </div>
+
+        <svg viewBox="0 0 1000 400" role="img" aria-labelledby="rangetitle rangedesc">
+          <title id="rangetitle">Field goal trajectory to 55 yards</title>
+          <desc id="rangedesc">A ball flight arc rising from the tee and clearing the crossbar at the 55-yard mark, plotted against a distance scale from 20 to 60 yards.</desc>
+
+          <!-- ground -->
+          <line class="axis" x1="20" y1="330" x2="980" y2="330"/>
+
+          <!-- ticks -->
+          <g>
+            <line class="tick" x1="353" y1="330" x2="353" y2="348"/><text class="ticklab" x="353" y="372" text-anchor="middle">20</text>
+            <line class="tick" x1="500" y1="330" x2="500" y2="348"/><text class="ticklab" x="500" y="372" text-anchor="middle">30</text>
+            <line class="tick" x1="646" y1="330" x2="646" y2="348"/><text class="ticklab" x="646" y="372" text-anchor="middle">40</text>
+            <line class="tick" x1="793" y1="330" x2="793" y2="348"/><text class="ticklab" x="793" y="372" text-anchor="middle">50</text>
+            <line class="tick tick--key" x1="866" y1="330" x2="866" y2="352"/><text class="ticklab ticklab--key" x="866" y="376" text-anchor="middle">55</text>
+            <line class="tick" x1="940" y1="330" x2="940" y2="348"/><text class="ticklab" x="940" y="372" text-anchor="middle">60</text>
+          </g>
+
+          <!-- uprights at 55 -->
+          <path class="post" d="M866 330 L866 250 M812 250 L920 250 M812 250 L812 120 M920 250 L920 120"/>
+
+          <!-- flight -->
+          <path class="arc" d="M60 330 C 300 40, 640 26, 980 168"/>
+          <circle class="ball" cx="980" cy="168" r="7" fill="#E9A33A"/>
+
+          <!-- label -->
+          <text class="longlab" x="60" y="118">55 YARDS</text>
+          <text class="longsub" x="62" y="146">LONGEST MADE · 2025</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- NUMBERS -->
+  <section class="sec" id="numbers">
+    <div class="wrap">
+      <p class="eyebrow">01 — The record</p>
+      <h2 class="head">Two years as a starter.<br>Thirty makes.</h2>
+      <p class="lede">Marjan spent his first three college seasons handling kickoffs without a single field goal attempt. When he finally got the job, he converted at a rate that put him on the Lou Groza Award watch list two years running.</p>
+
+      <table class="ledger">
+        <caption>College field goal and extra point record</caption>
+        <thead>
+          <tr>
+            <th scope="col">Season</th>
+            <th scope="col">Field goals</th>
+            <th scope="col">Pct</th>
+            <th scope="col">Extra points</th>
+            <th scope="col">Long</th>
+            <th scope="col">Honors</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">2022–23 <small>East Carolina</small></th>
+            <td data-l="Field goals">Kickoff specialist</td>
+            <td data-l="Pct">—</td>
+            <td data-l="Extra points">—</td>
+            <td data-l="Long">—</td>
+            <td data-l="Honors">17 games played</td>
+          </tr>
+          <tr>
+            <th scope="row">2024 <small>South Alabama</small></th>
+            <td data-l="Field goals"><b>16 / 17</b></td>
+            <td data-l="Pct">94.1</td>
+            <td data-l="Extra points">—</td>
+            <td data-l="Long">49</td>
+            <td data-l="Honors">Second-team All-Sun Belt</td>
+          </tr>
+          <tr>
+            <th scope="row">2025 <small>Kansas</small></th>
+            <td data-l="Field goals"><b>14 / 17</b></td>
+            <td data-l="Pct">82.4</td>
+            <td data-l="Extra points"><b>40 / 40</b></td>
+            <td data-l="Long">55</td>
+            <td data-l="Honors">Third-team All-Big 12 · Groza semifinalist</td>
+          </tr>
+          <tr class="total">
+            <th scope="row">Career <small>as a starter</small></th>
+            <td data-l="Field goals"><b>30 / 34</b></td>
+            <td data-l="Pct"><b>88.2</b></td>
+            <td data-l="Extra points"><b>40 / 40</b></td>
+            <td data-l="Long"><b>55</b></td>
+            <td data-l="Honors">Two-time all-conference</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="fnote">Extra-point totals listed where confirmed by conference records. Career line covers 2024–25 starting seasons.</p>
+
+      <div class="pull">
+        <p>Forty extra points. <span>Forty makes.</span> A full Big&nbsp;12 season without a miss.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PATH -->
+  <section class="sec" id="path">
+    <div class="wrap two">
+      <div class="two__aside">
+        <div class="sticky">
+          <p class="eyebrow">02 — The path</p>
+          <h2 class="head">Cut from soccer.<br>Kicked anyway.</h2>
+          <p>Marjan grew up in Raleigh playing club soccer at a high level and expected to keep going. He was cut from his high school team — by his own account, over a mix-up about what position he played. He joined the football team the following week.</p>
+          <p>What followed was not a straight line. Three schools, three years of waiting behind other kickers, and then two seasons that made him one of the more accurate kickers in college football.</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="beat">
+          <span class="beat__yr">2021–2023 · East Carolina</span>
+          <h3 class="beat__t">Three years, no attempts</h3>
+          <p>Redshirted as a freshman, then appeared in 17 games as the Pirates' kickoff specialist. Never attempted a field goal. Entered the transfer portal looking for a job to compete for.</p>
+        </div>
+        <div class="beat">
+          <span class="beat__yr">2024 · South Alabama</span>
+          <h3 class="beat__t">16 of 17</h3>
+          <p>Won the starting job and missed once all year. Named second-team All-Sun Belt in his first season as a placekicker — and immediately became one of the most sought-after kickers in the portal.</p>
+        </div>
+        <div class="beat">
+          <span class="beat__yr">2025 · Kansas</span>
+          <h3 class="beat__t">The Big 12 test</h3>
+          <p>Beat out the field for the Jayhawks' starting job, went 14 of 17 with a career-long 55, and did not miss a single extra point in 40 tries. Third-team All-Big 12 and a Lou Groza Award semifinalist.</p>
+        </div>
+        <div class="beat">
+          <span class="beat__yr">2026 · Pittsburgh</span>
+          <h3 class="beat__t">First NFL camp</h3>
+          <p>Signed with the Steelers as an undrafted free agent and competed through training camp behind an established veteran. Handled all kicking duties in the second preseason game. Waived on August 23.</p>
+        </div>
+        <div class="beat">
+          <span class="beat__yr">Now</span>
+          <h3 class="beat__t">Free agent</h3>
+          <p><strong>Healthy, in season shape, and available for workouts immediately.</strong> Full camp and preseason tape available on request.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEASURABLES -->
+  <section class="sec" id="measurables">
+    <div class="wrap">
+      <p class="eyebrow">03 — Measurables</p>
+      <h2 class="head">The frame</h2>
+      <p class="lede">Verified frame measurements, with playing weight as of today. A tall, long-levered kicker with the wingspan of someone four inches taller — now carrying ten more pounds of it than he did at his pro day.</p>
+      <dl class="specs">
+        <div class="spec"><dt>Height</dt><dd>6&#8242;2&#8539;&#8243;</dd></div>
+        <div class="spec"><dt>Weight <span class="tag">current</span></dt><dd>215 <em>lb</em></dd></div>
+        <div class="spec"><dt>Wingspan</dt><dd>6&#8242;5&#8541;&#8243;</dd></div>
+        <div class="spec"><dt>Arm length</dt><dd>31&#189;&#8243;</dd></div>
+        <div class="spec"><dt>Hand span</dt><dd>9&#8541;&#8243;</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- PARTNERS -->
+  <section class="sec" id="partners">
+    <div class="wrap">
+      <p class="eyebrow">04 — Off the field</p>
+      <h2 class="head">More than a leg</h2>
+      <p class="lede">Kickers get one line in a box score. There is a longer story here — and it is the part that travels beyond football.</p>
+
+      <div class="cards">
+        <div class="card">
+          <span class="card__n">MBA</span>
+          <h3>He speaks business</h3>
+          <p>Marjan holds an MBA. For a brand partner, that means a collaborator who can read a term sheet, understand a campaign brief, and hold his own in a room with marketing leadership — not just show up for a photo shoot.</p>
+        </div>
+        <div class="card">
+          <span class="card__n">ROOTS</span>
+          <h3>Arab American</h3>
+          <p>Marjan is Arab American; his father was born in Kuwait. His first name means "lion" in Arabic. He represents a community that is rarely visible on an NFL sideline, and he carries that with him.</p>
+        </div>
+        <div class="card">
+          <span class="card__n">STORY</span>
+          <h3>The long way around</h3>
+          <p>Cut from a soccer team, three years without an attempt, three schools, undrafted. The persistence story is real, specific, and earned — which makes it useful for youth camps, clinics, and speaking.</p>
+        </div>
+        <div class="card">
+          <span class="card__n">HOME</span>
+          <h3>Raleigh made</h3>
+          <p>A North Carolina kid with real ties to the Triangle. Strong fit for regional brands, local businesses, and youth football programs looking for a hometown name with national credentials.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact" id="contact">
+    <div class="wrap">
+      <p class="eyebrow">05 — Get in touch</p>
+      <h2 class="head">Workouts, camps,<br>and partnerships</h2>
+      <p class="lede">Available for team workouts and tryouts on short notice. Also booking brand partnerships, youth kicking clinics, and speaking engagements.</p>
+      <p>Film, full statistical history, medical records, and references from three coaching staffs are available on request. Travel is not a constraint.</p>
+
+      <div class="ctas">
+        <a class="btn btn--solid" href="mailto:hello@example.com?subject=Laith%20Marjan%20—%20inquiry">Email inquiry</a>
+        <a class="btn btn--ghost" href="https://www.linkedin.com/in/laith-marjan-mba-26a028262/" target="_blank" rel="noopener">LinkedIn</a>
+        <a class="btn btn--ghost" href="#top">Request film</a>
+      </div>
+
+      <p class="repline"><b>Representation:</b> add agent name, agency, and phone here · <b>Media:</b> add contact here</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span>Laith Marjan · Placekicker · Raleigh, NC</span>
+    <ul>
+      <li><a href="#numbers">Numbers</a></li>
+      <li><a href="#path">Path</a></li>
+      <li><a href="#partners">Partners</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <span>Updated August 2026</span>
+  </div>
+</footer>
+
+</body>
+</html>
