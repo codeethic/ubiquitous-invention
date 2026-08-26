@@ -1,0 +1,1051 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>7CN Implementer Console — Prototype</title>
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="%23FFB020"/><path d="M7 6H25V10L18 27H11.5L18.5 11H7Z" fill="%230B1012"/></svg>'>
+<link rel="apple-touch-icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="%23FFB020"/><path d="M7 6H25V10L18 27H11.5L18.5 11H7Z" fill="%230B1012"/></svg>'>
+<meta name="theme-color" content="#0B1012">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;500;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@1,6..72,300;1,6..72,500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --slate:#131A1C; --deep:#0B1012; --rise:#1B2427; --rise2:#222D31;
+  --line:#2C3A3E; --line-soft:#212C2F;
+  --manila:#E6DECB; --manila-dim:#C6BCA3; --manila-deep:#B3A88C;
+  --chalk:#F2F0EA; --mute:#8FA0A4; --mute2:#65787D;
+  --amber:#FFB020; --amber-dim:#B87C15;
+  --neg:#C8452E; --neu:#8A8578; --pos:#2E8B6F;
+  --display:'Oswald',Impact,'Haettenschweiler','Arial Narrow',sans-serif;
+  --body:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  --emph:'Newsreader',Georgia,serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--deep); color:var(--chalk); font-family:var(--body);
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+em,.em{font-family:var(--emph);font-style:italic;font-weight:300}
+button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.eyebrow{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--mute2)
+}
+.num{font-family:var(--display);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ---------- top rail ---------- */
+.rail{
+  position:sticky;top:0;z-index:40;background:var(--slate);
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:stretch;gap:0;
+}
+.rail-brand{display:flex;align-items:center;gap:14px;padding:0 22px;border-right:1px solid var(--line)}
+.mark{
+  font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:.02em;
+  color:var(--deep);background:var(--amber);padding:3px 9px 2px;line-height:1.15;
+}
+.rail-brand span{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.tabs{display:flex}
+.tab{
+  padding:19px 24px 17px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--mute);border-bottom:2px solid transparent;
+  border-right:1px solid var(--line-soft);transition:color .15s,background .15s;
+}
+.tab:hover{color:var(--chalk);background:var(--rise)}
+.tab[aria-selected="true"]{color:var(--amber);border-bottom-color:var(--amber);background:var(--rise)}
+.rail-end{margin-left:auto;display:flex;align-items:center;gap:12px;padding:0 22px;border-left:1px solid var(--line)}
+.coach{display:flex;align-items:center;gap:10px}
+.coach-badge{
+  width:30px;height:30px;border-radius:50%;background:var(--rise2);border:1px solid var(--line);
+  display:grid;place-items:center;font-family:var(--display);font-size:12px;color:var(--manila-dim)
+}
+.coach-name{font-size:13px;font-weight:500;line-height:1.15}
+.coach-role{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute2)}
+
+/* ---------- shell ---------- */
+.view{display:none;animation:fade .35s ease both}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.wrap{max-width:1240px;margin:0 auto;padding:38px 28px 90px}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:26px}
+h1{font-family:var(--display);font-weight:500;font-size:33px;letter-spacing:.01em;margin:6px 0 0;text-transform:uppercase}
+h2{font-family:var(--display);font-weight:500;font-size:19px;letter-spacing:.05em;text-transform:uppercase;margin:0}
+.sub{color:var(--mute);font-size:13.5px;margin:7px 0 0;max-width:62ch}
+
+/* ---------- book strip ---------- */
+.book{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  background:var(--slate);border:1px solid var(--line);margin-bottom:30px
+}
+.book-cell{padding:17px 20px;border-right:1px solid var(--line-soft)}
+.book-cell:last-child{border-right:0}
+.book-cell .v{font-family:var(--display);font-weight:700;font-size:31px;line-height:1.05;margin-top:5px}
+.book-cell .v small{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--mute2);margin-left:4px}
+.v.amber{color:var(--amber)} .v.neg{color:var(--neg)} .v.pos{color:var(--pos)}
+
+/* ---------- client cards ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+.card{
+  background:var(--slate);border:1px solid var(--line);padding:19px 20px 17px;
+  text-align:left;width:100%;display:block;transition:border-color .16s,transform .16s,background .16s;
+}
+.card:hover{border-color:var(--amber-dim);transform:translateY(-2px);background:var(--rise)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.card-name{font-family:var(--display);font-weight:500;font-size:17px;letter-spacing:.03em;text-transform:uppercase;line-height:1.2}
+.card-meta{font-family:var(--mono);font-size:10.5px;color:var(--mute2);margin-top:5px;letter-spacing:.04em}
+.card-idx{text-align:right;flex-shrink:0}
+.card-idx .n{font-family:var(--display);font-weight:700;font-size:40px;line-height:.9;color:var(--amber)}
+.card-idx .n.low{color:var(--neg)} .card-idx .n.high{color:var(--pos)}
+.delta{font-family:var(--mono);font-size:11px;margin-top:5px;letter-spacing:.03em}
+.delta.up{color:var(--pos)} .delta.down{color:var(--neg)} .delta.flat{color:var(--mute2)}
+.strip{display:flex;height:9px;margin:16px 0 9px;background:var(--rise2);overflow:hidden}
+.strip i{display:block;height:100%;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.strip-key{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--mute2)}
+.flag{
+  margin-top:13px;padding-top:11px;border-top:1px solid var(--line-soft);
+  font-size:12px;color:var(--manila-dim);display:flex;gap:8px;align-items:baseline
+}
+.flag b{color:var(--amber);font-weight:600}
+
+/* ---------- panels ---------- */
+.panel{background:var(--slate);border:1px solid var(--line);margin-bottom:14px}
+.panel-head{
+  display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:15px 20px;border-bottom:1px solid var(--line-soft)
+}
+.panel-body{padding:20px}
+.note{font-size:12.5px;color:var(--mute);line-height:1.55}
+.note b{color:var(--manila-dim);font-weight:600}
+
+/* ---------- client hero ---------- */
+.hero{display:grid;grid-template-columns:264px 1fr;gap:14px;margin-bottom:14px}
+.score{
+  background:var(--slate);border:1px solid var(--line);padding:22px 22px 18px;
+  display:flex;flex-direction:column;justify-content:space-between
+}
+.score-n{font-family:var(--display);font-weight:700;font-size:104px;line-height:.82;color:var(--amber);letter-spacing:-.03em}
+.score-n.low{color:var(--neg)} .score-n.high{color:var(--pos)}
+.gauge{height:6px;background:var(--rise2);position:relative;margin:20px 0 9px}
+.gauge i{display:block;height:100%;background:var(--amber);transition:width .6s cubic-bezier(.4,0,.2,1)}
+.gauge .tick{position:absolute;top:-5px;bottom:-5px;left:80%;width:2px;background:var(--chalk)}
+.gauge-lab{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--mute2)}
+
+/* ---------- controls ---------- */
+.seg{display:flex;border:1px solid var(--line);background:var(--deep)}
+.seg button{
+  padding:7px 13px;font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--mute);border-right:1px solid var(--line-soft)
+}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--amber);color:var(--deep);font-weight:500}
+.ctl-row{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.ctl{display:flex;flex-direction:column;gap:6px}
+select{
+  background:var(--deep);color:var(--chalk);border:1px solid var(--line);
+  padding:7px 10px;font-family:var(--mono);font-size:11.5px
+}
+
+/* ---------- trigger map ---------- */
+.trig{display:flex;flex-direction:column;gap:2px}
+.trig-row{display:grid;grid-template-columns:132px 1fr 46px;gap:14px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line-soft)}
+.trig-row:last-child{border-bottom:0}
+.trig-name{font-family:var(--display);font-weight:500;font-size:14px;letter-spacing:.05em;text-transform:uppercase}
+.trig-bar{height:15px;background:var(--rise2);position:relative}
+.trig-bar i{display:block;height:100%;background:var(--neg);transition:width .5s ease}
+.trig-bar.dim i{background:var(--rise2);border-right:2px solid var(--line)}
+.trig-pct{font-family:var(--mono);font-size:12px;text-align:right;color:var(--manila-dim)}
+.rx{margin-top:18px;padding:16px 18px;background:var(--deep);border-left:3px solid var(--amber)}
+.rx-h{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin-bottom:9px}
+.rx p{margin:0 0 11px;font-size:13.5px;line-height:1.6;color:var(--manila-dim)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{
+  font-family:var(--mono);font-size:10.5px;padding:4px 9px;background:var(--rise2);
+  border:1px solid var(--line);color:var(--manila-dim);letter-spacing:.03em
+}
+
+/* ---------- dept grid ---------- */
+.dept{width:100%;border-collapse:collapse;font-size:12px}
+.dept th{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--mute2);font-weight:400;padding:0 4px 10px;text-align:center;vertical-align:bottom
+}
+.dept th.lead{text-align:left;width:150px;padding-left:0}
+.dept td{padding:3px 2px;text-align:center}
+.dept td.lead{
+  text-align:left;font-family:var(--body);font-size:12.5px;color:var(--manila-dim);
+  padding-left:0;white-space:nowrap
+}
+.dept td.lead small{font-family:var(--mono);font-size:10px;color:var(--mute2);margin-left:6px}
+.cell{
+  height:34px;display:grid;place-items:center;font-family:var(--mono);
+  font-size:12px;font-weight:500;color:var(--deep)
+}
+.cell.lock{background:repeating-linear-gradient(45deg,var(--rise),var(--rise) 5px,var(--slate) 5px,var(--slate) 10px);color:var(--mute2);font-size:14px}
+
+/* ---------- flow ---------- */
+.flow-legend{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;color:var(--mute2);margin-top:14px}
+.flow-legend span{display:flex;align-items:center;gap:6px}
+.dot{width:9px;height:9px;flex-shrink:0}
+
+/* ---------- action plan ---------- */
+.act{border:1px solid var(--line);margin-bottom:9px;background:var(--deep)}
+.act-h{display:flex;gap:12px;align-items:baseline;padding:13px 16px 11px}
+.act-n{font-family:var(--display);font-weight:700;font-size:15px;color:var(--amber);flex-shrink:0}
+.act-t{font-size:14px;font-weight:500;line-height:1.4}
+.act-b{padding:0 16px 14px 40px}
+.act-b p{margin:0 0 12px;font-size:12.5px;color:var(--mute);line-height:1.6}
+.act-f{display:flex;gap:10px;flex-wrap:wrap}
+.act-f input{
+  background:var(--slate);border:1px solid var(--line);color:var(--chalk);
+  padding:6px 10px;font-family:var(--mono);font-size:11.5px
+}
+.act-f input::placeholder{color:var(--mute2)}
+
+/* ---------- focus day ---------- */
+#focus .wrap{max-width:1140px;padding-top:30px}
+.fd-stage{background:var(--slate);border:1px solid var(--line);padding:32px 34px 26px;margin-bottom:14px}
+.fd-title{font-family:var(--display);font-weight:300;font-size:44px;letter-spacing:.02em;text-transform:uppercase;line-height:1.05;margin:10px 0 6px}
+.fd-title b{font-weight:700;color:var(--amber)}
+.fd-q{font-family:var(--emph);font-style:italic;font-weight:300;font-size:25px;color:var(--manila);line-height:1.35;margin:0 0 4px}
+.fd-steps{display:flex;gap:0;border:1px solid var(--line);margin-bottom:14px;background:var(--slate);flex-wrap:wrap}
+.fd-step{
+  flex:1;min-width:170px;padding:14px 18px;text-align:left;border-right:1px solid var(--line-soft);
+  transition:background .15s
+}
+.fd-step:last-child{border-right:0}
+.fd-step:hover{background:var(--rise)}
+.fd-step[aria-pressed="true"]{background:var(--rise);box-shadow:inset 0 2px 0 var(--amber)}
+.fd-step .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--mute2)}
+.fd-step .t{font-family:var(--display);font-weight:500;font-size:14px;letter-spacing:.05em;text-transform:uppercase;margin-top:5px}
+.fd-step[aria-pressed="true"] .t{color:var(--amber)}
+.fd-grid{display:grid;grid-template-columns:1fr 292px;gap:14px}
+.fd-panel{background:var(--slate);border:1px solid var(--line);padding:22px}
+.slider{width:100%;margin:16px 0 4px;accent-color:var(--amber)}
+.slider-lab{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--mute2)}
+.fd-idx{font-family:var(--display);font-weight:700;font-size:78px;line-height:.85;color:var(--amber);letter-spacing:-.02em}
+.fd-math{font-family:var(--mono);font-size:12px;color:var(--mute);margin-top:12px;line-height:1.8}
+.fd-math b{color:var(--chalk);font-weight:500}
+.guess{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.guess button{
+  padding:7px 10px;border:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--mute)
+}
+.guess button:hover{border-color:var(--amber-dim);color:var(--chalk)}
+.guess button[aria-pressed="true"]{background:var(--amber);color:var(--deep);border-color:var(--amber)}
+
+/* ---------- sign-in gate ---------- */
+.gate{
+  position:fixed;inset:0;z-index:100;background:var(--deep);
+  display:grid;place-items:center;padding:24px;
+}
+.gate.out{opacity:0;pointer-events:none;transition:opacity .4s ease}
+.gate-card{width:100%;max-width:372px}
+.gate-mark{
+  font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:.02em;
+  color:var(--deep);background:var(--amber);padding:4px 12px 3px;display:inline-block;line-height:1.15;
+}
+.gate-h{
+  font-family:var(--display);font-weight:500;font-size:31px;letter-spacing:.02em;
+  text-transform:uppercase;margin:22px 0 4px;line-height:1.1;
+}
+.gate-h b{color:var(--amber);font-weight:500}
+.gate-sub{font-size:13px;color:var(--mute);margin:0 0 26px;line-height:1.55}
+.gate-field{display:block;margin-bottom:14px}
+.gate-field span{
+  display:block;font-family:var(--mono);font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--mute2);margin-bottom:7px;
+}
+.gate-field input{
+  width:100%;background:var(--slate);border:1px solid var(--line);color:var(--chalk);
+  padding:11px 13px;font-family:var(--mono);font-size:13.5px;letter-spacing:.02em;
+}
+.gate-field input:focus{border-color:var(--amber);outline:none}
+.gate.err .gate-field input{border-color:var(--neg)}
+.gate-go{
+  width:100%;background:var(--amber);color:var(--deep);padding:12px;margin-top:8px;
+  font-family:var(--display);font-weight:500;font-size:15px;letter-spacing:.09em;text-transform:uppercase;
+  transition:background .15s;
+}
+.gate-go:hover{background:#FFC44D}
+.gate-msg{
+  font-family:var(--mono);font-size:11.5px;color:var(--neg);margin-top:13px;min-height:17px;
+  letter-spacing:.02em;
+}
+.gate-note{
+  margin-top:28px;padding-top:16px;border-top:1px solid var(--line-soft);
+  font-size:11.5px;color:var(--mute2);line-height:1.65;
+}
+.locked{overflow:hidden}
+
+/* ---------- misc ---------- */
+.back{
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mute);padding:6px 0;display:inline-flex;gap:8px;align-items:center
+}
+.back:hover{color:var(--amber)}
+.tag{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 8px;border:1px solid var(--line);color:var(--mute2)
+}
+.tag.warn{border-color:var(--neg);color:var(--neg)}
+.tag.ok{border-color:var(--pos);color:var(--pos)}
+footer{border-top:1px solid var(--line);padding:22px 28px 60px;max-width:1240px;margin:0 auto}
+footer p{font-size:11.5px;color:var(--mute2);line-height:1.7;margin:0 0 6px;max-width:78ch}
+.spec{
+  background:var(--deep);border:1px dashed var(--amber-dim);padding:13px 16px;margin-top:14px;
+}
+.spec .h{font-family:var(--mono);font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--amber);margin-bottom:7px}
+.spec p{margin:0;font-size:12.5px;color:var(--manila-dim);line-height:1.6}
+@media (max-width:900px){
+  .hero,.fd-grid{grid-template-columns:1fr}
+  .rail{flex-wrap:wrap}
+  .rail-end{margin-left:0;border-left:0}
+  h1{font-size:26px}.fd-title{font-size:31px}.score-n{font-size:82px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+</style>
+
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="gate-mark">7CN</div>
+    <div class="gate-h">Implementer <b>Console</b></div>
+    <p class="gate-sub">Sign in to see your book. <em>Healthy</em> matters.</p>
+    <label class="gate-field"><span>Username</span>
+      <input id="gu" type="text" autocomplete="username" autocapitalize="off"
+        autocorrect="off" spellcheck="false"></label>
+    <label class="gate-field"><span>Password</span>
+      <input id="gp" type="password" autocomplete="current-password"></label>
+    <button class="gate-go" id="ggo">Sign in</button>
+    <div class="gate-msg" id="gmsg" role="status" aria-live="polite"></div>
+    <p class="gate-note">Prototype. Synthetic data only — no real client responses,
+      and nothing leaves this page.</p>
+  </div>
+</div>
+
+<div class="rail">
+  <div class="rail-brand"><div class="mark">7CN</div><span>Implementer Console</span></div>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-view="portfolio">Portfolio</button>
+    <button class="tab" role="tab" aria-selected="false" data-view="client">Client</button>
+    <button class="tab" role="tab" aria-selected="false" data-view="focus">Focus Day mode</button>
+  </div>
+  <div class="rail-end"><div class="coach">
+    <div class="coach-badge">CD</div>
+    <div><div class="coach-name">Chris Dawson</div><div class="coach-role">Expert Implementer</div></div>
+  </div></div>
+</div>
+
+<!-- ============ PORTFOLIO ============ -->
+<section class="view on" id="portfolio">
+  <div class="wrap">
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Book of business — Fall cycle</div>
+        <h1>Where is <em>Healthy</em> leaking?</h1>
+        <p class="sub">Every client you run, scored on one number. The Power Index is the share of your people who are positively aligned to all seven needs, minus the share who are pulling energy out. Target is 80.</p>
+      </div>
+      <div class="ctl">
+        <span class="eyebrow">Sort by</span>
+        <select id="sort">
+          <option value="risk">Needs attention first</option>
+          <option value="index">Power Index, low to high</option>
+          <option value="delta">Biggest move since last cycle</option>
+          <option value="name">Client name</option>
+        </select>
+      </div>
+    </div>
+    <div class="book" id="book"></div>
+    <div class="grid" id="cards"></div>
+  </div>
+</section>
+
+<!-- ============ CLIENT ============ -->
+<section class="view" id="client">
+  <div class="wrap">
+    <button class="back" id="back">← All clients</button>
+    <div class="page-head">
+      <div>
+        <div class="eyebrow" id="c-meta"></div>
+        <h1 id="c-name"></h1>
+      </div>
+      <div class="ctl-row">
+        <div class="ctl">
+          <span class="eyebrow">Cycle</span>
+          <select id="c-cycle"></select>
+        </div>
+        <div class="ctl">
+          <span class="eyebrow">Band rule</span>
+          <div class="seg" id="c-rule">
+            <button data-rule="min" aria-pressed="true">Lowest need</button>
+            <button data-rule="avg" aria-pressed="false">Average</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero">
+      <div class="score">
+        <div>
+          <div class="eyebrow">Power Index</div>
+          <div class="score-n" id="c-idx">—</div>
+          <div class="gauge"><i id="c-gauge"></i><span class="tick"></span></div>
+          <div class="gauge-lab"><span>0</span><span>Target 80</span><span>100</span></div>
+        </div>
+        <div class="flag" id="c-delta"></div>
+      </div>
+      <div class="panel" style="margin:0">
+        <div class="panel-head">
+          <h2>The H graph</h2>
+          <span class="tag" id="c-n"></span>
+        </div>
+        <div class="panel-body"><div id="c-h"></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Danger &amp; opportunity — where people moved</h2>
+        <span class="tag" id="c-flow-tag"></span>
+      </div>
+      <div class="panel-body">
+        <div id="c-flow"></div>
+        <p class="note" id="c-flow-note" style="margin-top:16px"></p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>What triggered the negatives</h2>
+        <span class="tag">Share of the negative band scoring 6 or below</span></div>
+      <div class="panel-body">
+        <div class="trig" id="c-trig"></div>
+        <div class="rx" id="c-rx"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>By department</h2>
+        <span class="tag" id="c-supp"></span></div>
+      <div class="panel-body" style="overflow-x:auto"><div id="c-dept"></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Action plan draft</h2>
+        <span class="tag">Take into the Analyze session</span></div>
+      <div class="panel-body">
+        <div id="c-act"></div>
+        <p class="note" style="margin-top:14px">Drafted from this cycle's two strongest triggers. Edit in the room, then it becomes a Rock.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOCUS DAY ============ -->
+<section class="view" id="focus">
+  <div class="wrap">
+    <div class="fd-stage">
+      <div class="eyebrow">The Journey — Healthy and Smart</div>
+      <div class="fd-title">Healthy teams <b>win</b></div>
+      <p class="fd-q" id="fd-q">Little to no confusion. Little to no politics. Low turnover in key people. High productivity and engagement.</p>
+    </div>
+
+    <div class="fd-steps">
+      <button class="fd-step" data-step="0" aria-pressed="true">
+        <div class="k">Step 01</div><div class="t">The standard curve</div></button>
+      <button class="fd-step" data-step="1" aria-pressed="false">
+        <div class="k">Step 02</div><div class="t">Ask the room</div></button>
+      <button class="fd-step" data-step="2" aria-pressed="false">
+        <div class="k">Step 03</div><div class="t">Reveal their number</div></button>
+    </div>
+
+    <div class="fd-grid">
+      <div class="fd-panel">
+        <div id="fd-h"></div>
+      </div>
+      <div class="fd-panel">
+        <div class="eyebrow">Power Index</div>
+        <div class="fd-idx" id="fd-idx">42</div>
+        <div class="fd-math" id="fd-math"></div>
+
+        <div id="fd-ask" style="margin-top:22px">
+          <div class="eyebrow">How many positives does one negative offset?</div>
+          <div class="guess" id="fd-guess">
+            <button data-r="1" aria-pressed="true">1 : 1</button>
+            <button data-r="2" aria-pressed="false">2 : 1</button>
+            <button data-r="3" aria-pressed="false">3 : 1</button>
+            <button data-r="4" aria-pressed="false">4 : 1</button>
+          </div>
+          <p class="note" style="margin-top:12px">Rooms usually say two or three. Gallup's work puts it at one to one — which is the setting the index ships with.</p>
+        </div>
+
+        <div id="fd-reveal" style="display:none;margin-top:22px">
+          <div class="eyebrow">Show this client</div>
+          <select id="fd-client" style="width:100%;margin-top:7px"></select>
+          <p class="note" style="margin-top:12px" id="fd-reveal-note"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p><b style="color:var(--manila-dim)">Prototype.</b> All client names and responses are synthetic, generated in the browser. Nothing is stored and there is no server.</p>
+  <p>EOS®, Level 10 Meeting™, Accountability Chart™, People Analyzer®, GWC® and V/TO are trademarks of EOS Worldwide. The 7 Critical Needs™ framework and the Power Index are Walt Brown Co. This prototype is unaffiliated and built for discussion.</p>
+  <div class="spec">
+    <div class="h">Open spec decision</div>
+    <p>The band rule toggle on the client view is a real, unresolved question, not a demo feature. Whether a person's band is set by their lowest need or their average changes every number the product will ever show — and it has to be identical across all 300+ companies for benchmarks to mean anything. Worth Walt's ruling before anything gets built.</p>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   Seeded generator — deterministic so the demo is stable
+   ============================================================ */
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function gauss(r,m,s){let u=1-r(),v=r();return m+s*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function clampScore(x){return Math.max(1,Math.min(10,Math.round(x)))}
+
+const NEEDS=[
+ {k:'belong',    n:'Belong',      q:'Do I belong?',        tools:['V/TO','Core Values','State of the Company']},
+ {k:'believe',   n:'Believe',     q:'Do I believe?',       tools:['V/TO','Accountability Chart™ — Roles','5-5-5 / Quarterly Conversations']},
+ {k:'accountable',n:'Accountable',q:'Am I accountable?',   tools:['Accountability Chart™ — Seats','People Analyzer® — GWC®','Rocks']},
+ {k:'measured',  n:'Measured',    q:'Am I well measured?', tools:['Scorecard','Level 10 Meeting™','The 5 Management Practices']},
+ {k:'heard',     n:'Heard',       q:'Am I heard?',         tools:['IDS™','Level 10 Meeting™','The 5 Leadership Practices']},
+ {k:'developed', n:'Developed',   q:'Am I developing?',    tools:['Rocks','Accountability Chart™ — Roles','5-5-5 / Quarterly Conversations']},
+ {k:'balanced',  n:'Balanced',    q:'Am I balanced?',      tools:['People Analyzer® — GWC®','The 5 Leadership Practices','The 5 Management Practices']}
+];
+const MIN_N=5; // suppression threshold
+
+const COMPANIES=[
+ {id:'ridgeline',name:'Ridgeline Mechanical',industry:'Commercial HVAC',seed:11,arc:'weak',
+  depts:['Field Service','Fabrication','Project Mgmt','Sales','Admin'],weak:['measured','heard'],strong:['belong']},
+ {id:'copperfield',name:'Copperfield Logistics',industry:'Freight & 3PL',seed:23,arc:'declining',
+  depts:['Drivers','Dispatch','Warehouse','Sales','Finance'],weak:['balanced','heard'],strong:['accountable']},
+ {id:'verity',name:'Verity Dental Group',industry:'Multi-site dental',seed:37,arc:'improving',
+  depts:['Clinical','Front Office','Billing','Leadership'],weak:['developed'],strong:['belong','believe']},
+ {id:'harbor',name:'Harbor & Main Insurance',industry:'Commercial P&C',seed:49,arc:'strong',
+  depts:['Producers','Account Mgmt','Claims','Operations'],weak:[],strong:['believe','measured']},
+ {id:'kestrel',name:'Kestrel Manufacturing',industry:'Precision machining',seed:61,arc:'declining',
+  depts:['Machining','Quality','Shipping','Engineering','Front Office'],weak:['heard','developed'],strong:['accountable']},
+ {id:'blueridge',name:'Blue Ridge Plumbing',industry:'Residential trades',seed:73,arc:'weak',
+  depts:['Techs','Install Crews','Dispatch','Office'],weak:['measured','balanced','developed'],strong:[]},
+ {id:'sightline',name:'Sightline Media',industry:'Agency',seed:87,arc:'improving',
+  depts:['Creative','Accounts','Media Buying','Ops'],weak:['balanced'],strong:['belong','heard']},
+ {id:'anchor',name:'Anchor Point Financial',industry:'Wealth management',seed:95,arc:'strong',
+  depts:['Advisors','Client Service','Compliance'],weak:[],strong:['believe','developed']},
+ {id:'tallgrass',name:'Tallgrass Foods',industry:'Specialty food mfg',seed:103,arc:'mid',
+  depts:['Production','Sanitation','Logistics','QA','Sales','Admin'],weak:['heard','belong'],strong:['measured']}
+];
+
+/* Calibrated so a mid-health company reproduces the 18 / 22 / 60 standard curve. */
+const ARC={weak:{base:8.28,lift:-.34},mid:{base:8.50,lift:.05},strong:{base:9.20,lift:-.12},
+           improving:{base:8.05,lift:.85},declining:{base:9.05,lift:-.88}};
+
+function buildCompany(c){
+  const r=rng(c.seed), arc=ARC[c.arc];
+  const headcount=40+Math.floor(r()*150);
+  // Departments are unevenly sized, and every company has one small team --
+  // that is what makes the anonymity threshold bite.
+  const depts=c.depts.concat(['Leadership']);
+  const wts=c.depts.map((_,i)=>1/(1+i*0.35)).concat([0.055]);
+  const wSum=wts.reduce((a,b)=>a+b,0);
+  function pickDept(){
+    let x=r()*wSum;
+    for(let i=0;i<depts.length;i++){if((x-=wts[i])<=0)return depts[i]}
+    return depts[0];
+  }
+  // stable roster: personal disposition dominates, so a person's seven scores move together
+  const roster=[];
+  for(let i=0;i<headcount;i++) roster.push({id:i,dept:pickDept(),lean:gauss(r,0,1.40)});
+  const deptOffset={}; depts.forEach(d=>deptOffset[d]=gauss(r,0,.50));
+  function score(p,base){
+    const s={};
+    NEEDS.forEach(nd=>{
+      let m=base+p.lean+deptOffset[p.dept];
+      if(c.weak.includes(nd.k)) m-=1.15;
+      if(c.strong.includes(nd.k)) m+=0.70;
+      s[nd.k]=clampScore(gauss(r,m,0.95));
+    });
+    return s;
+  }
+  const RESPONSE=0.86;
+  // Cycle 1 -- baseline
+  const c0=roster.filter(()=>r()<RESPONSE).map(p=>({id:p.id,dept:p.dept,s:score(p,arc.base)}));
+
+  // Attrition is not random. Negatives leave at roughly five times the rate of
+  // positives -- the self-selection the operating system is meant to produce.
+  const bandAt0=new Map(c0.map(x=>[x.id,band(x,'min')]));
+  const LEAVE={neg:.20,neu:.085,pos:.04};
+  const stayed=roster.filter(p=>r()>=(LEAVE[bandAt0.get(p.id)||'neu']));
+  let nextId=headcount;
+  const hires=[];
+  for(let i=0;i<Math.round((roster.length-stayed.length)*0.8);i++)
+    hires.push({id:nextId++,dept:pickDept(),lean:gauss(r,0,1.40)});
+
+  const c1=stayed.concat(hires).filter(()=>r()<RESPONSE)
+    .map(p=>({id:p.id,dept:p.dept,s:score(p,arc.base+arc.lift)}));
+
+  return Object.assign({},c,{headcount,depts,
+    cycles:[{label:'Spring baseline',rows:c0},{label:'Fall cycle',rows:c1}]});
+}
+const DATA=COMPANIES.map(buildCompany);
+
+/* ============================================================
+   Banding + index
+   ============================================================ */
+/* Positive = said yes (7+) to all seven. Negative = a hard no (5 or below) on at least
+   one. Neutral = soft in a spot, but no hard no anywhere. */
+function band(row,rule){
+  const v=NEEDS.map(n=>row.s[n.k]);
+  if(rule==='avg'){
+    const a=v.reduce((x,y)=>x+y,0)/7;
+    return a>=8?'pos':(a<=6?'neg':'neu');
+  }
+  const lo=Math.min(...v);
+  return lo>=7?'pos':(lo<=5?'neg':'neu');
+}
+function dist(rows,rule){
+  const c={pos:0,neu:0,neg:0}; rows.forEach(r=>c[band(r,rule)]++);
+  const t=rows.length||1;
+  return {pos:c.pos/t*100,neu:c.neu/t*100,neg:c.neg/t*100,n:rows.length,counts:c};
+}
+/* Straight subtraction, and it is allowed to go negative -- a company with more
+   people pulling energy out than putting it in is a real and important state. */
+function power(d,ratio){return Math.round(d.pos-ratio*d.neg)}
+function idxClass(v){return v>=80?'high':(v<35?'low':'')}
+
+/* ============================================================
+   H graph — distribution across the energy line
+   ============================================================ */
+let _hgid=0;
+function hGraph(d,opts){
+  opts=opts||{};
+  const uid='h'+(++_hgid); // ids must be unique -- two H graphs live in the DOM at once
+  const W=opts.w||640,H=opts.h||266,P={l:70,r:22,t:26,b:40};
+  const iw=W-P.l-P.r, ih=H-P.t-P.b, mid=P.t+ih*0.52;
+  // three regions sized by share
+  const negW=iw*d.neg/100, neuW=iw*d.neu/100, posW=iw*d.pos/100;
+  const x0=P.l, x1=x0+negW, x2=x1+neuW, x3=x2+posW;
+  // curve: height above/below the neutral line = energy contribution
+  function pt(x,frac){return [x, mid-frac*(ih*0.44)]}
+  const c=[];
+  c.push(`M ${x0} ${mid}`);
+  c.push(`C ${x0+negW*.3} ${mid+ih*.30} ${x1-negW*.3} ${mid+ih*.34} ${x1} ${mid+ih*.06}`);
+  c.push(`L ${x2} ${mid-ih*.06}`);
+  c.push(`C ${x2+posW*.25} ${mid-ih*.40} ${x3-posW*.25} ${mid-ih*.44} ${x3} ${mid}`);
+  const curve=c.join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block" role="img"
+      aria-label="Distribution of people above and below the neutral energy line">
+    <defs>
+      <clipPath id="${uid}n"><rect x="${x0}" y="0" width="${Math.max(0,negW)}" height="${H}"/></clipPath>
+      <clipPath id="${uid}u"><rect x="${x1}" y="0" width="${Math.max(0,neuW)}" height="${H}"/></clipPath>
+      <clipPath id="${uid}p"><rect x="${x2}" y="0" width="${Math.max(0,posW)}" height="${H}"/></clipPath>
+    </defs>
+    <path d="${curve} L ${x3} ${mid} Z" fill="var(--neg)" opacity=".62" clip-path="url(#${uid}n)"/>
+    <path d="${curve} L ${x3} ${mid} Z" fill="var(--neu)" opacity=".45" clip-path="url(#${uid}u)"/>
+    <path d="${curve} L ${x3} ${mid} Z" fill="var(--pos)" opacity=".62" clip-path="url(#${uid}p)"/>
+    <path d="${curve}" fill="none" stroke="var(--chalk)" stroke-width="1.6" opacity=".8"/>
+    <line x1="${P.l-14}" y1="${mid}" x2="${W-P.r}" y2="${mid}" stroke="var(--chalk)" stroke-width="1"
+      stroke-dasharray="4 4" opacity=".55"/>
+    <text x="4" y="${mid-8}" fill="var(--mute)" font-family="var(--mono)" font-size="8.5"
+      letter-spacing=".04em">ENERGY IN</text>
+    <text x="4" y="${mid+16}" fill="var(--mute2)" font-family="var(--mono)" font-size="8.5"
+      letter-spacing=".04em">ENERGY OUT</text>
+    ${[[x0,negW,d.neg,'NEGATIVE','var(--neg)'],[x1,neuW,d.neu,'NEUTRAL','var(--neu)'],
+       [x2,posW,d.pos,'POSITIVE','var(--pos)']].map(([x,w,v,lab,col])=>
+      w<26?'':`<line x1="${x}" y1="${P.t-6}" x2="${x}" y2="${H-P.b+6}" stroke="var(--line)" stroke-width="1"/>
+      <text x="${x+w/2}" y="${H-16}" fill="${col}" font-family="var(--display)" font-weight="700"
+        font-size="17" text-anchor="middle">${Math.round(v)}%</text>
+      <text x="${x+w/2}" y="${H-4}" fill="var(--mute2)" font-family="var(--mono)" font-size="8.5"
+        text-anchor="middle" letter-spacing=".12em">${lab}</text>`).join('')}
+    ${opts.gap&&negW>26&&posW>26?`
+      <line x1="${x0+negW/2}" y1="${P.t-2}" x2="${x2+posW/2}" y2="${P.t-2}" stroke="var(--amber)"
+        stroke-width="1" stroke-dasharray="3 3" opacity=".7"/>
+      <circle cx="${x0+negW/2}" cy="${P.t-2}" r="2.5" fill="var(--amber)"/>
+      <circle cx="${x2+posW/2}" cy="${P.t-2}" r="2.5" fill="var(--amber)"/>
+      <text x="${(x0+negW/2+x2+posW/2)/2}" y="${P.t-9}" fill="var(--amber)" font-family="var(--mono)"
+        font-size="9" text-anchor="middle" letter-spacing=".14em">DANGER / OPPORTUNITY GAP</text>`:''}
+  </svg>`;
+}
+
+/* ============================================================
+   Band flow between cycles
+   ============================================================ */
+function flowChart(a,b,rule){
+  const m1=new Map(a.rows.map(r=>[r.id,band(r,rule)]));
+  const m2=new Map(b.rows.map(r=>[r.id,band(r,rule)]));
+  const order=['pos','neu','neg'];
+  const flows={},left={pos:0,neu:0,neg:0},right={pos:0,neu:0,neg:0},gone={pos:0,neu:0,neg:0};
+  order.forEach(x=>order.forEach(y=>flows[x+'>'+y]=0));
+  m1.forEach((bandA,id)=>{
+    left[bandA]++;
+    if(m2.has(id)){flows[bandA+'>'+m2.get(id)]++;}
+    else gone[bandA]++;
+  });
+  m2.forEach(v=>right[v]++);
+  const newHires=b.rows.length-[...m2.keys()].filter(id=>m1.has(id)).length;
+
+  const W=640,H=250,P={t:16,b:16},colW=54,lx=8,rx=W-colW-8;
+  const totalL=a.rows.length||1, totalR=b.rows.length||1;
+  const ih=H-P.t-P.b;
+  const COL={pos:'var(--pos)',neu:'var(--neu)',neg:'var(--neg)'};
+  let yL=P.t,posL={};order.forEach(k=>{const h=ih*left[k]/totalL;posL[k]={y:yL,h};yL+=h+4});
+  let yR=P.t,posR={};order.forEach(k=>{const h=ih*right[k]/totalR;posR[k]={y:yR,h};yR+=h+4});
+  const cursorL={},cursorR={};order.forEach(k=>{cursorL[k]=posL[k].y;cursorR[k]=posR[k].y});
+
+  let ribbons='';
+  order.forEach(s=>order.forEach(t=>{
+    const v=flows[s+'>'+t]; if(!v) return;
+    const h1=ih*v/totalL, h2=ih*v/totalR;
+    const y1=cursorL[s], y2=cursorR[t]; cursorL[s]+=h1; cursorR[t]+=h2;
+    const x1=lx+colW, x2=rx, mx=(x1+x2)/2;
+    const moved=s!==t;
+    ribbons+=`<path d="M ${x1} ${y1} C ${mx} ${y1} ${mx} ${y2} ${x2} ${y2}
+      L ${x2} ${y2+h2} C ${mx} ${y2+h2} ${mx} ${y1+h1} ${x1} ${y1+h1} Z"
+      fill="${moved?COL[t]:'var(--rise2)'}" opacity="${moved?.5:.55}"/>`;
+  }));
+  // attrition stubs
+  order.forEach(s=>{
+    const v=gone[s]; if(!v) return;
+    const h=ih*v/totalL,y=cursorL[s];cursorL[s]+=h;
+    ribbons+=`<path d="M ${lx+colW} ${y} L ${lx+colW+46} ${y} L ${lx+colW+46} ${y+h} L ${lx+colW} ${y+h} Z"
+      fill="var(--slate)" stroke="var(--line)" stroke-dasharray="2 2"/>`;
+  });
+
+  const cols=order.map(k=>`
+    <rect x="${lx}" y="${posL[k].y}" width="${colW}" height="${Math.max(1,posL[k].h)}" fill="${COL[k]}" opacity=".85"/>
+    <rect x="${rx}" y="${posR[k].y}" width="${colW}" height="${Math.max(1,posR[k].h)}" fill="${COL[k]}" opacity=".85"/>
+    ${posL[k].h>16?`<text x="${lx+colW/2}" y="${posL[k].y+posL[k].h/2+4}" fill="var(--deep)"
+      font-family="var(--display)" font-weight="700" font-size="13" text-anchor="middle">${left[k]}</text>`:''}
+    ${posR[k].h>16?`<text x="${rx+colW/2}" y="${posR[k].y+posR[k].h/2+4}" fill="var(--deep)"
+      font-family="var(--display)" font-weight="700" font-size="13" text-anchor="middle">${right[k]}</text>`:''}`).join('');
+
+  const svg=`<svg viewBox="0 0 ${W} ${H+26}" width="100%" style="display:block" role="img"
+    aria-label="Movement between bands from the baseline cycle to this cycle">
+    ${ribbons}${cols}
+    <text x="${lx}" y="${H+18}" fill="var(--mute2)" font-family="var(--mono)" font-size="9"
+      letter-spacing=".1em">${a.label.toUpperCase()}</text>
+    <text x="${rx+colW}" y="${H+18}" fill="var(--mute2)" font-family="var(--mono)" font-size="9"
+      text-anchor="end" letter-spacing=".1em">${b.label.toUpperCase()}</text>
+  </svg>`;
+  return {svg,flows,gone,newHires,left,right};
+}
+
+/* ============================================================
+   Render — portfolio
+   ============================================================ */
+let RULE='min', RATIO=1, CURRENT=DATA[0];
+
+function snapshot(c,ci){return dist(c.cycles[ci].rows,RULE)}
+function clientIndex(c,ci){return power(snapshot(c,ci),1)}
+
+function renderPortfolio(){
+  const rows=DATA.map(c=>{
+    const cur=clientIndex(c,1), prev=clientIndex(c,0), d=snapshot(c,1);
+    const tt=topTriggers(c,1);
+    const trig={suppressed:tt.suppressed,n:tt.n,top:tt[0]};
+    return {c,cur,prev,delta:cur-prev,d,trig};
+  });
+  const sort=document.getElementById('sort').value;
+  rows.sort((a,b)=>({
+    risk:()=>(a.cur+Math.min(0,a.delta)*1.5)-(b.cur+Math.min(0,b.delta)*1.5),
+    index:()=>a.cur-b.cur,
+    delta:()=>b.delta-a.delta,
+    name:()=>a.c.name.localeCompare(b.c.name)
+  })[sort]());
+
+  const people=rows.reduce((s,r)=>s+r.d.n,0);
+  const bookIdx=Math.round(rows.reduce((s,r)=>s+r.cur*r.d.n,0)/people);
+  const atTarget=rows.filter(r=>r.cur>=80).length;
+  const falling=rows.filter(r=>r.delta<=-4).length;
+  document.getElementById('book').innerHTML=[
+    ['Clients running 7CN',rows.length,''],
+    ['People surveyed',people.toLocaleString(),''],
+    ['Book Power Index',bookIdx,'amber'],
+    ['At or above 80',atTarget,'pos'],
+    ['Falling 4+ points',falling,falling?'neg':'']
+  ].map(([k,v,cls])=>`<div class="book-cell"><div class="eyebrow">${k}</div>
+    <div class="v ${cls}">${v}</div></div>`).join('');
+
+  document.getElementById('cards').innerHTML=rows.map(({c,cur,delta,d,trig})=>{
+    const dc=delta>1?'up':(delta<-1?'down':'flat');
+    const arrow=delta>1?'▲':(delta<-1?'▼':'—');
+    return `<button class="card" data-id="${c.id}">
+      <div class="card-top">
+        <div>
+          <div class="card-name">${c.name}</div>
+          <div class="card-meta">${c.industry} · ${d.n} of ${c.headcount} responded</div>
+        </div>
+        <div class="card-idx">
+          <div class="n ${idxClass(cur)}">${cur}</div>
+          <div class="delta ${dc}">${arrow} ${delta>0?'+':''}${delta} vs baseline</div>
+        </div>
+      </div>
+      <div class="strip">
+        <i style="width:${d.neg}%;background:var(--neg)"></i>
+        <i style="width:${d.neu}%;background:var(--neu)"></i>
+        <i style="width:${d.pos}%;background:var(--pos)"></i>
+      </div>
+      <div class="strip-key">
+        <span>${Math.round(d.neg)}% negative</span>
+        <span>${Math.round(d.neu)}% neutral</span>
+        <span>${Math.round(d.pos)}% positive</span>
+      </div>
+      <div class="flag">${trig.suppressed
+        ? `<span style="color:var(--mute2)">Only ${trig.n} in the negative band — too few to break out</span>`
+        : `<span>Top trigger</span><b>${trig.top.name}</b>
+           <span style="color:var(--mute2)">${trig.top.pct}% of the negative band</span>`}</div>
+    </button>`;
+  }).join('');
+
+  document.querySelectorAll('.card').forEach(el=>el.onclick=()=>{
+    CURRENT=DATA.find(x=>x.id===el.dataset.id); go('client'); renderClient();
+  });
+}
+
+/* ============================================================
+   Triggers + prescription
+   ============================================================ */
+/* The negative band is itself a small group. Breaking it down by need when only
+   two or three people are in it would identify them, so it gets the same
+   minimum as any other cut. */
+function topTriggers(c,ci){
+  const rows=c.cycles[ci].rows.filter(r=>band(r,RULE)==='neg');
+  const t=NEEDS.map(nd=>{
+    const hit=rows.filter(r=>r.s[nd.k]<=6).length;
+    return {k:nd.k,name:nd.n,tools:nd.tools,q:nd.q,pct:rows.length?Math.round(hit/rows.length*100):0,hit};
+  }).sort((a,b)=>b.pct-a.pct);
+  t.n=rows.length; t.suppressed=rows.length<MIN_N;
+  return t;
+}
+
+/* ============================================================
+   Render — client
+   ============================================================ */
+function renderClient(){
+  const c=CURRENT;
+  const sel=document.getElementById('c-cycle');
+  if(sel.dataset.for!==c.id){
+    sel.innerHTML=c.cycles.map((cy,i)=>`<option value="${i}" ${i===1?'selected':''}>${cy.label}</option>`).join('');
+    sel.dataset.for=c.id;
+  }
+  const ci=+sel.value;
+  const d=snapshot(c,ci), idx=power(d,1);
+
+  document.getElementById('c-name').textContent=c.name;
+  document.getElementById('c-meta').textContent=`${c.industry} · ${c.headcount} employees · ${c.cycles[ci].label}`;
+  const nEl=document.getElementById('c-idx');
+  nEl.textContent=idx; nEl.className='score-n '+idxClass(idx);
+  document.getElementById('c-gauge').style.width=Math.max(0,idx)+'%';
+  document.getElementById('c-n').textContent=`${d.n} responses · ${Math.round(d.n/c.headcount*100)}% response rate`;
+
+  const prev=ci>0?power(snapshot(c,ci-1),1):null;
+  document.getElementById('c-delta').innerHTML=prev===null
+    ? `<span style="color:var(--mute2)">Baseline cycle — no comparison yet</span>`
+    : `<span>vs ${c.cycles[ci-1].label}</span><b>${idx-prev>0?'+':''}${idx-prev} pts</b>`;
+
+  document.getElementById('c-h').innerHTML=hGraph(d,{gap:true});
+
+  /* flow */
+  const fw=document.getElementById('c-flow'), fn=document.getElementById('c-flow-note');
+  if(ci===0){
+    fw.innerHTML=`<p class="note">Nothing to compare yet. After the next cycle this shows every person's
+      movement between bands — who fell, who was recovered, and who left.</p>`;
+    fn.textContent=''; document.getElementById('c-flow-tag').textContent='Needs a second cycle';
+  }else{
+    const f=flowChart(c.cycles[ci-1],c.cycles[ci],RULE);
+    const fell=f.flows['pos>neu']+f.flows['pos>neg'];
+    const saved=f.flows['neg>neu']+f.flows['neg>pos'];
+    const out=f.gone.neg;
+    fw.innerHTML=f.svg+`<div class="flow-legend">
+      <span><i class="dot" style="background:var(--pos)"></i>Positive</span>
+      <span><i class="dot" style="background:var(--neu)"></i>Neutral</span>
+      <span><i class="dot" style="background:var(--neg)"></i>Negative</span>
+      <span><i class="dot" style="background:var(--rise2)"></i>Stayed in band</span>
+      <span><i class="dot" style="border:1px dashed var(--line)"></i>Left the company</span></div>`;
+    document.getElementById('c-flow-tag').textContent=`${f.newHires} new since baseline`;
+    fn.innerHTML=`<b>${fell}</b> people who were positively aligned dropped out of the positive band, and
+      <b>${saved}</b> people came back up out of negative. <b>${out}</b> of the people who left the company
+      were in the negative band — that is the self-selection EOS is supposed to produce, and it is the
+      one number a leadership team never has on its own.`;
+  }
+
+  /* triggers */
+  const trig=topTriggers(c,ci);
+  const t1=trig[0],t2=trig[1];
+  if(trig.suppressed){
+    document.getElementById('c-trig').innerHTML=
+      `<p class="note">Only ${trig.n} ${trig.n===1?'person is':'people are'} in the negative band.
+       Breaking that down by need would point straight at ${trig.n===1?'them':'them individually'}, so
+       it stays closed until the group reaches ${MIN_N}. This is a good problem to have.</p>`;
+    document.getElementById('c-rx').innerHTML=
+      `<div class="rx-h">Read this to the leadership team</div>
+       <p>Almost nobody here is pulling energy out. The work is not repair — it is holding the line
+       and protecting the ${Math.round(d.pos)}% who are positively aligned. Watch the gap, not the gaps.</p>`;
+  } else {
+    document.getElementById('c-trig').innerHTML=trig.map(t=>`
+      <div class="trig-row">
+        <div class="trig-name">${t.name}</div>
+        <div class="trig-bar ${t.pct<12?'dim':''}"><i style="width:${t.pct}%"></i></div>
+        <div class="trig-pct">${t.pct}%</div>
+      </div>`).join('');
+    document.getElementById('c-rx').innerHTML=`
+      <div class="rx-h">Read this to the leadership team</div>
+      <p>Of the ${d.counts.neg} people pulling energy out, ${t1.pct}% are triggered on
+        <b style="color:var(--chalk)">${t1.name}</b> and ${t2.pct}% on
+        <b style="color:var(--chalk)">${t2.name}</b>. They are not disengaged across the board — they are
+        stuck on two specific promises. Both are fixable with tools already in the room.</p>
+      <p style="color:var(--mute);font-size:12.5px;margin-bottom:8px">Where to look first:</p>
+      <div class="chips">${[...t1.tools,...t2.tools].filter((v,i,a)=>a.indexOf(v)===i)
+        .map(x=>`<span class="chip">${x}</span>`).join('')}</div>`;
+  }
+
+  /* dept grid */
+  const rows=c.cycles[ci].rows;
+  let suppressed=0;
+  const cells=c.depts.map(dep=>{
+    const dr=rows.filter(r=>r.dept===dep);
+    if(dr.length<MIN_N){suppressed++;return {dep,n:dr.length,lock:true}}
+    return {dep,n:dr.length,lock:false,
+      vals:NEEDS.map(nd=>dr.reduce((s,r)=>s+r.s[nd.k],0)/dr.length)};
+  });
+  function heat(v){
+    // clay red → manila → deep green
+    const t=Math.max(0,Math.min(1,(v-6)/3.4));
+    const a=[200,69,46],b=[230,222,203],c2=[46,139,111];
+    const mix=t<.5?a.map((x,i)=>x+(b[i]-x)*(t/.5)):b.map((x,i)=>x+(c2[i]-x)*((t-.5)/.5));
+    return `rgb(${mix.map(Math.round).join(',')})`;
+  }
+  document.getElementById('c-dept').innerHTML=`<table class="dept">
+    <thead><tr><th class="lead">Department</th>${NEEDS.map(n=>`<th>${n.n}</th>`).join('')}</tr></thead>
+    <tbody>${cells.map(r=>`<tr>
+      <td class="lead">${r.dep}<small>n=${r.n}</small></td>
+      ${r.lock
+        ? `<td colspan="7"><div class="cell lock">${r.n===0?'No responses this cycle':`Hidden — ${r.n} response${r.n===1?'':'s'}, below the ${MIN_N}-response minimum`}</div></td>`
+        : r.vals.map(v=>`<td><div class="cell" style="background:${heat(v)}">${v.toFixed(1)}</div></td>`).join('')}
+    </tr>`).join('')}</tbody></table>`;
+  document.getElementById('c-supp').textContent=suppressed
+    ? `${suppressed} department${suppressed>1?'s':''} suppressed to protect anonymity`
+    : `All departments above the ${MIN_N}-response minimum`;
+
+  /* action plan */
+  document.getElementById('c-act').innerHTML=trig.suppressed
+   ? `<p class="note">No action plan drafted. With fewer than ${MIN_N} people in the negative band there is
+      no reliable pattern to act on — re-measure next cycle rather than inventing a Rock.</p>`
+   : [t1,t2].map((t,i)=>`
+    <div class="act">
+      <div class="act-h"><div class="act-n">0${i+1}</div>
+        <div class="act-t">Close the gap on <em>${t.name}</em> — ${t.pct}% of the negative band is triggered here</div></div>
+      <div class="act-b">
+        <p>The question they answered low: <em style="color:var(--manila-dim)">${t.q}</em>
+          Pick one tool, run it for a quarter, and re-measure. Do not fix all seven at once.</p>
+        <div class="act-f">
+          <input placeholder="Owner" size="14">
+          <input placeholder="Tool — e.g. ${t.tools[0]}" size="26">
+          <input placeholder="Done by" size="12">
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+/* ============================================================
+   Focus Day mode
+   ============================================================ */
+let STEP=0;
+const BASELINE={neg:18,neu:22,pos:60,n:0,counts:{neg:0,neu:0,pos:0}};
+function renderFocus(){
+  const useReal=STEP===2;
+  const c=DATA.find(x=>x.id===document.getElementById('fd-client').value)||DATA[0];
+  const d=useReal?snapshot(c,1):BASELINE;
+  const idx=power(d,RATIO);
+  document.getElementById('fd-h').innerHTML=hGraph(d,{gap:STEP>=1,h:300});
+  document.getElementById('fd-idx').textContent=idx;
+  document.getElementById('fd-idx').style.color=idx>=80?'var(--pos)':(idx<40?'var(--neg)':'var(--amber)');
+  document.getElementById('fd-math').innerHTML=
+    `<b>${Math.round(d.pos)}</b> positive − (<b>${RATIO}</b> × <b>${Math.round(d.neg)}</b> negative) = <b>${idx}</b><br>
+     <span style="color:var(--mute2)">Target 80. ${idx>=80?'At target.':`${80-idx} points to go.`}</span>`;
+  document.getElementById('fd-ask').style.display=STEP===0?'none':'block';
+  document.getElementById('fd-reveal').style.display=STEP===2?'block':'none';
+  document.getElementById('fd-q').innerHTML=[
+    'Little to no confusion. Little to no politics. Low turnover in key people. High productivity and engagement.',
+    'One negative person offsets how many of your positive people?',
+    `This is ${c.name}. Every person above the line said yes to all seven.`
+  ][STEP];
+  if(STEP===2) document.getElementById('fd-reveal-note').innerHTML=
+    `${d.counts.neg} of ${d.n} people are pulling energy out. The whole conversation is about which of the
+     seven promises they are stuck on — not about who they are.`;
+}
+
+/* ============================================================
+   Wiring
+   ============================================================ */
+function go(v){
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id===v));
+  document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.view===v));
+  window.scrollTo({top:0,behavior:'instant'});
+}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  go(t.dataset.view);
+  if(t.dataset.view==='client')renderClient();
+  if(t.dataset.view==='focus')renderFocus();
+});
+document.getElementById('back').onclick=()=>{go('portfolio');renderPortfolio()};
+document.getElementById('sort').onchange=renderPortfolio;
+document.getElementById('c-cycle').onchange=renderClient;
+document.querySelectorAll('#c-rule button').forEach(b=>b.onclick=()=>{
+  RULE=b.dataset.rule;
+  document.querySelectorAll('#c-rule button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  renderClient();
+});
+document.querySelectorAll('.fd-step').forEach(b=>b.onclick=()=>{
+  STEP=+b.dataset.step;
+  document.querySelectorAll('.fd-step').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  renderFocus();
+});
+document.querySelectorAll('#fd-guess button').forEach(b=>b.onclick=()=>{
+  RATIO=+b.dataset.r;
+  document.querySelectorAll('#fd-guess button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  renderFocus();
+});
+document.getElementById('fd-client').innerHTML=DATA.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+document.getElementById('fd-client').onchange=renderFocus;
+
+/* ============================================================
+   Sign-in gate
+
+   There is no server, so this is a demo gate, not security: the
+   credentials below sit in the page source and anyone can read them.
+   It exists so the walkthrough opens the way the real product would.
+   ============================================================ */
+const CREDS={user:'cdawson',pass:'tulaneqb'};
+const gate=document.getElementById('gate'),
+      gu=document.getElementById('gu'), gp=document.getElementById('gp'),
+      gmsg=document.getElementById('gmsg');
+document.body.classList.add('locked');
+
+function signIn(){
+  const u=gu.value.trim().toLowerCase(), p=gp.value;
+  if(u===CREDS.user && p===CREDS.pass){
+    gate.classList.add('out');
+    document.body.classList.remove('locked');
+    setTimeout(()=>{gate.style.display='none'},420);
+    return;
+  }
+  gate.classList.add('err');
+  gmsg.textContent = !u||!p ? 'Enter a username and password.'
+                            : 'That username and password don\u2019t match.';
+  gp.select(); gp.focus();
+}
+document.getElementById('ggo').onclick=signIn;
+[gu,gp].forEach(el=>{
+  el.addEventListener('keydown',e=>{if(e.key==='Enter')signIn()});
+  el.addEventListener('input',()=>{gate.classList.remove('err');gmsg.textContent=''});
+});
+gu.focus();
+
+renderPortfolio();
+</script>
