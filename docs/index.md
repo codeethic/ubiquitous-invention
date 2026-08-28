@@ -26,6 +26,9 @@ Let's fuckin' go.
 
 - [Flat Earth Lab](/flat-earth/) — split-screen simulator comparing flat and
   globe models against observation.
+- [EpiTrax Maintenance Console](/kyma/) — concept console for a semiconductor
+  crystal-growth floor: tool-to-component drill-down, spare parts, and a date
+  scrubber that rebuilds any tool's past from its event log.
 
 ## &gt; latest posts
 
