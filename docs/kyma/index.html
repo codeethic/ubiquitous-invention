@@ -224,6 +224,51 @@ tr.r-maint td{background:rgba(64,132,214,.10)}
 tr.r-issue td{background:rgba(150,110,214,.12)}
 tr.r-state td{background:rgba(192,0,0,.13)}
 tr.r-comment td{background:rgba(255,255,255,.02)}
+
+/* ---------- gas panel ---------- */
+/* Slide 19: one row per line, grouped into the channel the gas flows in,
+   with the channel named down the right-hand side. */
+.panelwrap{display:grid;grid-template-columns:minmax(360px,600px) minmax(260px,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.panelwrap{grid-template-columns:1fr}}
+
+.chan{display:flex;gap:0;margin-bottom:7px;border-radius:4px;overflow:hidden}
+.chan-rows{flex:1;display:flex;flex-direction:column;gap:3px;padding:5px 6px}
+.chan-label{
+  width:104px;flex:none;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  text-align:center;padding:0 6px;line-height:1.3
+}
+.ch-ga{background:rgba(214,132,64,.12)}      .ch-ga .chan-label{color:#D68440}
+.ch-od{background:rgba(64,150,214,.12)}      .ch-od .chan-label{color:#4096D6}
+.ch-id1{background:rgba(110,200,140,.11)}    .ch-id1 .chan-label{color:#6EC88C}
+.ch-o2{background:rgba(200,90,110,.12)}      .ch-o2 .chan-label{color:#C85A6E}
+.ch-id2{background:rgba(150,120,214,.12)}    .ch-id2 .chan-label{color:#9678D6}
+.ch-dump{background:rgba(140,150,155,.10)}   .ch-dump .chan-label{color:var(--mute)}
+
+.mfcrow{
+  display:flex;align-items:center;gap:8px;background:var(--rise);
+  border:1px solid var(--line);border-left-width:3px;border-radius:3px;
+  padding:6px 9px;text-align:left;width:100%
+}
+.mfcrow:hover{background:var(--rise2);border-color:var(--mute2)}
+.mfcrow.n-green{border-left-color:var(--up)}
+.mfcrow.n-amber{border-left-color:var(--warn);background:rgba(255,192,0,.07)}
+.mfcrow.n-red{border-left-color:var(--down)}
+.mfc-gas{flex:1;font-family:var(--mono);font-size:12.5px}
+.mfc-size{
+  font-family:var(--mono);font-size:11.5px;color:var(--mute);
+  background:var(--deep);border:1px solid var(--line-soft);border-radius:3px;
+  padding:2px 8px;min-width:82px;text-align:right
+}
+.mfc-serial{font-family:var(--mono);font-size:10px;color:var(--mute2);min-width:56px}
+.mfcrow.empty{
+  opacity:.42;border-left-color:var(--line);cursor:default;
+  background:repeating-linear-gradient(45deg,var(--rise),var(--rise) 6px,var(--slate) 6px,var(--slate) 12px)
+}
+.mfcrow.empty:hover{background:repeating-linear-gradient(45deg,var(--rise),var(--rise) 6px,var(--slate) 6px,var(--slate) 12px);border-color:var(--line)}
+
+/* generic subsystem grid */
+.compgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
 </style>
 
 <script id="engine">
@@ -346,20 +391,50 @@ globalThis.EpiTrax = (() => {
     'item.shipped': 'Shipped', 'item.received': 'Received',
   };
 
+  const LOCATION_NAME = {
+    'loc.storage': 'storage', 'loc.repair': 'repair',
+    'loc.onorder': 'on order', 'loc.scrap': 'scrap',
+  };
+
   function logFor(entities, events, entityId, opts = {}) {
     const scope = new Set(descendantsOf(entities, entityId));
+    const label = id => {
+      const item = entities[id];
+      return item ? item.name + ' (' + item.serial + ')' : id;
+    };
+
     return events
       .filter(e => scope.has(e.targetId))
       .filter(e => (!opts.from || e.at >= opts.from) && (!opts.to || e.at <= opts.to))
-      .map(e => ({
-        at: e.at,
-        kind: KIND_MAP[e.kind] ?? 'comment',
-        info: e.payload.info ?? DEFAULT_INFO[e.kind] ?? e.kind,
-        details: e.payload.text ?? e.payload.details ?? '',
-        comment: e.payload.comment ?? '',
-        by: e.by,
-        raw: e,
-      }))
+      .map(e => {
+        const row = {
+          at: e.at,
+          kind: KIND_MAP[e.kind] ?? 'comment',
+          info: e.payload.info ?? DEFAULT_INFO[e.kind] ?? e.kind,
+          details: e.payload.text ?? e.payload.details ?? '',
+          comment: e.payload.comment ?? '',
+          by: e.by,
+          raw: e,
+        };
+        // A bare "Installed" row says nothing useful. Name the part that
+        // moved, and for a removal say where it went.
+        if (e.kind === 'item.installed' || e.kind === 'item.removed') {
+          row.details = label(e.payload.itemId);
+          if (e.kind === 'item.removed' && e.payload.to) {
+            row.comment = row.comment
+              || 'Sent to ' + (LOCATION_NAME[e.payload.to] || e.payload.to);
+          }
+        } else if (e.kind === 'item.shipped' || e.kind === 'item.received') {
+          row.details = label(e.targetId);
+          if (e.payload.to) {
+            row.comment = row.comment
+              || (e.kind === 'item.received' ? 'Received into ' : 'Sent to ')
+                 + (LOCATION_NAME[e.payload.to] || e.payload.to)
+                 + (e.payload.leadTimeDays ? ' · ' + e.payload.leadTimeDays + ' day lead' : '');
+          }
+        }
+        return row;
+      })
       .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
   }
 
@@ -1273,6 +1348,94 @@ globalThis.EpiTrax = (() => {
       el('div', { class: 'btncol' }, GAN11_RIGHT.map(b => nodeButton(c, b)))));
 
     root.append(el('div', { style: 'margin-top:16px' }, logPanel(c, tool.id)));
+  };
+
+  // --- subsystem ---------------------------------------------------------
+
+  // Channel order and class, in the order slide 19 lists them.
+  const CHANNELS = [
+    ['Ga Run', 'ch-ga'],
+    ['Outer Diluent', 'ch-od'],
+    ['Inner Diluent 1', 'ch-id1'],
+    ['O2 Run', 'ch-o2'],
+    ['Inner Diluent 2', 'ch-id2'],
+    ['Dump Tube', 'ch-dump'],
+  ];
+
+  function mfcRow(c, comp) {
+    if (comp.empty) {
+      return el('div', { class: 'mfcrow empty' },
+        el('span', { class: 'mfc-gas' }, '— empty slot —'),
+        el('span', { class: 'mfc-size' }, '—'));
+    }
+    const health = E.healthOf(c.entities, c.events, comp.id, c.at);
+    const item = c.entities[E.itemAt(c.events, comp.id, c.at)];
+    return el('a', { class: 'mfcrow n-' + health, ...link('component', comp.id) },
+      el('span', { class: 'mfc-gas' }, comp.name),
+      el('span', { class: 'mfc-serial' }, item ? item.serial : '—'),
+      el('span', { class: 'mfc-size' }, item && item.mfc ? flow(item.mfc) : 'none'));
+  }
+
+  function gasPanel(root, c, sub) {
+    const comps = Object.values(c.entities)
+      .filter(e => e.parentId === sub.id)
+      .sort((a, b) => a.order - b.order);
+
+    const left = el('div', {});
+    for (const [channel, cls] of CHANNELS) {
+      const rows = comps.filter(x => x.channel === channel);
+      if (!rows.length) continue;
+      left.append(el('div', { class: 'chan ' + cls },
+        el('div', { class: 'chan-rows' }, rows.map(x => mfcRow(c, x))),
+        el('div', { class: 'chan-label' }, channel)));
+    }
+
+    root.append(el('div', { class: 'panelwrap' },
+      el('section', { class: 'panel' },
+        el('h3', {}, 'Mass flow controllers · by channel'),
+        left,
+        el('p', { class: 'note', style: 'margin:10px 0 0' },
+          'Background indicates which channel the gas flows in. '
+          + 'Empty slots are shown rather than hidden.')),
+      logPanel(c, sub.id, { limit: 40 })));
+  }
+
+  function genericSubsystem(root, c, sub) {
+    const comps = Object.values(c.entities).filter(e => e.parentId === sub.id);
+    root.append(el('div', { class: 'panelwrap' },
+      el('section', { class: 'panel' },
+        el('h3', {}, 'Components'),
+        comps.length
+          ? el('div', { class: 'compgrid' }, comps.map(comp => {
+              const health = E.healthOf(c.entities, c.events, comp.id, c.at);
+              const item = c.entities[E.itemAt(c.events, comp.id, c.at)];
+              return el('a', { class: 'node n-' + health, ...link('component', comp.id) },
+                el('div', { class: 'node-name' }, comp.name),
+                el('div', { class: 'node-meta' }, item ? item.serial : 'no item'));
+            }))
+          : el('p', { class: 'note' }, 'No components modelled on this subsystem.')),
+      logPanel(c, sub.id, { limit: 40 })));
+  }
+
+  VIEWS.subsystem = (root, c, id) => {
+    const sub = c.entities[id];
+    if (!sub || sub.kind !== 'subsystem') { go('facility'); return; }
+    const tool = c.entities[sub.parentId];
+    const health = E.healthOf(c.entities, c.events, id, c.at);
+
+    root.append(el('div', { class: 'viewhead' },
+      el('div', { class: 'viewtitle' }, sub.name),
+      el('span', { class: 'toolstate st-' + health },
+        health === 'green' ? 'No open work' : 'Open work'),
+      el('span', { class: 'eyebrow' }, tool ? tool.name : '')));
+
+    root.append(el('div', { class: 'toolbar' }, actionButtons(c, id)));
+
+    if (Object.values(c.entities).some(e => e.parentId === id && e.isMFC)) {
+      gasPanel(root, c, sub);
+    } else {
+      genericSubsystem(root, c, sub);
+    }
   };
 
   function render() {

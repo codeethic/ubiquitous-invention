@@ -61,6 +61,28 @@ test('an event attaches to the item installed at that moment, not a later one', 
     'the issue keeps the item it was raised against');
 });
 
+test('an install row names the item that moved', () => {
+  const withItems = {
+    ...entities,
+    'i.mfc.001': { id: 'i.mfc.001', kind: 'item', name: '200 sccm O2 MFC', serial: 'S-200' },
+    'i.mfc.002': { id: 'i.mfc.002', kind: 'item', name: '200 sccm O2 MFC', serial: 'S-300' },
+  };
+  const rows = E.logFor(withItems, evs, 'c.gan11.o2mfc', {});
+  const install = rows.find(r => r.at === '2025-06-02T14:05:00Z');
+  assert.match(install.details, /S-300/);
+});
+
+test('a removal row names both the item and where it went', () => {
+  const withItems = {
+    ...entities,
+    'i.mfc.001': { id: 'i.mfc.001', kind: 'item', name: '200 sccm O2 MFC', serial: 'S-200' },
+  };
+  const rows = E.logFor(withItems, evs, 'c.gan11.o2mfc', {});
+  const removal = rows.find(r => r.at === '2025-06-02T14:00:00Z');
+  assert.match(removal.details, /S-200/);
+  assert.match(removal.comment, /repair/i);
+});
+
 test('a work order can reference more than one issue', () => {
   const wo = [{ id: 'w1', at: '2025-03-01T00:00:00Z', by: 'paul', kind: 'wo.opened',
                 targetId: 'c.gan11.o2mfc',
