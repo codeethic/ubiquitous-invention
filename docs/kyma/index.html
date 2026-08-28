@@ -96,6 +96,43 @@ main{padding:20px 18px 60px;max-width:1500px;margin:0 auto}
 .bar-green{border-left:3px solid var(--up)}
 .bar-amber{border-left:3px solid var(--warn)}
 .bar-red{border-left:3px solid var(--down)}
+
+/* ---------- facility ---------- */
+.bays{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+.bay{
+  background:var(--slate);border:1px solid var(--line);border-radius:5px;
+  padding:12px 13px 14px;flex:1 1 300px
+}
+.bay-name{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--mute2);margin-bottom:10px
+}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:9px}
+.tile{
+  background:var(--rise);border:1px solid var(--line);border-radius:4px;
+  padding:10px 11px;text-align:left;display:block;position:relative;overflow:hidden
+}
+.tile:hover{background:var(--rise2);border-color:var(--mute2)}
+.tile-accent{position:absolute;left:0;top:0;bottom:0;width:3px}
+.tile-name{font-family:var(--display);font-weight:500;font-size:17px;letter-spacing:.02em}
+.tile-state{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;margin-top:3px
+}
+.tile-sub{font-size:11px;color:var(--mute2);margin-top:5px}
+.tile-badge{
+  position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:10px;
+  background:var(--warn);color:#241a00;border-radius:9px;padding:1px 6px;font-weight:600
+}
+.t-green .tile-state{color:var(--up)}
+.t-amber .tile-state{color:var(--warn)}
+.t-red .tile-state{color:var(--down)}
+.t-green .tile-accent{background:var(--up)}
+.t-amber .tile-accent{background:var(--warn)}
+.t-red .tile-accent{background:var(--down)}
+
+.legend{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.legend span{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--mute)}
 </style>
 
 <script id="engine">
@@ -865,6 +902,69 @@ globalThis.EpiTrax = (() => {
   for (const v of ['home', 'facility', 'tool', 'subsystem', 'component', 'item', 'spares', 'across']) {
     VIEWS[v] = stub(v);
   }
+
+  // --- facility ----------------------------------------------------------
+  //
+  // Drawn as bays rather than the source deck's building floorplan. The POC
+  // needs tool positions, not their architecture.
+
+  const BAYS = [
+    ['hvpe', 'HVPE Bay'],
+    ['pvd', 'PVD Bay'],
+    ['furnace', 'Furnace / MOCVD'],
+  ];
+
+  // The deck maps four states onto red. Colour alone would lose that, so
+  // every tile also carries its state as text.
+  const STATE_LABEL = {
+    up: 'Up', down: 'Down', decommissioned: 'Decomm', qual: 'Qual', pm: 'PM',
+  };
+
+  function toolStatus(c, toolId) {
+    const health = E.healthOf(c.entities, c.events, toolId, c.at);
+    const state = E.stateAt(c.events, c.at).toolStates[toolId] || 'up';
+    const openCount = E.stateAt(c.events, c.at).openIssues
+      .concat(E.stateAt(c.events, c.at).openWOs)
+      .filter(o => new Set(E.descendantsOf(c.entities, toolId)).has(o.targetId)).length;
+    return { health, state, openCount };
+  }
+
+  function toolTile(c, tool) {
+    const { health, state, openCount } = toolStatus(c, tool.id);
+    const label = health === 'red'
+      ? (STATE_LABEL[state] || state).toUpperCase()
+      : (openCount ? 'Up · attention' : 'Up');
+    return el('a', { class: 'tile t-' + health, ...link('tool', tool.id) },
+      el('span', { class: 'tile-accent' }),
+      openCount ? el('span', { class: 'tile-badge' }, openCount) : null,
+      el('div', { class: 'tile-name' }, tool.name),
+      el('div', { class: 'tile-state' }, label),
+      el('div', { class: 'tile-sub' }, tool.family + (tool.modelled ? ' · modelled' : '')));
+  }
+
+  VIEWS.facility = (root, c) => {
+    const tools = Object.values(c.entities).filter(e => e.kind === 'tool');
+    const counts = { green: 0, amber: 0, red: 0 };
+    tools.forEach(t => { counts[E.healthOf(c.entities, c.events, t.id, c.at)] += 1; });
+
+    root.append(el('div', { class: 'viewhead' },
+      el('div', { class: 'viewtitle' }, 'Facility'),
+      el('div', { class: 'eyebrow' },
+        counts.green + ' up · ' + counts.amber + ' with open work · ' + counts.red + ' not running')));
+
+    root.append(el('div', { class: 'bays' },
+      BAYS.map(([bay, name]) => el('section', { class: 'bay' },
+        el('div', { class: 'bay-name' }, name),
+        el('div', { class: 'tiles' },
+          tools.filter(t => t.bay === bay).map(t => toolTile(c, t)))))));
+
+    root.append(el('div', { class: 'legend' },
+      el('span', {}, el('i', { class: 'dot s-green' }), 'Up, no open issues'),
+      el('span', {}, el('i', { class: 'dot s-amber' }), 'Up, open issue or work order'),
+      el('span', {}, el('i', { class: 'dot s-red' }), 'Down, decommissioned, qual or PM'),
+      el('span', { class: 'note' },
+        'Bay layout is illustrative. Only GaN 11 is modelled to component level.')));
+  };
 
   function render() {
     const { view, id } = parseHash();
