@@ -2734,8 +2734,13 @@ globalThis.EpiTrax = (() => {
   globalThis.EpiTraxUI = {
     el, svg, VIEWS, render, go, link, ctx, store,
     fmtDay, fmtStamp, dayOf, flow, ancestry, isToday,
+    // emit advances the demo clock as well as appending, so scripted checks
+    // must go through it rather than store.append — an event stamped past the
+    // current as-of date is invisible by design.
+    emit,
     get asOf() { return asOf; },
     set asOf(v) { asOf = v; },
+    get now() { return now; },
   };
 
   document.getElementById('asof').max = dayOf(now);
