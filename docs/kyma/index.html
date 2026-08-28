@@ -1,0 +1,83 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EpiTrax Maintenance Console — Prototype</title>
+
+<script id="engine">
+globalThis.EpiTrax = (() => {
+  'use strict';
+
+  // Events sorted and clipped to a point in time. Every derived view starts
+  // here: nothing is stored, everything is replayed.
+  const upto = (events, iso) =>
+    events
+      .filter(e => e.at <= iso)
+      .sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
+
+  // Which serialized item occupied this slot at a given moment.
+  function itemAt(events, componentId, iso) {
+    let current = null;
+    for (const e of upto(events, iso)) {
+      if (e.targetId !== componentId) continue;
+      if (e.kind === 'item.installed') current = e.payload.itemId;
+      if (e.kind === 'item.removed') current = null;
+    }
+    return current;
+  }
+
+  function stateAt(events, iso) {
+    const installed = {};
+    const issues = new Map();
+    const wos = new Map();
+    const toolStates = {};
+
+    for (const e of upto(events, iso)) {
+      switch (e.kind) {
+        case 'item.installed':
+          installed[e.targetId] = e.payload.itemId;
+          break;
+        case 'item.removed':
+          installed[e.targetId] = null;
+          break;
+        case 'issue.opened':
+          // An issue binds to whatever item was in the slot at the time. It
+          // keeps that binding even after the item is swapped out.
+          issues.set(e.id, {
+            id: e.id, targetId: e.targetId, text: e.payload.text,
+            at: e.at, by: e.by, itemId: installed[e.targetId] ?? null,
+          });
+          break;
+        case 'issue.closed':
+          issues.delete(e.payload.issueId);
+          break;
+        case 'wo.opened':
+          wos.set(e.id, {
+            id: e.id, targetId: e.targetId, text: e.payload.text,
+            at: e.at, by: e.by, issueIds: e.payload.issueIds ?? [],
+          });
+          break;
+        case 'wo.closed':
+          wos.delete(e.payload.woId);
+          break;
+        case 'state.changed':
+          toolStates[e.targetId] = e.payload.state;
+          break;
+      }
+    }
+
+    for (const k of Object.keys(installed)) {
+      if (installed[k] === null) delete installed[k];
+    }
+
+    return {
+      installed,
+      openIssues: [...issues.values()],
+      openWOs: [...wos.values()],
+      toolStates,
+    };
+  }
+
+  return { itemAt, stateAt };
+})();
+</script>
+
+<body></body>

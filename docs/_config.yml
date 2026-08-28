@@ -34,3 +34,8 @@ exclude:
   - flat-earth/serve.py
   # Coastline build tool; its output (data/coastlines.json) does publish.
   - flat-earth/tools
+  # EpiTrax console test scaffolding; the console itself publishes normally.
+  - kyma/test
+  # Internal Kyma source decks. These are not ours to publish — keep them
+  # excluded even if they are ever committed.
+  - kyma/documentation
