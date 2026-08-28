@@ -1,6 +1,102 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>EpiTrax Maintenance Console — Prototype</title>
+<meta name="theme-color" content="#0B1012">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="%230B1012"/><rect x="5" y="5" width="9" height="9" fill="%2300B050"/><rect x="18" y="5" width="9" height="9" fill="%23FFC000"/><rect x="5" y="18" width="9" height="9" fill="%23FFC000"/><rect x="18" y="18" width="9" height="9" fill="%23C00000"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --deep:#0B1012; --slate:#131A1C; --rise:#1B2427; --rise2:#222D31;
+  --line:#2C3A3E; --line-soft:#212C2F;
+  --chalk:#F2F0EA; --mute:#8FA0A4; --mute2:#65787D;
+  --amber:#FFB020;
+  --up:#00B050; --warn:#FFC000; --down:#C00000;
+  --display:'Oswald',Impact,'Arial Narrow',sans-serif;
+  --body:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--deep); color:var(--chalk); font-family:var(--body);
+  font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;color:inherit;cursor:pointer;border:0;background:none;font-size:inherit}
+input,select{font-family:inherit;font-size:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+a{color:inherit;text-decoration:none}
+
+.eyebrow{
+  font-family:var(--mono);font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--mute2)
+}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.num{font-family:var(--display);font-weight:700;font-variant-numeric:tabular-nums}
+
+/* ---------- top rail ---------- */
+.rail{
+  display:flex;align-items:center;gap:22px;
+  padding:10px 18px;background:var(--slate);
+  border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:40;flex-wrap:wrap;
+}
+.wordmark{
+  font-family:var(--display);font-weight:700;font-size:20px;
+  letter-spacing:.06em;line-height:1
+}
+.brand .eyebrow{margin-top:2px}
+.crumbs{display:flex;align-items:center;gap:6px;flex:1;flex-wrap:wrap;min-width:200px}
+.crumb{
+  font-family:var(--mono);font-size:11.5px;color:var(--mute);
+  padding:3px 7px;border-radius:3px
+}
+.crumb:hover{background:var(--rise);color:var(--chalk)}
+.crumb.here{color:var(--chalk);background:var(--rise2)}
+.crumb-sep{color:var(--mute2);font-size:11px}
+.railright{display:flex;align-items:center;gap:10px}
+
+.datewrap{
+  display:flex;align-items:center;gap:8px;background:var(--rise);
+  border:1px solid var(--line);border-radius:4px;padding:4px 8px
+}
+.datewrap input{
+  background:none;border:0;color:var(--chalk);font-family:var(--mono);font-size:12px
+}
+.datewrap input::-webkit-calendar-picker-indicator{filter:invert(.7)}
+.btn{
+  border:1px solid var(--line);background:var(--rise);border-radius:4px;
+  padding:5px 11px;font-size:12px;color:var(--mute)
+}
+.btn:hover{background:var(--rise2);color:var(--chalk);border-color:var(--mute2)}
+.btn.primary{border-color:var(--amber);color:var(--amber)}
+.btn.primary:hover{background:var(--amber);color:var(--deep)}
+.btn.warn:hover{background:var(--down);color:var(--chalk);border-color:var(--down)}
+
+/* ---------- layout ---------- */
+main{padding:20px 18px 60px;max-width:1500px;margin:0 auto}
+.viewhead{display:flex;align-items:baseline;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.viewtitle{font-family:var(--display);font-weight:500;font-size:26px;letter-spacing:.02em}
+.panel{
+  background:var(--slate);border:1px solid var(--line);
+  border-radius:5px;padding:14px 16px
+}
+.panel h3{
+  margin:0 0 10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--mute2);font-weight:500
+}
+.grid{display:grid;gap:14px}
+.note{color:var(--mute2);font-size:12px;font-style:italic}
+
+/* ---------- status ---------- */
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
+.s-green{background:var(--up)} .s-amber{background:var(--warn)} .s-red{background:var(--down)}
+.bar-green{border-left:3px solid var(--up)}
+.bar-amber{border-left:3px solid var(--warn)}
+.bar-red{border-left:3px solid var(--down)}
+</style>
 
 <script id="engine">
 globalThis.EpiTrax = (() => {
@@ -656,4 +752,202 @@ globalThis.EpiTrax = (() => {
 })();
 </script>
 
-<body></body>
+<body>
+<header class="rail">
+  <div class="brand">
+    <div class="wordmark">EPITRAX</div>
+    <div class="eyebrow">Maintenance Console · Prototype</div>
+  </div>
+  <nav class="crumbs" id="crumbs"></nav>
+  <div class="railright">
+    <label class="datewrap" title="View the floor as it was on this date">
+      <span class="eyebrow">Viewing</span>
+      <input type="date" id="asof">
+    </label>
+    <button class="btn" id="todayBtn">Today</button>
+    <button class="btn warn" id="resetBtn" title="Discard changes made in this browser">Reset</button>
+  </div>
+</header>
+
+<main id="main"></main>
+<div id="modalRoot"></div>
+
+<script id="ui">
+(() => {
+  'use strict';
+  const E = globalThis.EpiTrax;
+  const S = E.SEED;
+
+  // --- tiny DOM helper ---------------------------------------------------
+  function el(tag, attrs, ...kids) {
+    const node = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (v == null || v === false) continue;
+      if (k === 'class') node.className = v;
+      else if (k === 'html') node.innerHTML = v;
+      else if (k.startsWith('on')) node.addEventListener(k.slice(2), v);
+      else if (k === 'style') node.setAttribute('style', v);
+      else node.setAttribute(k, v === true ? '' : v);
+    }
+    for (const kid of kids.flat(4)) {
+      if (kid == null || kid === false) continue;
+      node.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+    }
+    return node;
+  }
+  const svg = (tag, attrs, ...kids) => {
+    const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (v == null || v === false) continue;
+      if (k.startsWith('on')) node.addEventListener(k.slice(2), v);
+      else node.setAttribute(k, v);
+    }
+    for (const kid of kids.flat(4)) if (kid != null && kid !== false) node.append(kid);
+    return node;
+  };
+
+  // --- formatting --------------------------------------------------------
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fmtDay = iso => {
+    const d = new Date(iso);
+    return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+  };
+  const fmtStamp = iso => {
+    const d = new Date(iso);
+    let h = d.getUTCHours(); const ap = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return (d.getUTCMonth() + 1) + '/' + d.getUTCDate() + '/' + d.getUTCFullYear()
+      + ' ' + h + ':' + String(d.getUTCMinutes()).padStart(2, '0') + ' ' + ap;
+  };
+  const dayOf = iso => iso.slice(0, 10);
+  const endOfDay = day => day + 'T23:59:59Z';
+  const flow = m => (m.unit === 'slm' ? (m.sccm / 1000) + ' slm' : m.sccm + ' sccm');
+
+  // --- app state ---------------------------------------------------------
+  const store = E.createStore(safeLocalStorage());
+  function safeLocalStorage() {
+    try {
+      const probe = '__epitrax__';
+      window.localStorage.setItem(probe, '1');
+      window.localStorage.removeItem(probe);
+      return window.localStorage;
+    } catch (err) {
+      // Private mode or blocked site data. The demo still works, it just
+      // forgets between reloads.
+      const m = new Map();
+      return { getItem: k => (m.has(k) ? m.get(k) : null),
+               setItem: (k, v) => m.set(k, v), removeItem: k => m.delete(k) };
+    }
+  }
+
+  let asOf = S.today;
+
+  function ctx() {
+    return { entities: S.entities, events: store.events(), at: asOf, store };
+  }
+  const isToday = () => dayOf(asOf) === dayOf(S.today);
+
+  // --- routing -----------------------------------------------------------
+  function parseHash() {
+    const parts = (location.hash || '#/').replace(/^#\/?/, '').split('/');
+    return { view: parts[0] || 'home', id: decodeURIComponent(parts[1] || '') };
+  }
+  const go = (view, id) =>
+    { location.hash = '#/' + view + (id ? '/' + encodeURIComponent(id) : ''); };
+  const link = (view, id) => ({ href: '#/' + view + (id ? '/' + encodeURIComponent(id) : '') });
+
+  // Each view is `(root, ctx, id) => void`. Every one of them derives from
+  // ctx.at, which is what makes the date scrubber work without per-view code.
+  const VIEWS = {};
+
+  const stub = name => (root) => root.append(
+    el('div', { class: 'panel' }, el('h3', {}, name), el('p', { class: 'note' }, 'Not built yet.')));
+  for (const v of ['home', 'facility', 'tool', 'subsystem', 'component', 'item', 'spares', 'across']) {
+    VIEWS[v] = stub(v);
+  }
+
+  function render() {
+    const { view, id } = parseHash();
+    const c = ctx();
+    const main = document.getElementById('main');
+    main.replaceChildren();
+    const fn = VIEWS[view] || VIEWS.home;
+    try {
+      fn(main, c, id);
+    } catch (err) {
+      main.append(el('div', { class: 'panel' },
+        el('h3', {}, 'This view failed to render'),
+        el('pre', { class: 'mono' }, String(err && err.stack || err))));
+      throw err;
+    }
+    renderCrumbs(c, view, id);
+    document.getElementById('asof').value = dayOf(asOf);
+    document.body.classList.toggle('past', !isToday());
+  }
+
+  // --- breadcrumb --------------------------------------------------------
+  const VIEW_FOR_KIND = { tool: 'tool', subsystem: 'subsystem', component: 'component', item: 'item' };
+
+  function ancestry(entities, id) {
+    const chain = [];
+    let node = entities[id];
+    while (node) { chain.unshift(node); node = node.parentId ? entities[node.parentId] : null; }
+    return chain;
+  }
+
+  function renderCrumbs(c, view, id) {
+    const nav = document.getElementById('crumbs');
+    nav.replaceChildren();
+    const crumbs = [['Home', 'home', '']];
+    if (view !== 'home') crumbs.push(['Facility', 'facility', '']);
+
+    if (view === 'item') {
+      const item = c.entities[id];
+      crumbs.push(['Spares', 'spares', '']);
+      if (item) crumbs.push([item.serial, 'item', id]);
+    } else if (c.entities[id]) {
+      for (const node of ancestry(c.entities, id)) {
+        crumbs.push([node.name, VIEW_FOR_KIND[node.kind] || 'facility', node.id]);
+      }
+    } else if (view === 'spares') {
+      crumbs.push(['Spares', 'spares', '']);
+    } else if (view === 'across') {
+      crumbs.push(['Cross-tool history', 'across', '']);
+    }
+
+    crumbs.forEach(([label, v, cid], i) => {
+      if (i) nav.append(el('span', { class: 'crumb-sep' }, '/'));
+      const here = i === crumbs.length - 1;
+      nav.append(el('a', { class: 'crumb' + (here ? ' here' : ''), ...link(v, cid) }, label));
+    });
+  }
+
+  // --- shell wiring ------------------------------------------------------
+  document.getElementById('asof').addEventListener('change', e => {
+    const day = e.target.value;
+    if (!day) return;
+    asOf = dayOf(S.today) === day ? S.today : endOfDay(day);
+    render();
+  });
+  document.getElementById('todayBtn').addEventListener('click', () => {
+    asOf = S.today; render();
+  });
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    store.reset(); asOf = S.today; render();
+  });
+  window.addEventListener('hashchange', render);
+
+  // Exposed so the view sections below can register themselves.
+  globalThis.EpiTraxUI = {
+    el, svg, VIEWS, render, go, link, ctx, store,
+    fmtDay, fmtStamp, dayOf, flow, ancestry, isToday,
+    get asOf() { return asOf; },
+    set asOf(v) { asOf = v; },
+  };
+
+  document.getElementById('asof').max = dayOf(S.today);
+  document.getElementById('asof').min = dayOf(S.events[0].at);
+  render();
+})();
+</script>
+</body>
