@@ -610,8 +610,46 @@ globalThis.EpiTrax = (() => {
     return Object.freeze({ entities, events, today, users });
   })();
 
+  // --- persistence --------------------------------------------------------
+  //
+  // The seed is frozen and never written to. Anything done in the browser is
+  // appended to an overlay in localStorage and layered on at read time, so
+  // Reset always returns the demo to a known state.
+
+  const STORE_KEY = 'epitrax-poc-v1';
+
+  function createStore(storage) {
+    const read = () => {
+      try {
+        const raw = storage.getItem(STORE_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (err) {
+        return [];
+      }
+    };
+    return {
+      events() {
+        return [...SEED.events, ...read()]
+          .sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
+      },
+      userEvents: read,
+      append(event) {
+        try {
+          storage.setItem(STORE_KEY, JSON.stringify([...read(), event]));
+        } catch (err) {
+          // A full or unavailable store should not break the demo.
+        }
+        return event;
+      },
+      reset() {
+        try { storage.removeItem(STORE_KEY); } catch (err) { /* ignore */ }
+      },
+    };
+  }
+
   return {
-    SEED,
+    SEED, createStore,
     itemAt, stateAt, descendantsOf, healthOf, logFor, changesBetween,
     locationOf, replacementCandidates, filterMFCs, RED_STATES,
   };

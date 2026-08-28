@@ -185,3 +185,67 @@ test('throttle valves exist on more than one HVPE tool for cross-tool history', 
     .filter(e => e.kind === 'component' && e.name === 'Throttle Valve');
   assert.ok(tv.length >= 4, `only ${tv.length} throttle valves`);
 });
+
+// --- persistence ---------------------------------------------------------
+
+function fakeStorage() {
+  const m = new Map();
+  return {
+    getItem: k => (m.has(k) ? m.get(k) : null),
+    setItem: (k, v) => m.set(k, v),
+    removeItem: k => m.delete(k),
+  };
+}
+
+const userEvent = (id, at) => ({
+  id, at, by: 'josh', kind: 'issue.opened',
+  targetId: 't.gan11', payload: { text: 'test issue' },
+});
+
+test('a fresh store returns exactly the seed', () => {
+  assert.equal(E.createStore(fakeStorage()).events().length, S.events.length);
+});
+
+test('appended events survive a new store over the same storage', () => {
+  const st = fakeStorage();
+  E.createStore(st).append(userEvent('u1', '2026-08-28T13:00:00Z'));
+  assert.equal(E.createStore(st).events().length, S.events.length + 1);
+});
+
+test('reset clears the overlay but not the seed', () => {
+  const st = fakeStorage();
+  const store = E.createStore(st);
+  store.append(userEvent('u1', '2026-08-28T13:00:00Z'));
+  store.reset();
+  assert.equal(store.events().length, S.events.length);
+});
+
+test('the seed array is never mutated by appends', () => {
+  const before = S.events.length;
+  E.createStore(fakeStorage()).append(userEvent('u2', '2026-08-28T13:00:00Z'));
+  assert.equal(S.events.length, before);
+});
+
+test('events come back in chronological order after a backdated append', () => {
+  const store = E.createStore(fakeStorage());
+  store.append(userEvent('u3', '2025-03-15T00:00:00Z'));
+  const ats = store.events().map(e => e.at);
+  assert.deepEqual(ats, [...ats].sort());
+});
+
+test('corrupt storage is discarded rather than throwing', () => {
+  const st = fakeStorage();
+  st.setItem('epitrax-poc-v1', '{not json');
+  assert.equal(E.createStore(st).events().length, S.events.length);
+});
+
+test('a user-appended issue rolls up through health like any other', () => {
+  const store = E.createStore(fakeStorage());
+  store.append({
+    id: 'u4', at: '2026-08-28T13:00:00Z', by: 'josh', kind: 'issue.opened',
+    targetId: 'c.gan11.rotation', payload: { text: 'belt slipping' },
+  });
+  assert.equal(
+    E.healthOf(S.entities, store.events(), 's.gan11.motion', '2026-08-28T14:00:00Z'),
+    'amber');
+});
