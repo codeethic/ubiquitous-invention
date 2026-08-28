@@ -107,3 +107,81 @@ test('an open work order alone is enough for amber', () => {
                  targetId: 's.gan11.exh', payload: { text: 'trap rebuild' } }];
   assert.equal(E.healthOf(entities, evs, 't.gan11', '2025-03-01T00:00:00Z'), 'amber');
 });
+
+// --- seed ----------------------------------------------------------------
+
+const S = E.SEED;
+
+test('SEED covers ten tools', () => {
+  assert.equal(Object.values(S.entities).filter(e => e.kind === 'tool').length, 10);
+});
+
+test('GaN 11 has the seven subsystems from the deck dropdown', () => {
+  const subs = Object.values(S.entities)
+    .filter(e => e.kind === 'subsystem' && e.parentId === 't.gan11')
+    .map(e => e.name).sort();
+  assert.deepEqual(subs, ['Controls', 'Electric', 'Exhaust', 'Flanging',
+                          'Furnace Assembly', 'Gas Panel', 'Motion']);
+});
+
+test('the gas panel has twelve populated MFC lines', () => {
+  const lines = Object.values(S.entities)
+    .filter(e => e.kind === 'component' && e.parentId === 's.gan11.gaspanel' && !e.empty);
+  assert.equal(lines.length, 12);
+});
+
+test('the gas panel keeps its spare slots visible', () => {
+  const spares = Object.values(S.entities)
+    .filter(e => e.kind === 'component' && e.parentId === 's.gan11.gaspanel' && e.empty);
+  assert.ok(spares.length >= 1);
+});
+
+test('the O2 line is the 200 sccm example from the deck', () => {
+  const installed = E.itemAt(S.events, 'c.gan11.mfc.o2', S.today);
+  const item = S.entities[installed];
+  assert.equal(item.mfc.sccm, 200);
+  assert.equal(item.mfc.gas, 'O2');
+});
+
+test('seed history spans at least eighteen months', () => {
+  const ats = S.events.map(e => e.at).sort();
+  const months = (Date.parse(ats[ats.length - 1]) - Date.parse(ats[0])) / 86400000 / 30.44;
+  assert.ok(months >= 18, `only ${months.toFixed(1)} months of history`);
+});
+
+test('seed is deterministic across two loads', () => {
+  assert.deepEqual(loadEngine().SEED.events, S.events);
+});
+
+test('every event targets a known entity', () => {
+  for (const ev of S.events) {
+    assert.ok(S.entities[ev.targetId], `unknown target ${ev.targetId} on ${ev.id}`);
+  }
+});
+
+test('every event has an author', () => {
+  for (const ev of S.events) assert.ok(ev.by, `no author on ${ev.id}`);
+});
+
+test('GaN 11 is amber today, so the demo opens on something interesting', () => {
+  assert.equal(E.healthOf(S.entities, S.events, 't.gan11', S.today), 'amber');
+});
+
+test('at least one tool is red today', () => {
+  const reds = Object.values(S.entities)
+    .filter(e => e.kind === 'tool')
+    .filter(t => E.healthOf(S.entities, S.events, t.id, S.today) === 'red');
+  assert.ok(reds.length >= 1);
+});
+
+test('the O2 MFC was swapped at some point, so time travel has something to show', () => {
+  const ch = E.changesBetween(S.entities, S.events, 't.gan11',
+    S.events[0].at, S.today);
+  assert.ok(ch.some(c => c.componentId === 'c.gan11.mfc.o2'));
+});
+
+test('throttle valves exist on more than one HVPE tool for cross-tool history', () => {
+  const tv = Object.values(S.entities)
+    .filter(e => e.kind === 'component' && e.name === 'Throttle Valve');
+  assert.ok(tv.length >= 4, `only ${tv.length} throttle valves`);
+});

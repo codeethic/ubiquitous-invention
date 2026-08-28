@@ -92,3 +92,33 @@ test('MFC size filter respects an inclusive range', () => {
 test('an empty filter returns every MFC', () => {
   assert.equal(E.filterMFCs(entities, evs, {}, AT).length, 4);
 });
+
+// A removed item's destination rides on the item.removed event, which targets
+// the component rather than the item. Reading only shipping and receiving
+// events loses it, and the item wrongly reports its previous location.
+test('an item removed to repair reports as out for repair, not its old location', () => {
+  const withSwap = [...evs, {
+    id: 'x6', at: '2025-03-01T00:00:00Z', by: 'paul', kind: 'item.removed',
+    targetId: 'c.gan13.o2mfc', payload: { itemId: 'i.ontool', to: 'loc.repair' },
+  }];
+  const loc = E.locationOf(entities, withSwap, 'i.ontool', AT);
+  assert.equal(loc.locationKind, 'repair');
+});
+
+test('an item removed to storage becomes an in-storage candidate again', () => {
+  const withSwap = [...evs, {
+    id: 'x7', at: '2025-03-01T00:00:00Z', by: 'paul', kind: 'item.removed',
+    targetId: 'c.gan13.o2mfc', payload: { itemId: 'i.ontool', to: 'loc.storage' },
+  }];
+  const c = E.replacementCandidates(entities, withSwap, 'c.gan11.o2mfc', AT);
+  assert.equal(c.find(x => x.itemId === 'i.ontool').locationKind, 'storage');
+});
+
+test('an item still installed ignores an earlier removal from another slot', () => {
+  const readded = [...evs,
+    { id: 'x8', at: '2025-02-01T00:00:00Z', by: 'paul', kind: 'item.removed',
+      targetId: 'c.gan13.o2mfc', payload: { itemId: 'i.ontool', to: 'loc.repair' } },
+    { id: 'x9', at: '2025-02-05T00:00:00Z', by: 'paul', kind: 'item.installed',
+      targetId: 'c.gan13.o2mfc', payload: { itemId: 'i.ontool' } }];
+  assert.equal(E.locationOf(entities, readded, 'i.ontool', AT).locationKind, 'tool');
+});

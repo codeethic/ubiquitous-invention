@@ -177,11 +177,17 @@ globalThis.EpiTrax = (() => {
       };
     }
 
+    // Shipping and receiving events target the item. A removal targets the
+    // component and names the item in its payload — but it still says where
+    // the item went, so it counts.
     let to = null, leadTimeDays = null;
     for (const e of upto(events, iso)) {
-      if (e.targetId !== itemId) continue;
-      if (e.kind === 'item.received' || e.kind === 'item.shipped') {
-        to = e.payload.to;
+      const aboutThisItem = e.targetId === itemId
+        || (e.kind === 'item.removed' && e.payload.itemId === itemId);
+      if (!aboutThisItem) continue;
+      if (e.kind === 'item.received' || e.kind === 'item.shipped'
+          || e.kind === 'item.removed') {
+        to = e.payload.to ?? to;
         leadTimeDays = e.payload.leadTimeDays ?? null;
       }
     }
@@ -238,7 +244,374 @@ globalThis.EpiTrax = (() => {
       .sort(bySerial);
   }
 
+  // --- seed ---------------------------------------------------------------
+  //
+  // Plausible but invented. Vocabulary follows the decks: growth runs like
+  // 23-AFRL-Ga2O3, run IDs AG####, work orders M#####, users Lori, Paul and
+  // Abdel. Deterministic by construction — no Math.random, no Date.now — so
+  // the page renders identically every load and screenshots stay stable.
+
+  const SEED = (() => {
+    const today = '2026-08-28T12:00:00Z';
+    const origin = '2024-11-15T08:00:00Z';   // first installs predate the log
+    const users = ['lori', 'paul', 'abdel'];
+
+    const entities = {};
+    const events = [];
+    let seq = 0;
+    const eid = () => 'sd' + String(++seq).padStart(4, '0');
+
+    // Seeded LCG. Deterministic, and never Math.random.
+    let s = 20260828;
+    const rnd = () => (s = (s * 1103515245 + 12345) % 2147483648) / 2147483648;
+    const pick = a => a[Math.floor(rnd() * a.length)];
+
+    const at = (base, days, hours) =>
+      new Date(Date.parse(base) + days * 86400000 + (hours || 0) * 3600000).toISOString();
+
+    const ent = o => { entities[o.id] = o; return o; };
+    const ev = (kind, targetId, payload, atIso, by) => {
+      const e = { id: eid(), at: atIso, by: by || pick(users), kind, targetId, payload };
+      events.push(e);
+      return e;
+    };
+
+    // -- tools -------------------------------------------------------------
+
+    const TOOLS = [
+      ['t.gan09', 'GaN 09', 'HVPE', 'hvpe'],
+      ['t.gan11', 'GaN 11', 'HVPE', 'hvpe'],
+      ['t.gan12', 'GaN 12', 'HVPE', 'hvpe'],
+      ['t.gan13', 'GaN 13', 'HVPE', 'hvpe'],
+      ['t.gan16', 'GaN 16', 'HVPE', 'hvpe'],
+      ['t.mocvd', 'MOCVD', 'MOCVD', 'furnace'],
+      ['t.kfurnace', 'K-Furnace', 'Furnace', 'furnace'],
+      ['t.pvd2', 'PVD 2', 'PVD', 'pvd'],
+      ['t.pvd4', 'PVD 4', 'PVD', 'pvd'],
+      ['t.pvd5', 'PVD 5', 'PVD', 'pvd'],
+    ];
+    TOOLS.forEach(([id, name, family, bay]) =>
+      ent({ id, kind: 'tool', name, family, bay, parentId: null,
+            modelled: id === 't.gan11' }));
+
+    // -- GaN 11 subsystems, from the slide 20/21 dropdown ------------------
+
+    const SUBS = [
+      ['s.gan11.controls', 'Controls'],
+      ['s.gan11.electric', 'Electric'],
+      ['s.gan11.exhaust', 'Exhaust'],
+      ['s.gan11.flanging', 'Flanging'],
+      ['s.gan11.furnace', 'Furnace Assembly'],
+      ['s.gan11.gaspanel', 'Gas Panel'],
+      ['s.gan11.motion', 'Motion'],
+    ];
+    SUBS.forEach(([id, name]) =>
+      ent({ id, kind: 'subsystem', name, parentId: 't.gan11' }));
+
+    // -- GaN 11 components, mapped from the slide-18 button layout ---------
+
+    const COMPONENTS = [
+      ['c.gan11.topflange', 'Top Flange', 's.gan11.flanging', 'pn.flange'],
+      ['c.gan11.botflange', 'Bottom Flange', 's.gan11.flanging', 'pn.flange'],
+      ['c.gan11.convectron', 'Convectron', 's.gan11.exhaust', 'pn.convectron'],
+      ['c.gan11.baratron', 'Baratron', 's.gan11.exhaust', 'pn.baratron'],
+      ['c.gan11.trap1', 'Trap 1', 's.gan11.exhaust', 'pn.trap'],
+      ['c.gan11.trap2', 'Trap 2', 's.gan11.exhaust', 'pn.trap'],
+      ['c.gan11.throttle', 'Throttle Valve', 's.gan11.exhaust', 'pn.throttle'],
+      ['c.gan11.drypump', 'Dry Pump', 's.gan11.exhaust', 'pn.drypump'],
+      ['c.gan11.quartz', 'Quartz', 's.gan11.furnace', 'pn.quartz'],
+      ['c.gan11.precursors', 'Precursors', 's.gan11.furnace', 'pn.precursor'],
+      ['c.gan11.sourceboat', 'Source Boat', 's.gan11.furnace', 'pn.sourceboat'],
+      ['c.gan11.rotation', 'Rotation', 's.gan11.motion', 'pn.rotation'],
+      ['c.gan11.lift', 'Lift', 's.gan11.motion', 'pn.lift'],
+      ['c.gan11.watermanifold', 'Water Manifold', 's.gan11.controls', 'pn.manifold'],
+      ['c.gan11.tempcontroller', 'Temperature Controller', 's.gan11.controls', 'pn.tempctl'],
+      ['c.gan11.heater', 'Heater Element', 's.gan11.electric', 'pn.heater'],
+      ['c.gan11.feedthrough', 'Power Feedthrough', 's.gan11.electric', 'pn.feedthrough'],
+    ];
+    COMPONENTS.forEach(([id, name, parentId, pnId]) =>
+      ent({ id, kind: 'component', name, parentId, defaultPnId: pnId }));
+
+    // -- the gas panel, in slide-19 order ----------------------------------
+    // sccm is canonical; slm lines display as sccm/1000.
+
+    const MFC_LINES = [
+      ['c.gan11.mfc.hclhigh', 'HCl High', 'Ga Run', 'HCl', 500, 'sccm'],
+      ['c.gan11.mfc.hcllow', 'HCl Low', 'Ga Run', 'HCl', 50, 'sccm'],
+      ['c.gan11.mfc.n2ga', 'N2 [Ga]', 'Ga Run', 'N2', 2000, 'slm'],
+      ['c.gan11.mfc.h2', 'H2', 'Ga Run', 'H2', 1000, 'slm'],
+      ['c.gan11.mfc.n2od', 'N2 [OD]', 'Outer Diluent', 'N2', 10000, 'slm'],
+      ['c.gan11.mfc.sih4', 'SiH4', 'Inner Diluent 1', 'SiH4', 20, 'sccm'],
+      ['c.gan11.mfc.n2id1', 'N2 [ID1]', 'Inner Diluent 1', 'N2', 5000, 'slm'],
+      ['c.gan11.mfc.o2', 'O2', 'O2 Run', 'O2', 200, 'sccm'],
+      ['c.gan11.mfc.n2o2', 'N2 [O2]', 'O2 Run', 'N2', 1000, 'slm'],
+      ['c.gan11.mfc.hclid', 'HCl ID', 'Inner Diluent 2', 'HCl', 100, 'sccm'],
+      ['c.gan11.mfc.n2id2', 'N2 [ID2]', 'Inner Diluent 2', 'N2', 5000, 'slm'],
+      ['c.gan11.mfc.n2dump', 'N2 [Dump]', 'Dump Tube', 'N2', 10000, 'slm'],
+    ];
+    MFC_LINES.forEach(([id, name, channel, gas, sccm, unit], i) =>
+      ent({ id, kind: 'component', name, parentId: 's.gan11.gaspanel',
+            isMFC: true, channel, gas, unit, order: i }));
+
+    // The panel has spare capacity. The deck asks for empty slots to be shown
+    // greyed rather than hidden.
+    ['spare1', 'spare2'].forEach((k, i) =>
+      ent({ id: 'c.gan11.mfc.' + k, kind: 'component', name: 'Empty slot',
+            parentId: 's.gan11.gaspanel', isMFC: true, empty: true,
+            channel: 'Dump Tube', order: MFC_LINES.length + i }));
+
+    // -- exhaust on the other HVPE tools -----------------------------------
+    // Enough to make cross-tool history real and to give replacement
+    // candidates somewhere to live other than storage.
+
+    const HVPE_OTHERS = ['t.gan09', 't.gan12', 't.gan13', 't.gan16'];
+    const SHARED_EXHAUST = [
+      ['throttle', 'Throttle Valve', 'pn.throttle'],
+      ['baratron', 'Baratron', 'pn.baratron'],
+      ['convectron', 'Convectron', 'pn.convectron'],
+      ['drypump', 'Dry Pump', 'pn.drypump'],
+    ];
+    HVPE_OTHERS.forEach(toolId => {
+      const short = toolId.slice(2);
+      const subId = 's.' + short + '.exhaust';
+      ent({ id: subId, kind: 'subsystem', name: 'Exhaust', parentId: toolId });
+      SHARED_EXHAUST.forEach(([key, name, pnId]) =>
+        ent({ id: 'c.' + short + '.' + key, kind: 'component', name,
+              parentId: subId, defaultPnId: pnId }));
+    });
+
+    // -- part numbers ------------------------------------------------------
+
+    const compatible = key =>
+      Object.values(entities)
+        .filter(e => e.kind === 'component' && e.defaultPnId === key)
+        .map(e => e.id);
+
+    const PNS = [
+      ['pn.throttle', 'KY-TV-1050', 'Throttle Valve, 100mm ISO'],
+      ['pn.baratron', 'KY-BAR-627', 'Baratron capacitance manometer, 10 Torr'],
+      ['pn.convectron', 'KY-CVG-275', 'Convectron gauge tube'],
+      ['pn.drypump', 'KY-DP-2400', 'Dry pump, 2400 L/min'],
+      ['pn.trap', 'KY-TRP-400', 'Particle trap assembly'],
+      ['pn.flange', 'KY-FLG-200', 'Reactor flange, 200mm'],
+      ['pn.quartz', 'KY-QTZ-4IN', 'Quartz liner, 4 in build'],
+      ['pn.precursor', 'KY-PRC-GA', 'Ga source charge assembly'],
+      ['pn.sourceboat', 'KY-BOAT-88', 'Source boat, quartz'],
+      ['pn.rotation', 'KY-ROT-12', 'Rotation drive'],
+      ['pn.lift', 'KY-LFT-08', 'Lift actuator'],
+      ['pn.manifold', 'KY-WM-16', 'Water manifold, 16 circuit'],
+      ['pn.tempctl', 'KY-TC-3508', 'Temperature controller'],
+      ['pn.heater', 'KY-HTR-KAN', 'Kanthal heater element'],
+      ['pn.feedthrough', 'KY-PFT-4K', 'Power feedthrough, 4 kA'],
+    ];
+    PNS.forEach(([id, pn, desc]) =>
+      ent({ id, kind: 'partNumber', pn, description: desc,
+            compatibleComponentIds: compatible(id), lowStockAt: 1 }));
+
+    // MFCs deliberately carry no compatibility list — the deck says to use the
+    // MFC Selector instead of a per-component dropdown.
+    ent({ id: 'pn.mfc', kind: 'partNumber', pn: 'KY-MFC-GEN',
+          description: 'Mass flow controller (see MFC Selector)',
+          compatibleComponentIds: [], lowStockAt: 2 });
+    ent({ id: 'pn.gabottle', kind: 'partNumber', pn: 'KY-GA-7N',
+          description: 'Gallium, 7N, 1 kg bottle',
+          compatibleComponentIds: [], lowStockAt: 3 });
+
+    // -- items -------------------------------------------------------------
+
+    let serialSeq = 1000;
+    const mkItem = (pnId, name, extra) => {
+      serialSeq += 7;
+      const id = 'i.' + pnId.slice(3) + '.' + serialSeq;
+      return ent({ id, kind: 'item', name, partNumberId: pnId,
+                   serial: 'S-' + serialSeq, ...(extra || {}) });
+    };
+
+    // One installed item per non-MFC component, installed before the log opens.
+    const nonMFC = Object.values(entities)
+      .filter(e => e.kind === 'component' && !e.isMFC);
+    nonMFC.forEach((c, i) => {
+      const pn = entities[c.defaultPnId];
+      const item = mkItem(c.defaultPnId, pn.description);
+      ev('item.received', item.id, { to: 'loc.storage' }, at(origin, -30 - i, 0), 'lori');
+      ev('item.installed', c.id, { itemId: item.id }, at(origin, -i, 0), 'paul');
+    });
+
+    // MFC items: one per populated line, plus spares in storage, on order and
+    // out for repair so the selector and the spares view have range.
+    const MFC_TYPES = ['1100', '1400', 'G-series', 'black', 'green'];
+    const mkMFC = (gas, sccm, unit, typeIdx) => {
+      const label = unit === 'slm' ? (sccm / 1000) + ' slm' : sccm + ' sccm';
+      return mkItem('pn.mfc', label + ' ' + gas + ' MFC',
+        { mfc: { type: MFC_TYPES[typeIdx % MFC_TYPES.length], gas, sccm, unit } });
+    };
+
+    MFC_LINES.forEach(([id, , , gas, sccm, unit], i) => {
+      const item = mkMFC(gas, sccm, unit, i);
+      ev('item.received', item.id, { to: 'loc.storage' }, at(origin, -40 - i, 0), 'lori');
+      ev('item.installed', id, { itemId: item.id }, at(origin, -i, 1), 'paul');
+    });
+
+    // Spare MFCs in storage.
+    [['O2', 200, 'sccm'], ['O2', 500, 'sccm'], ['N2', 2000, 'slm'],
+     ['N2', 5000, 'slm'], ['HCl', 100, 'sccm'], ['H2', 1000, 'slm'],
+     ['NH3', 500, 'sccm'], ['Ar', 100, 'sccm'], ['CH4', 20, 'sccm'],
+    ].forEach(([gas, sccm, unit], i) => {
+      const item = mkMFC(gas, sccm, unit, i + 2);
+      ev('item.received', item.id, { to: 'loc.storage' }, at(origin, -20 - i, 0), 'lori');
+    });
+
+    // A spare on order, and one out for repair.
+    const onOrder = mkMFC('O2', 200, 'sccm', 3);
+    ev('item.shipped', onOrder.id, { to: 'loc.onorder', leadTimeDays: 42 },
+       at(today, -18, 0), 'abdel');
+    const inRepair = mkMFC('N2', 10000, 'slm', 1);
+    ev('item.shipped', inRepair.id, { to: 'loc.repair' }, at(today, -55, 0), 'abdel');
+
+    // Spare throttle valves and baratrons, so replacement has real choices.
+    const spareThrottle = mkItem('pn.throttle', 'Throttle Valve, 100mm ISO');
+    ev('item.received', spareThrottle.id, { to: 'loc.storage' }, at(origin, -12, 0), 'lori');
+    const spareBaratron = mkItem('pn.baratron', 'Baratron capacitance manometer, 10 Torr');
+    ev('item.received', spareBaratron.id, { to: 'loc.storage' }, at(origin, -11, 0), 'lori');
+
+    // Gallium bottles, for the Refill flow.
+    [0, 1, 2].forEach(i => {
+      const bottle = mkItem('pn.gabottle', 'Gallium 7N, 1 kg',
+        { lot: 'GA-25-' + (410 + i) });
+      ev('item.received', bottle.id, { to: 'loc.storage' }, at(origin, 100 + i * 60, 0), 'lori');
+    });
+
+    // -- growth runs -------------------------------------------------------
+
+    const RECIPES = ['23-AFRL-Ga2O3', '24-ONR-GaN', '25-NASA-AlN', '20256053'];
+    const RUN_NOTES = [
+      '', '', '', '', 'solvent clean, DI rinse, and N2 dry prior to load',
+      '', '', 'slid to edge of backer before growth', '', '',
+    ];
+    const logStart = '2025-02-01T08:00:00Z';
+    const spanDays = Math.round((Date.parse(today) - Date.parse(logStart)) / 86400000);
+    let runNo = 5820;
+    for (let d = 0; d < spanDays; d += 4) {
+      runNo += 1;
+      ev('run.recorded', 't.gan11', {
+        info: 'Ran: ' + RECIPES[runNo % RECIPES.length],
+        details: 'AG' + runNo,
+        comment: RUN_NOTES[runNo % RUN_NOTES.length],
+      }, at(logStart, d, 9 + (runNo % 8)));
+    }
+
+    // -- maintenance work orders -------------------------------------------
+
+    const WO_TITLES = [
+      ['Chlorine Bottle Change', 's.gan11.gaspanel'],
+      ['Clogged proteus inlet — water issue', 's.gan11.controls'],
+      ['Installed new argon dewar', 's.gan11.gaspanel'],
+      ['Chlorine purifier replacement', 's.gan11.gaspanel'],
+      ['Hot swapped filters out for a clean set', 's.gan11.exhaust'],
+      ['Ramp down to alpha phase temps', 't.gan11'],
+      ['Trap 1 clean and reseal', 'c.gan11.trap1'],
+      ['Dry pump oil change', 'c.gan11.drypump'],
+      ['Rotation drive belt replacement', 'c.gan11.rotation'],
+      ['Quartz liner swap for 4 in build', 'c.gan11.quartz'],
+      ['Baratron recalibration', 'c.gan11.baratron'],
+      ['Heater element resistance check', 'c.gan11.heater'],
+    ];
+    let woNo = 150;
+    WO_TITLES.forEach(([title, target], i) => {
+      woNo += 3;
+      const opened = at(logStart, 20 + i * 45, 10);
+      const closed = at(logStart, 20 + i * 45 + 2, 15);
+      const wo = ev('wo.opened', target,
+        { text: title, info: 'Maint WO: M' + String(woNo).padStart(5, '0') }, opened);
+      ev('wo.closed', target, {
+        woId: wo.id,
+        info: 'Maint WO: M' + String(woNo).padStart(5, '0'),
+        text: title,
+        comment: 'Finished: ' + closed.slice(0, 10),
+      }, closed);
+    });
+
+    // -- issues ------------------------------------------------------------
+
+    const ISSUES = [
+      ['c.gan11.baratron', 'Pressure is unstable and the first reading drifts high', 60, 74],
+      ['c.gan11.throttle', 'Throttle valve hunting around setpoint', 150, 165],
+      ['s.gan11.gaspanel', 'NH3 leg connection weeping at the fitting', 240, 262],
+      ['c.gan11.drypump', 'Dry pump running warm, exhaust smells hot', 330, 341],
+      ['c.gan11.mfc.sih4', 'SiH4 MFC will not zero after purge', 400, 412],
+      ['c.gan11.watermanifold', 'Water flow alarm on circuit 6', 470, 478],
+      ['c.gan11.convectron', 'Convectron reading 2 decades low against the baratron', 520, 533],
+    ];
+    ISSUES.forEach(([target, text, openDay, closeDay]) => {
+      const opened = ev('issue.opened', target, { text }, at(logStart, openDay, 11));
+      ev('issue.closed', target, {
+        issueId: opened.id, text,
+        comment: 'Closed against maintenance work order.',
+      }, at(logStart, closeDay, 16));
+    });
+
+    // Left open on purpose: GaN 11 must read amber today so the demo opens on
+    // something worth clicking.
+    ev('issue.opened', 'c.gan11.mfc.hcllow',
+       { text: 'HCl Low MFC is acting funny and will not hold setpoint below 10 sccm' },
+       at(today, -9, 10), 'lori');
+    ev('wo.opened', 'c.gan11.trap2',
+       { text: 'Trap 2 differential pressure climbing — schedule clean',
+         info: 'Maint WO: M00201' },
+       at(today, -4, 13), 'abdel');
+
+    // -- tool state --------------------------------------------------------
+
+    ev('state.changed', 't.gan11', { state: 'down',
+      text: 'Tool ramped down over the weekend from a water issue' },
+      at(logStart, 300, 16));
+    ev('state.changed', 't.gan11', { state: 'up',
+      text: 'Water flow issue resolved, one leak located and sealed' },
+      at(logStart, 312, 9));
+
+    // GaN 12 is mid-rebuild. The System Notes timeline mentions exactly this.
+    ev('state.changed', 't.gan12', { state: 'down',
+      text: 'Rebuild for Gallium Nitride — boule build follows' },
+      at(today, -70, 8));
+    ev('state.changed', 't.gan13', { state: 'qual',
+      text: 'Qualification runs for 150mm templates' },
+      at(today, -25, 8));
+
+    // -- component swaps ---------------------------------------------------
+    // Four on GaN 11, one of them the O2 MFC so the date scrubber has
+    // something visible to show.
+
+    const swap = (componentId, dayFromToday, to, newItem) => {
+      const when = at(today, dayFromToday, 11);
+      const old = itemAt(events, componentId, when);
+      if (old) ev('item.removed', componentId, { itemId: old, to }, when, 'paul');
+      ev('item.installed', componentId, { itemId: newItem.id },
+         at(today, dayFromToday, 12), 'paul');
+    };
+
+    const newO2 = mkMFC('O2', 200, 'sccm', 4);
+    ev('item.received', newO2.id, { to: 'loc.storage' }, at(today, -200, 0), 'lori');
+    swap('c.gan11.mfc.o2', -180, 'loc.repair', newO2);
+
+    const newThrottle = mkItem('pn.throttle', 'Throttle Valve, 100mm ISO');
+    ev('item.received', newThrottle.id, { to: 'loc.storage' }, at(today, -150, 0), 'lori');
+    swap('c.gan11.throttle', -140, 'loc.repair', newThrottle);
+
+    const newBaratron = mkItem('pn.baratron', 'Baratron capacitance manometer, 10 Torr');
+    ev('item.received', newBaratron.id, { to: 'loc.storage' }, at(today, -95, 0), 'lori');
+    swap('c.gan11.baratron', -88, 'loc.storage', newBaratron);
+
+    const newSiH4 = mkMFC('SiH4', 20, 'sccm', 0);
+    ev('item.received', newSiH4.id, { to: 'loc.storage' }, at(today, -60, 0), 'lori');
+    swap('c.gan11.mfc.sih4', -52, 'loc.repair', newSiH4);
+
+    events.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
+
+    return Object.freeze({ entities, events, today, users });
+  })();
+
   return {
+    SEED,
     itemAt, stateAt, descendantsOf, healthOf, logFor, changesBetween,
     locationOf, replacementCandidates, filterMFCs, RED_STATES,
   };
