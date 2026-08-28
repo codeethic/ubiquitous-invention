@@ -100,7 +100,67 @@ globalThis.EpiTrax = (() => {
     return open.some(o => scope.has(o.targetId)) ? 'amber' : 'green';
   }
 
-  return { itemAt, stateAt, descendantsOf, healthOf, RED_STATES };
+  // --- history ------------------------------------------------------------
+
+  // Row kinds drive the log's row tint, matching the colours in the tool-log
+  // screenshot from the deck: runs plain, maintenance blue, issues purple,
+  // state changes red.
+  const KIND_MAP = {
+    'run.recorded': 'run',
+    'wo.opened': 'maint', 'wo.closed': 'maint', 'wo.commented': 'maint',
+    'issue.opened': 'issue', 'issue.closed': 'issue', 'issue.commented': 'issue',
+    'state.changed': 'state', 'comment.added': 'comment',
+    'item.installed': 'maint', 'item.removed': 'maint',
+    'item.shipped': 'maint', 'item.received': 'maint',
+  };
+
+  const DEFAULT_INFO = {
+    'wo.opened': 'Maint WO', 'wo.closed': 'Maint WO', 'wo.commented': 'Maint WO',
+    'issue.opened': 'Issue', 'issue.closed': 'Issue', 'issue.commented': 'Issue',
+    'state.changed': 'State', 'comment.added': 'Comment',
+    'item.installed': 'Installed', 'item.removed': 'Removed',
+    'item.shipped': 'Shipped', 'item.received': 'Received',
+  };
+
+  function logFor(entities, events, entityId, opts = {}) {
+    const scope = new Set(descendantsOf(entities, entityId));
+    return events
+      .filter(e => scope.has(e.targetId))
+      .filter(e => (!opts.from || e.at >= opts.from) && (!opts.to || e.at <= opts.to))
+      .map(e => ({
+        at: e.at,
+        kind: KIND_MAP[e.kind] ?? 'comment',
+        info: e.payload.info ?? DEFAULT_INFO[e.kind] ?? e.kind,
+        details: e.payload.text ?? e.payload.details ?? '',
+        comment: e.payload.comment ?? '',
+        by: e.by,
+        raw: e,
+      }))
+      .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
+  }
+
+  // What swapped between two dates. Drives the time-travel change markers.
+  function changesBetween(entities, events, entityId, from, to) {
+    const components = descendantsOf(entities, entityId)
+      .filter(id => entities[id] && entities[id].kind === 'component');
+    const out = [];
+    for (const componentId of components) {
+      const before = itemAt(events, componentId, from);
+      const after = itemAt(events, componentId, to);
+      if (before === after) continue;
+      const swap = upto(events, to)
+        .filter(e => e.targetId === componentId
+                  && e.kind === 'item.installed'
+                  && e.at > from)
+        .pop();
+      out.push({ componentId, fromItemId: before, toItemId: after, at: swap ? swap.at : to });
+    }
+    return out;
+  }
+
+  return {
+    itemAt, stateAt, descendantsOf, healthOf, logFor, changesBetween, RED_STATES,
+  };
 })();
 </script>
 
