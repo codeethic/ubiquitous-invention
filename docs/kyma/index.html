@@ -403,6 +403,41 @@ tr.r-comment td{background:rgba(255,255,255,.02)}
   background:var(--rise2);border:1px solid var(--amber);border-radius:5px;
   padding:10px 16px;font-size:13px;box-shadow:0 10px 34px rgba(0,0,0,.6)
 }
+
+/* ---------- time travel ---------- */
+body.past .datewrap{border-color:var(--amber);background:rgba(255,176,32,.12)}
+body.past .datewrap input{color:var(--amber)}
+.pastflag{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--amber);border:1px solid var(--amber);border-radius:3px;padding:3px 8px
+}
+.changed-strip{
+  background:rgba(255,176,32,.07);border:1px solid rgba(255,176,32,.3);
+  border-radius:5px;padding:11px 13px;margin-bottom:14px
+}
+.changed-strip h3{color:var(--amber)}
+.changerow{
+  display:flex;gap:10px;align-items:baseline;font-size:12.5px;
+  padding:4px 0;border-bottom:1px dotted rgba(255,176,32,.18)
+}
+.changerow:last-child{border-bottom:0}
+.changerow .cname{min-width:150px}
+.changerow .cswap{font-family:var(--mono);font-size:11.5px;color:var(--mute)}
+.changerow .cwhen{font-family:var(--mono);font-size:10.5px;color:var(--mute2);margin-left:auto}
+
+/* a component whose item differs from today */
+.node.swapped,.mfcrow.swapped{box-shadow:0 0 0 1px var(--amber) inset}
+.swapmark{color:var(--amber);font-family:var(--mono);font-size:10px;margin-left:5px}
+
+/* The deck asks for a DeLorean when looking back in time, by name. Parked in
+   the corner rather than behind the schematic, where the buttons hid it. */
+#delorean{
+  position:fixed;right:22px;bottom:16px;width:min(34vw,300px);
+  pointer-events:none;z-index:5;color:var(--amber);opacity:0;
+  transition:opacity .45s ease
+}
+body.past #delorean{opacity:.22}
+.delorean{width:100%;display:block}
 </style>
 
 <script id="engine">
@@ -1097,6 +1132,7 @@ globalThis.EpiTrax = (() => {
   </div>
   <nav class="crumbs" id="crumbs"></nav>
   <div class="railright">
+    <span id="pastflag"></span>
     <label class="datewrap" title="View the floor as it was on this date">
       <span class="eyebrow">Viewing</span>
       <input type="date" id="asof">
@@ -1107,6 +1143,7 @@ globalThis.EpiTrax = (() => {
 </header>
 
 <main id="main"></main>
+<div id="delorean"></div>
 <div id="modalRoot"></div>
 
 <script id="ui">
@@ -1367,7 +1404,7 @@ globalThis.EpiTrax = (() => {
     ['Lift', 'c.gan11.lift', false],
   ];
 
-  function nodeButton(c, [label, id, isSub]) {
+  function nodeButton(c, [label, id, isSub], swaps) {
     const ent = c.entities[id];
     if (!ent) return null;
     const health = E.healthOf(c.entities, c.events, id, c.at);
@@ -1376,13 +1413,17 @@ globalThis.EpiTrax = (() => {
     const meta = isSub
       ? Object.values(c.entities).filter(e => e.parentId === id).length + ' items'
       : (installed ? installed.serial : 'no item');
+    // Under a subsystem button, flag if anything inside it has been swapped.
+    const changed = swaps && (swaps.has(id)
+      || E.descendantsOf(c.entities, id).some(d => swaps.has(d)));
     const node = el('a', {
-      class: 'node n-' + health + (isSub ? ' is-sub' : ''),
+      class: 'node n-' + health + (isSub ? ' is-sub' : '') + (changed ? ' swapped' : ''),
       ...link(view, id),
       onmouseenter: ev => showHover(ev.currentTarget, c, id, label),
       onmouseleave: hideHover,
     },
-      el('div', { class: 'node-name' }, label),
+      el('div', { class: 'node-name' }, label,
+        changed ? el('span', { class: 'swapmark', title: 'Changed since this date' }, '⟳') : null),
       el('div', { class: 'node-meta' }, meta));
     return node;
   }
@@ -1488,14 +1529,19 @@ globalThis.EpiTrax = (() => {
 
     root.append(el('div', { class: 'toolbar' }, actionButtons(c, tool.id)));
 
+    const swaps = swappedSince(c, tool.id);
+    const strip = changedStrip(c, tool.id);
+    if (strip) root.append(strip);
+
     root.append(el('div', { class: 'toolwrap' },
       whiteboard(c, tool.id),
-      el('div', { class: 'btncol' }, GAN11_LEFT.map(b => nodeButton(c, b))),
+      el('div', { class: 'btncol' }, GAN11_LEFT.map(b => nodeButton(c, b, swaps))),
       el('div', { class: 'stage' },
         el('div', { class: 'reactor' }),
-        el('div', { class: 'stage-lower' }, GAN11_LOWER.map(b => nodeButton(c, b))),
-        el('div', { class: 'stage-caption' }, 'HVPE reactor · GaN 11')),
-      el('div', { class: 'btncol' }, GAN11_RIGHT.map(b => nodeButton(c, b)))));
+        el('div', { class: 'stage-lower' }, GAN11_LOWER.map(b => nodeButton(c, b, swaps))),
+        el('div', { class: 'stage-caption' },
+          isToday() ? 'HVPE reactor · GaN 11' : 'HVPE reactor · GaN 11 · ' + fmtDay(c.at))),
+      el('div', { class: 'btncol' }, GAN11_RIGHT.map(b => nodeButton(c, b, swaps)))));
 
     root.append(el('div', { style: 'margin-top:16px' }, logPanel(c, tool.id)));
   };
@@ -1512,7 +1558,7 @@ globalThis.EpiTrax = (() => {
     ['Dump Tube', 'ch-dump'],
   ];
 
-  function mfcRow(c, comp) {
+  function mfcRow(c, comp, swaps) {
     if (comp.empty) {
       return el('div', { class: 'mfcrow empty' },
         el('span', { class: 'mfc-gas' }, '— empty slot —'),
@@ -1520,8 +1566,13 @@ globalThis.EpiTrax = (() => {
     }
     const health = E.healthOf(c.entities, c.events, comp.id, c.at);
     const item = c.entities[E.itemAt(c.events, comp.id, c.at)];
-    return el('a', { class: 'mfcrow n-' + health, ...link('component', comp.id) },
-      el('span', { class: 'mfc-gas' }, comp.name),
+    const changed = swaps && swaps.has(comp.id);
+    return el('a', {
+      class: 'mfcrow n-' + health + (changed ? ' swapped' : ''),
+      ...link('component', comp.id),
+    },
+      el('span', { class: 'mfc-gas' }, comp.name,
+        changed ? el('span', { class: 'swapmark', title: 'Changed since this date' }, '⟳') : null),
       el('span', { class: 'mfc-serial' }, item ? item.serial : '—'),
       el('span', { class: 'mfc-size' }, item && item.mfc ? flow(item.mfc) : 'none'));
   }
@@ -1530,13 +1581,14 @@ globalThis.EpiTrax = (() => {
     const comps = Object.values(c.entities)
       .filter(e => e.parentId === sub.id)
       .sort((a, b) => a.order - b.order);
+    const swaps = swappedSince(c, sub.id);
 
     const left = el('div', {});
     for (const [channel, cls] of CHANNELS) {
       const rows = comps.filter(x => x.channel === channel);
       if (!rows.length) continue;
       left.append(el('div', { class: 'chan ' + cls },
-        el('div', { class: 'chan-rows' }, rows.map(x => mfcRow(c, x))),
+        el('div', { class: 'chan-rows' }, rows.map(x => mfcRow(c, x, swaps))),
         el('div', { class: 'chan-label' }, channel)));
     }
 
@@ -1580,6 +1632,9 @@ globalThis.EpiTrax = (() => {
       el('span', { class: 'eyebrow' }, tool ? tool.name : '')));
 
     root.append(el('div', { class: 'toolbar' }, actionButtons(c, id)));
+
+    const subStrip = changedStrip(c, id);
+    if (subStrip) root.append(subStrip);
 
     if (Object.values(c.entities).some(e => e.parentId === id && e.isMFC)) {
       gasPanel(root, c, sub);
@@ -2211,6 +2266,61 @@ globalThis.EpiTrax = (() => {
     });
   };
 
+  // --- time travel --------------------------------------------------------
+
+  // Which components under this entity hold a different item than they do now.
+  function swappedSince(c, entityId) {
+    if (isToday()) return new Map();
+    const changes = E.changesBetween(c.entities, c.events, entityId, c.at, now);
+    return new Map(changes.map(ch => [ch.componentId, ch]));
+  }
+
+  function changedStrip(c, entityId) {
+    if (isToday()) return null;
+    const changes = E.changesBetween(c.entities, c.events, entityId, c.at, now);
+    const serial = id => (c.entities[id] ? c.entities[id].serial : 'none');
+    return el('section', { class: 'changed-strip' },
+      el('h3', {}, 'Viewing ' + fmtDay(c.at) + ' · what changed since'),
+      changes.length
+        ? changes.map(ch => el('div', { class: 'changerow' },
+            el('a', { class: 'cname serial-link', ...link('component', ch.componentId) },
+              entName(ch.componentId)),
+            el('span', { class: 'cswap' },
+              serial(ch.fromItemId) + '  →  ' + serial(ch.toItemId)),
+            el('span', { class: 'cwhen' }, fmtDay(ch.at))))
+        : el('p', { class: 'note', style: 'margin:0' },
+            'Nothing has been swapped out here since that date.'));
+  }
+
+  // Hand-drawn, so the page stays self-contained.
+  function delorean() {
+    const s = (tag, attrs, ...kids) => svg(tag, attrs, ...kids);
+    return s('svg', { class: 'delorean', viewBox: '0 0 400 150', fill: 'none' },
+      // body
+      s('path', {
+        d: 'M18 112 L26 92 Q30 84 42 82 L96 76 L128 46 Q136 38 152 37 L246 37 '
+         + 'Q262 37 270 45 L300 76 L356 84 Q370 86 374 96 L380 112 Z',
+        fill: 'currentColor', opacity: '.5',
+      }),
+      // gullwing door, up
+      s('path', {
+        d: 'M150 36 L146 8 Q146 3 154 4 L236 12 Q244 13 242 19 L236 36 Z',
+        fill: 'currentColor', opacity: '.35',
+      }),
+      // windows
+      s('path', { d: 'M140 70 L162 46 L238 46 L258 70 Z', fill: 'var(--deep)', opacity: '.55' }),
+      // wheels
+      s('circle', { cx: '92', cy: '112', r: '22', fill: 'var(--deep)' }),
+      s('circle', { cx: '92', cy: '112', r: '22', stroke: 'currentColor', 'stroke-width': '5' }),
+      s('circle', { cx: '308', cy: '112', r: '22', fill: 'var(--deep)' }),
+      s('circle', { cx: '308', cy: '112', r: '22', stroke: 'currentColor', 'stroke-width': '5' }),
+      // fire trails
+      s('path', { d: 'M6 128 L118 128', stroke: 'currentColor', 'stroke-width': '4', 'stroke-linecap': 'round' }),
+      s('path', { d: 'M22 138 L134 138', stroke: 'currentColor', 'stroke-width': '3', 'stroke-linecap': 'round', opacity: '.6' }),
+      s('path', { d: 'M232 128 L392 128', stroke: 'currentColor', 'stroke-width': '4', 'stroke-linecap': 'round' }),
+      s('path', { d: 'M248 138 L378 138', stroke: 'currentColor', 'stroke-width': '3', 'stroke-linecap': 'round', opacity: '.6' }));
+  }
+
   ACTIONS.refill = (c, toolId) => {
     const cc = ctx();
     const bottles = Object.values(cc.entities).filter(e =>
@@ -2261,6 +2371,14 @@ globalThis.EpiTrax = (() => {
     renderCrumbs(c, view, id);
     document.getElementById('asof').value = dayOf(asOf);
     document.body.classList.toggle('past', !isToday());
+
+    const flag = document.getElementById('pastflag');
+    flag.replaceChildren();
+    if (!isToday()) flag.append(el('span', { class: 'pastflag' }, 'Viewing ' + fmtDay(asOf)));
+
+    const garage = document.getElementById('delorean');
+    garage.replaceChildren();
+    if (!isToday()) garage.append(delorean());
   }
 
   // --- breadcrumb --------------------------------------------------------
