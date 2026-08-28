@@ -438,6 +438,44 @@ body.past .datewrap input{color:var(--amber)}
 }
 body.past #delorean{opacity:.22}
 .delorean{width:100%;display:block}
+
+/* ---------- home ---------- */
+.summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.stat{
+  background:var(--slate);border:1px solid var(--line);border-left-width:3px;
+  border-radius:5px;padding:11px 15px;min-width:126px
+}
+.stat .n{font-family:var(--display);font-weight:700;font-size:28px;line-height:1}
+.stat .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--mute2);margin-top:3px}
+.homegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;align-items:start}
+.homerow{
+  display:flex;gap:10px;align-items:baseline;padding:7px 0;
+  border-bottom:1px solid var(--line-soft)
+}
+.homerow:last-child{border-bottom:0}
+.homerow:hover{background:rgba(255,255,255,.03)}
+.homerow .hmain{flex:1;font-size:12.5px}
+.homerow .hsub{font-family:var(--mono);font-size:10px;color:var(--mute2);margin-top:2px}
+.homerow .hval{font-family:var(--mono);font-size:11.5px;white-space:nowrap}
+.low{color:var(--warn)} .ok{color:var(--up)} .bad{color:var(--down)}
+
+/* ---------- spares / cross-tool ---------- */
+.searchbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.searchbar input[type=text],.searchbar select{
+  background:var(--deep);border:1px solid var(--line);border-radius:4px;
+  padding:7px 10px;font-size:13px;min-width:180px
+}
+table.inv{border-collapse:collapse;width:100%;font-size:12px}
+table.inv th{
+  text-align:left;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--mute2);font-weight:500;padding:7px 9px;
+  border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--rise2)
+}
+table.inv td{padding:6px 9px;border-bottom:1px solid var(--line-soft)}
+table.inv tr:hover td{background:rgba(255,255,255,.03)}
+table.inv tr.lowstock td{background:rgba(255,192,0,.08)}
+.qty{font-family:var(--mono);text-align:right}
 </style>
 
 <script id="engine">
@@ -905,6 +943,26 @@ globalThis.EpiTrax = (() => {
       ev('item.installed', c.id, { itemId: item.id }, at(origin, -i, 0), 'paul');
     });
 
+    // Spares on the shelf. Most part numbers are stocked; a handful are
+    // deliberately short so the home screen's low-stock panel carries signal
+    // instead of listing every part number on the site.
+    const SPARE_COUNTS = {
+      'pn.throttle': 2, 'pn.baratron': 2, 'pn.convectron': 3, 'pn.drypump': 2,
+      'pn.trap': 4, 'pn.flange': 2, 'pn.rotation': 2, 'pn.lift': 2,
+      'pn.manifold': 2, 'pn.tempctl': 3, 'pn.feedthrough': 2,
+      // Short on purpose: quartz and source boats are consumed per build, the
+      // Ga charge assembly is on a long lead, and heaters rarely fail.
+      'pn.quartz': 0, 'pn.sourceboat': 0, 'pn.precursor': 1, 'pn.heater': 1,
+    };
+    Object.entries(SPARE_COUNTS).forEach(([pnId, count], p) => {
+      const pn = entities[pnId];
+      for (let k = 0; k < count; k += 1) {
+        const spare = mkItem(pnId, pn.description);
+        ev('item.received', spare.id, { to: 'loc.storage' },
+           at(origin, -60 + p * 2 + k, 0), 'lori');
+      }
+    });
+
     // MFC items: one per populated line, plus spares in storage, on order and
     // out for repair so the selector and the spares view have range.
     const MFC_TYPES = ['1100', '1400', 'G-series', 'black', 'green'];
@@ -935,12 +993,6 @@ globalThis.EpiTrax = (() => {
        at(today, -18, 0), 'abdel');
     const inRepair = mkMFC('N2', 10000, 'slm', 1);
     ev('item.shipped', inRepair.id, { to: 'loc.repair' }, at(today, -55, 0), 'abdel');
-
-    // Spare throttle valves and baratrons, so replacement has real choices.
-    const spareThrottle = mkItem('pn.throttle', 'Throttle Valve, 100mm ISO');
-    ev('item.received', spareThrottle.id, { to: 'loc.storage' }, at(origin, -12, 0), 'lori');
-    const spareBaratron = mkItem('pn.baratron', 'Baratron capacitance manometer, 10 Torr');
-    ev('item.received', spareBaratron.id, { to: 'loc.storage' }, at(origin, -11, 0), 'lori');
 
     // Gallium bottles, for the Refill flow.
     [0, 1, 2].forEach(i => {
@@ -1845,6 +1897,251 @@ globalThis.EpiTrax = (() => {
                   + (e.payload.text || c.entities[e.targetId]?.name || '')))))
             : el('p', { class: 'note' },
                 'Nothing was raised against a slot while this item filled it.')))));
+  };
+
+  // --- inventory rollup ---------------------------------------------------
+  // Shared by the home screen and the spares view.
+
+  function stockByPartNumber(c) {
+    const rows = [];
+    for (const pn of Object.values(c.entities)) {
+      if (pn.kind !== 'partNumber') continue;
+      const items = Object.values(c.entities).filter(i => i.kind === 'item' && i.partNumberId === pn.id);
+      const tally = { storage: 0, tool: 0, onorder: 0, repair: 0, scrap: 0, unknown: 0 };
+      const detail = [];
+      for (const item of items) {
+        const loc = E.locationOf(c.entities, c.events, item.id, c.at);
+        tally[loc.locationKind] = (tally[loc.locationKind] || 0) + 1;
+        detail.push({ item, loc });
+      }
+      rows.push({ pn, items, tally, detail, low: tally.storage <= (pn.lowStockAt ?? 1) });
+    }
+    return rows.sort((a, b) => (a.pn.pn < b.pn.pn ? -1 : 1));
+  }
+
+  // --- home ---------------------------------------------------------------
+
+  VIEWS.home = (root, c) => {
+    const tools = Object.values(c.entities).filter(e => e.kind === 'tool');
+    const counts = { green: 0, amber: 0, red: 0 };
+    tools.forEach(t => { counts[E.healthOf(c.entities, c.events, t.id, c.at)] += 1; });
+
+    root.append(el('div', { class: 'viewhead' },
+      el('div', { class: 'viewtitle' }, 'Maintenance'),
+      el('span', { class: 'eyebrow' }, fmtDay(c.at))));
+
+    root.append(el('div', { class: 'summary' },
+      el('a', { class: 'stat bar-green', ...link('facility') },
+        el('div', { class: 'n' }, counts.green), el('div', { class: 'k' }, 'Tools up')),
+      el('a', { class: 'stat bar-amber', ...link('facility') },
+        el('div', { class: 'n' }, counts.amber), el('div', { class: 'k' }, 'Open work')),
+      el('a', { class: 'stat bar-red', ...link('facility') },
+        el('div', { class: 'n' }, counts.red), el('div', { class: 'k' }, 'Not running'))));
+
+    const stock = stockByPartNumber(c);
+    const lowStock = stock.filter(s => s.low);
+    const inRepair = stock.flatMap(s =>
+      s.detail.filter(d => d.loc.locationKind === 'repair').map(d => ({ ...d, pn: s.pn })));
+    const onOrder = stock.flatMap(s =>
+      s.detail.filter(d => d.loc.locationKind === 'onorder').map(d => ({ ...d, pn: s.pn })));
+
+    // Open work, newest first, across the whole floor.
+    const st = E.stateAt(c.events, c.at);
+    const open = [...st.openIssues.map(o => ({ ...o, isWO: false })),
+                  ...st.openWOs.map(o => ({ ...o, isWO: true }))]
+      .sort((a, b) => (a.at < b.at ? 1 : -1));
+
+    const viewFor = id => {
+      const ent = c.entities[id];
+      if (!ent) return 'facility';
+      return ent.kind === 'tool' ? 'tool' : ent.kind === 'subsystem' ? 'subsystem' : 'component';
+    };
+
+    root.append(el('div', { class: 'homegrid' },
+      el('section', { class: 'panel' },
+        el('h3', {}, 'Needs attention'),
+        open.length
+          ? open.map(o => el('a', { class: 'homerow', ...link(viewFor(o.targetId), o.targetId) },
+              el('span', { class: 'hmain' }, o.text,
+                el('div', { class: 'hsub' },
+                  (toolOf(c.entities, o.targetId) || {}).name + ' · ' + entName(o.targetId))),
+              el('span', { class: 'hval ' + (o.isWO ? '' : 'low') }, o.isWO ? 'WO' : 'Issue')))
+          : el('p', { class: 'note' }, 'Nothing open across the floor.')),
+
+      el('section', { class: 'panel' },
+        el('h3', {}, 'Spares running low'),
+        lowStock.length
+          ? lowStock.map(s => el('a', { class: 'homerow', ...link('spares') },
+              el('span', { class: 'hmain' }, s.pn.description,
+                el('div', { class: 'hsub' }, s.pn.pn)),
+              el('span', { class: 'hval low' }, s.tally.storage + ' in storage')))
+          : el('p', { class: 'note' }, 'Every part number is above its threshold.')),
+
+      el('section', { class: 'panel' },
+        el('h3', {}, 'Out for repair and on order'),
+        (inRepair.length || onOrder.length)
+          ? [...inRepair, ...onOrder].map(d =>
+              el('a', { class: 'homerow', ...link('item', d.item.id) },
+                el('span', { class: 'hmain' }, d.item.name,
+                  el('div', { class: 'hsub' }, d.item.serial + ' · ' + d.pn.pn)),
+                el('span', { class: 'hval ' + (d.loc.locationKind === 'repair' ? 'bad' : '') },
+                  d.loc.locationLabel
+                  + (d.loc.leadTimeDays ? ' · ' + d.loc.leadTimeDays + ' d' : ''))))
+          : el('p', { class: 'note' }, 'Nothing away from site.')),
+
+      el('section', { class: 'panel' },
+        el('h3', {}, 'Go to'),
+        el('a', { class: 'homerow', ...link('facility') },
+          el('span', { class: 'hmain' }, 'Facility', el('div', { class: 'hsub' }, 'All ten tools'))),
+        el('a', { class: 'homerow', ...link('tool', 't.gan11') },
+          el('span', { class: 'hmain' }, 'GaN 11',
+            el('div', { class: 'hsub' }, 'Modelled to component level'))),
+        el('a', { class: 'homerow', ...link('spares') },
+          el('span', { class: 'hmain' }, 'Spares',
+            el('div', { class: 'hsub' }, 'Inventory and part numbers'))),
+        el('a', { class: 'homerow', ...link('across') },
+          el('span', { class: 'hmain' }, 'Cross-tool history',
+            el('div', { class: 'hsub' }, 'One component type across a set of tools'))))));
+  };
+
+  // --- spares -------------------------------------------------------------
+
+  VIEWS.spares = (root, c) => {
+    root.append(el('div', { class: 'viewhead' },
+      el('div', { class: 'viewtitle' }, 'Spares'),
+      el('span', { class: 'eyebrow' }, 'Inventory · ' + fmtDay(c.at))));
+
+    const search = el('input', { type: 'text', placeholder: 'Search part number or description…' });
+    const locSel = el('select', {},
+      el('option', { value: '' }, 'Any location'),
+      el('option', { value: 'storage' }, 'In storage'),
+      el('option', { value: 'tool' }, 'On a tool'),
+      el('option', { value: 'repair' }, 'Out for repair'),
+      el('option', { value: 'onorder' }, 'On order'));
+    const lowOnly = el('input', { type: 'checkbox' });
+
+    const body = el('tbody', {});
+    const rows = stockByPartNumber(c);
+
+    function refresh() {
+      const q = search.value.trim().toLowerCase();
+      const loc = locSel.value;
+      body.replaceChildren();
+      const shown = rows.filter(s => {
+        if (lowOnly.checked && !s.low) return false;
+        if (loc && !s.tally[loc]) return false;
+        if (q && !(s.pn.pn + ' ' + s.pn.description).toLowerCase().includes(q)) return false;
+        return true;
+      });
+      if (!shown.length) {
+        body.append(el('tr', {}, el('td', { colspan: '7', class: 'note' }, 'No part numbers match.')));
+        return;
+      }
+      for (const s of shown) {
+        body.append(el('tr', { class: s.low ? 'lowstock' : '' },
+          el('td', { class: 'mono' }, s.pn.pn),
+          el('td', {}, s.pn.description),
+          el('td', { class: 'qty ' + (s.low ? 'low' : 'ok') }, s.tally.storage),
+          el('td', { class: 'qty' }, s.tally.tool),
+          el('td', { class: 'qty' }, s.tally.repair || ''),
+          el('td', { class: 'qty' }, s.tally.onorder || ''),
+          el('td', {}, s.detail
+            .filter(d => d.loc.locationKind !== 'tool')
+            .slice(0, 4)
+            .map(d => el('a', { class: 'serial-link', style: 'margin-right:8px',
+                                ...link('item', d.item.id) }, d.item.serial)))));
+      }
+    }
+
+    search.addEventListener('input', refresh);
+    locSel.addEventListener('change', refresh);
+    lowOnly.addEventListener('change', refresh);
+
+    root.append(el('section', { class: 'panel' },
+      el('div', { class: 'searchbar' },
+        search, locSel,
+        el('label', { class: 'checkline' }, lowOnly, 'Low stock only')),
+      el('div', { class: 'tablewrap' },
+        el('table', { class: 'inv' },
+          el('thead', {}, el('tr', {},
+            el('th', {}, 'Part number'), el('th', {}, 'Description'),
+            el('th', {}, 'Storage'), el('th', {}, 'On tools'),
+            el('th', {}, 'Repair'), el('th', {}, 'On order'),
+            el('th', {}, 'Serials off-tool'))),
+          body))));
+    refresh();
+  };
+
+  // --- cross-tool history -------------------------------------------------
+  //
+  // The deck's own example: "see history for all Throttle Valves on all HVPE
+  // tools."
+
+  VIEWS.across = (root, c) => {
+    root.append(el('div', { class: 'viewhead' },
+      el('div', { class: 'viewtitle' }, 'Cross-tool history'),
+      el('span', { class: 'eyebrow' }, 'One component type across a set of tools')));
+
+    const names = [...new Set(Object.values(c.entities)
+      .filter(e => e.kind === 'component' && !e.empty).map(e => e.name))].sort();
+    const compSel = el('select', {},
+      names.map(n => el('option', { value: n, selected: n === 'Throttle Valve' }, n)));
+    const setSel = el('select', {},
+      el('option', { value: 'hvpe' }, 'All HVPE tools'),
+      el('option', { value: 'pvd' }, 'All PVD tools'),
+      el('option', { value: 'all' }, 'Every tool'));
+
+    const out = el('div', {});
+
+    function refresh() {
+      const name = compSel.value;
+      const family = setSel.value;
+      const tools = Object.values(c.entities).filter(t =>
+        t.kind === 'tool' && (family === 'all' || t.bay === family));
+      const toolIds = new Set(tools.map(t => t.id));
+      const comps = Object.values(c.entities).filter(e =>
+        e.kind === 'component' && e.name === name
+        && toolIds.has((toolOf(c.entities, e.id) || {}).id));
+
+      const merged = comps.flatMap(comp => {
+        const tool = toolOf(c.entities, comp.id);
+        return E.logFor(c.entities, c.events, comp.id, { to: c.at })
+          .map(r => ({ ...r, toolName: tool ? tool.name : '', componentId: comp.id }));
+      }).sort((a, b) => (a.at < b.at ? 1 : -1));
+
+      out.replaceChildren();
+      if (!comps.length) {
+        out.append(el('p', { class: 'note' },
+          'No ' + name + ' is modelled on those tools in this prototype.'));
+        return;
+      }
+      out.append(el('p', { class: 'note', style: 'margin:0 0 10px' },
+        merged.length + ' entries across ' + comps.length + ' '
+        + name + (comps.length === 1 ? '' : 's')));
+      out.append(el('div', { class: 'tablewrap' },
+        el('table', { class: 'log' },
+          el('thead', {}, el('tr', {},
+            el('th', {}, 'StartDate'), el('th', {}, 'Tool'), el('th', {}, 'Info'),
+            el('th', {}, 'Details'), el('th', {}, 'Comment'), el('th', {}, 'By'))),
+          el('tbody', {}, merged.slice(0, 200).map(r => el('tr', { class: 'r-' + r.kind },
+            el('td', { class: 'mono nowrap' }, fmtStamp(r.at)),
+            el('td', {}, el('a', { class: 'serial-link', ...link('component', r.componentId) },
+              r.toolName)),
+            el('td', {}, r.info),
+            el('td', {}, r.details),
+            el('td', { class: 'muted' }, r.comment),
+            el('td', { class: 'mono muted' }, r.by)))))));
+    }
+
+    compSel.addEventListener('change', refresh);
+    setSel.addEventListener('change', refresh);
+
+    root.append(el('section', { class: 'panel' },
+      el('div', { class: 'searchbar' },
+        el('span', { class: 'eyebrow' }, 'Component'), compSel,
+        el('span', { class: 'eyebrow' }, 'across'), setSel),
+      out));
+    refresh();
   };
 
   const LOC_LABEL = {
