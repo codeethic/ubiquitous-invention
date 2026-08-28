@@ -76,7 +76,31 @@ globalThis.EpiTrax = (() => {
     };
   }
 
-  return { itemAt, stateAt };
+  // --- hierarchy and health ---------------------------------------------
+
+  function descendantsOf(entities, entityId) {
+    const out = [entityId];
+    for (const e of Object.values(entities)) {
+      if (e.parentId === entityId) out.push(...descendantsOf(entities, e.id));
+    }
+    return out;
+  }
+
+  // The deck collapses four tool states onto red. Colour alone would lose the
+  // distinction, so callers render the state as text alongside the colour.
+  const RED_STATES = new Set(['down', 'decommissioned', 'qual', 'pm']);
+
+  function healthOf(entities, events, entityId, iso) {
+    const st = stateAt(events, iso);
+    const scope = new Set(descendantsOf(entities, entityId));
+    for (const id of scope) {
+      if (RED_STATES.has(st.toolStates[id])) return 'red';
+    }
+    const open = [...st.openIssues, ...st.openWOs];
+    return open.some(o => scope.has(o.targetId)) ? 'amber' : 'green';
+  }
+
+  return { itemAt, stateAt, descendantsOf, healthOf, RED_STATES };
 })();
 </script>
 
