@@ -158,8 +158,89 @@ globalThis.EpiTrax = (() => {
     return out;
   }
 
+  // --- inventory ----------------------------------------------------------
+
+  // An item's location is derived, never stored. If it currently fills a
+  // component slot it is on that slot's tool; otherwise its last shipping or
+  // receiving event says where it went.
+  function locationOf(entities, events, itemId, iso) {
+    for (const [componentId, ent] of Object.entries(entities)) {
+      if (ent.kind !== 'component') continue;
+      if (itemAt(events, componentId, iso) !== itemId) continue;
+      let node = entities[ent.parentId];
+      while (node && node.kind !== 'tool') node = entities[node.parentId];
+      return {
+        locationKind: 'tool',
+        locationLabel: node ? node.name : 'Unknown tool',
+        componentId,
+        leadTimeDays: null,
+      };
+    }
+
+    let to = null, leadTimeDays = null;
+    for (const e of upto(events, iso)) {
+      if (e.targetId !== itemId) continue;
+      if (e.kind === 'item.received' || e.kind === 'item.shipped') {
+        to = e.payload.to;
+        leadTimeDays = e.payload.leadTimeDays ?? null;
+      }
+    }
+    const locationKind = to === 'loc.storage' ? 'storage'
+                       : to === 'loc.repair' ? 'repair'
+                       : to === 'loc.onorder' ? 'onorder'
+                       : to === 'loc.scrap' ? 'scrap'
+                       : 'unknown';
+    const locationLabel = {
+      storage: 'In storage', repair: 'Out for repair', onorder: 'On order',
+      scrap: 'Scrapped', unknown: 'Unknown',
+    }[locationKind];
+    return { locationKind, locationLabel, componentId: null, leadTimeDays };
+  }
+
+  // The deck is specific about this order: in storage first, then on another
+  // tool, then on order. Serial breaks ties so the list is deterministic.
+  const LOCATION_RANK = { storage: 0, tool: 1, onorder: 2, repair: 3, scrap: 4, unknown: 5 };
+  const bySerial = (a, b) => (a.serial < b.serial ? -1 : a.serial > b.serial ? 1 : 0);
+
+  function replacementCandidates(entities, events, componentId, iso) {
+    const installed = itemAt(events, componentId, iso);
+    const compatiblePNs = new Set(
+      Object.values(entities)
+        .filter(e => e.kind === 'partNumber'
+                  && (e.compatibleComponentIds || []).includes(componentId))
+        .map(p => p.id));
+
+    return Object.values(entities)
+      .filter(e => e.kind === 'item'
+                && compatiblePNs.has(e.partNumberId)
+                && e.id !== installed)
+      .map(item => ({
+        itemId: item.id,
+        serial: item.serial,
+        name: item.name,
+        pn: entities[item.partNumberId] ? entities[item.partNumberId].pn : '',
+        ...locationOf(entities, events, item.id, iso),
+      }))
+      .sort((a, b) =>
+        (LOCATION_RANK[a.locationKind] - LOCATION_RANK[b.locationKind]) || bySerial(a, b));
+  }
+
+  // MFCs carry no compatibility list, so they get their own selector. Values
+  // within a category are OR; categories combine with AND.
+  function filterMFCs(entities, events, f = {}, iso) {
+    return Object.values(entities)
+      .filter(e => e.kind === 'item' && e.mfc)
+      .filter(e => !(f.type && f.type.length) || f.type.includes(e.mfc.type))
+      .filter(e => !(f.gas && f.gas.length) || f.gas.includes(e.mfc.gas))
+      .filter(e => f.sccmMin == null || e.mfc.sccm >= f.sccmMin)
+      .filter(e => f.sccmMax == null || e.mfc.sccm <= f.sccmMax)
+      .map(e => ({ ...e, ...locationOf(entities, events, e.id, iso) }))
+      .sort(bySerial);
+  }
+
   return {
-    itemAt, stateAt, descendantsOf, healthOf, logFor, changesBetween, RED_STATES,
+    itemAt, stateAt, descendantsOf, healthOf, logFor, changesBetween,
+    locationOf, replacementCandidates, filterMFCs, RED_STATES,
   };
 })();
 </script>
