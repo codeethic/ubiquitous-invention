@@ -269,6 +269,67 @@ tr.r-comment td{background:rgba(255,255,255,.02)}
 
 /* generic subsystem grid */
 .compgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+
+/* ---------- component / item ---------- */
+.compwrap{display:grid;grid-template-columns:minmax(300px,380px) minmax(320px,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.compwrap{grid-template-columns:1fr}}
+
+.installed{
+  background:var(--rise);border:1px solid var(--line);border-radius:4px;
+  padding:11px 12px;margin-bottom:12px
+}
+.installed .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--mute2)}
+.installed .val{font-size:14px;margin-top:3px}
+.installed .pn{font-family:var(--mono);font-size:11.5px;color:var(--mute);margin-top:2px}
+.serial-link{
+  font-family:var(--mono);font-size:12.5px;color:var(--amber);
+  border-bottom:1px dotted rgba(255,176,32,.5)
+}
+.serial-link:hover{color:var(--chalk);border-bottom-color:var(--chalk)}
+
+/* the two-column picker from slides 20 and 21 */
+.picker{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.picker h4{margin:0 0 6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--mute2);font-weight:500}
+.picklist{border:1px solid var(--line);border-radius:4px;max-height:230px;overflow-y:auto}
+.pickrow{
+  display:block;width:100%;text-align:left;padding:5px 9px;font-size:12px;
+  border-bottom:1px solid var(--line-soft)
+}
+.pickrow:last-child{border-bottom:0}
+.pickrow:hover{background:var(--rise)}
+.pickrow.sel{background:var(--rise2);color:var(--chalk);box-shadow:inset 3px 0 0 var(--amber)}
+.pickrow .pdot{float:right;margin-top:5px}
+
+.openlist{display:flex;flex-direction:column;gap:6px}
+.openrow{
+  display:flex;gap:10px;align-items:flex-start;background:rgba(255,192,0,.07);
+  border:1px solid rgba(255,192,0,.25);border-radius:4px;padding:8px 10px
+}
+.openrow.iswo{background:rgba(64,132,214,.10);border-color:rgba(64,132,214,.3)}
+.openrow .otxt{flex:1;font-size:12.5px;line-height:1.4;cursor:text;user-select:text}
+.openrow .ometa{font-family:var(--mono);font-size:9.5px;color:var(--mute2);margin-top:3px}
+.chip{
+  font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  padding:2px 6px;border-radius:3px;background:var(--rise2);color:var(--mute)
+}
+
+/* item timeline */
+.tl{list-style:none;margin:0;padding:0}
+.tl li{
+  position:relative;padding:0 0 12px 20px;border-left:1px solid var(--line);
+  margin-left:5px
+}
+.tl li:last-child{border-left-color:transparent;padding-bottom:0}
+.tl li::before{
+  content:'';position:absolute;left:-4.5px;top:5px;width:8px;height:8px;
+  border-radius:50%;background:var(--mute2);border:2px solid var(--deep)
+}
+.tl li.on::before{background:var(--up)}
+.tl li.off::before{background:var(--warn)}
+.tl-when{font-family:var(--mono);font-size:10px;color:var(--mute2)}
+.tl-what{font-size:12.5px;margin-top:1px}
 </style>
 
 <script id="engine">
@@ -1436,6 +1497,219 @@ globalThis.EpiTrax = (() => {
     } else {
       genericSubsystem(root, c, sub);
     }
+  };
+
+  // --- component ---------------------------------------------------------
+
+  function toolOf(entities, id) {
+    let node = entities[id];
+    while (node && node.kind !== 'tool') node = entities[node.parentId];
+    return node;
+  }
+
+  // The Subsystem / Component picker from slides 20 and 21.
+  function picker(c, comp) {
+    const tool = toolOf(c.entities, comp.id);
+    const subs = Object.values(c.entities)
+      .filter(e => e.kind === 'subsystem' && e.parentId === tool.id);
+    const currentSub = c.entities[comp.parentId];
+    const comps = Object.values(c.entities)
+      .filter(e => e.kind === 'component' && e.parentId === currentSub.id)
+      .sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+
+    const row = (ent, selected, view) => el('a', {
+      class: 'pickrow' + (selected ? ' sel' : ''), ...link(view, ent.id),
+    },
+      el('i', { class: 'dot pdot s-' + E.healthOf(c.entities, c.events, ent.id, c.at) }),
+      ent.empty ? 'Empty slot' : ent.name);
+
+    return el('section', { class: 'panel' },
+      el('h3', {}, 'Navigate'),
+      el('div', { class: 'picker' },
+        el('div', {},
+          el('h4', {}, 'Subsystem'),
+          el('div', { class: 'picklist' },
+            subs.map(s => row(s, s.id === currentSub.id, 'subsystem')))),
+        el('div', {},
+          el('h4', {}, 'Component'),
+          el('div', { class: 'picklist' },
+            comps.map(x => x.empty
+              ? el('span', { class: 'pickrow', style: 'opacity:.4' }, 'Empty slot')
+              : row(x, x.id === comp.id, 'component'))))));
+  }
+
+  function openWorkPanel(c, entityId) {
+    const st = E.stateAt(c.events, c.at);
+    const scope = new Set(E.descendantsOf(c.entities, entityId));
+    const issues = st.openIssues.filter(o => scope.has(o.targetId));
+    const wos = st.openWOs.filter(o => scope.has(o.targetId));
+
+    const rowFor = (o, isWO) => el('div', { class: 'openrow' + (isWO ? ' iswo' : '') },
+      el('div', { class: 'otxt' }, o.text,
+        el('div', { class: 'ometa' },
+          fmtDay(o.at) + ' · ' + o.by
+          + (o.itemId && c.entities[o.itemId] ? ' · on ' + c.entities[o.itemId].serial : ''))),
+      el('span', { class: 'chip' }, isWO ? 'WO' : 'Issue'),
+      el('button', {
+        class: 'btn',
+        onclick: () => (ACTIONS.closeOne || (() => {}))(c, o, isWO),
+      }, 'Close'));
+
+    return el('section', { class: 'panel' },
+      el('h3', {}, 'Open issues and work orders'),
+      (issues.length || wos.length)
+        ? el('div', { class: 'openlist' },
+            issues.map(o => rowFor(o, false)), wos.map(o => rowFor(o, true)))
+        : el('p', { class: 'note' }, 'Nothing open here.'));
+  }
+
+  VIEWS.component = (root, c, id) => {
+    const comp = c.entities[id];
+    if (!comp || comp.kind !== 'component') { go('facility'); return; }
+    const tool = toolOf(c.entities, comp.id);
+    const sub = c.entities[comp.parentId];
+    const health = E.healthOf(c.entities, c.events, id, c.at);
+    const item = c.entities[E.itemAt(c.events, id, c.at)];
+    const pn = item ? c.entities[item.partNumberId] : null;
+
+    root.append(el('div', { class: 'viewhead' },
+      el('div', { class: 'viewtitle' }, tool.name + ' ' + comp.name),
+      el('span', { class: 'toolstate st-' + health },
+        health === 'green' ? 'No open work' : 'Open work'),
+      el('span', { class: 'eyebrow' }, sub.name)));
+
+    const extra = [];
+    if (item) {
+      extra.push(el('button', {
+        class: 'btn',
+        onclick: () => (ACTIONS.replace || (() => {}))(c, id),
+      }, comp.isMFC ? 'MFC Selector' : 'Replace Component'));
+    }
+    root.append(el('div', { class: 'toolbar' }, actionButtons(c, id, extra)));
+
+    const left = el('div', {});
+    left.append(el('div', { class: 'installed' },
+      el('div', { class: 'lbl' }, 'Currently installed'),
+      item
+        ? el('div', {},
+            el('div', { class: 'val' }, item.name),
+            el('div', { class: 'pn' }, pn ? pn.pn : ''),
+            el('div', { style: 'margin-top:7px' },
+              el('span', { class: 'lbl' }, 'Serial # '),
+              el('a', { class: 'serial-link', ...link('item', item.id) }, item.serial)),
+            item.mfc
+              ? el('div', { class: 'pn', style: 'margin-top:5px' },
+                  flow(item.mfc) + ' · ' + item.mfc.gas + ' · type ' + item.mfc.type)
+              : null)
+        : el('div', { class: 'note', style: 'margin-top:4px' }, 'No item installed.')));
+    left.append(picker(c, comp));
+
+    root.append(el('div', { class: 'compwrap' },
+      left,
+      el('div', {},
+        openWorkPanel(c, id),
+        el('div', { style: 'margin-top:14px' }, logPanel(c, id, { title: 'Component log' })))));
+  };
+
+  // --- item --------------------------------------------------------------
+  //
+  // One serialized object across its whole life: every slot it has occupied,
+  // every tool it has lived on, and the events it inherited while installed.
+
+  VIEWS.item = (root, c, id) => {
+    const item = c.entities[id];
+    if (!item || item.kind !== 'item') { go('spares'); return; }
+    const pn = c.entities[item.partNumberId];
+    const loc = E.locationOf(c.entities, c.events, id, c.at);
+
+    root.append(el('div', { class: 'viewhead' },
+      el('div', { class: 'viewtitle' }, item.serial),
+      el('span', { class: 'eyebrow' }, item.name)));
+
+    // Where it has been, built by replaying its install and removal events.
+    const stops = [];
+    for (const e of c.events) {
+      if (e.at > c.at) break;
+      if (e.kind === 'item.installed' && e.payload.itemId === id) {
+        const comp = c.entities[e.targetId];
+        stops.push({ at: e.at, on: true, by: e.by,
+          what: 'Installed on ' + (toolOf(c.entities, e.targetId) || {}).name
+                + ' · ' + (comp ? comp.name : e.targetId),
+          componentId: e.targetId });
+      }
+      if (e.kind === 'item.removed' && e.payload.itemId === id) {
+        const comp = c.entities[e.targetId];
+        stops.push({ at: e.at, on: false, by: e.by,
+          what: 'Removed from ' + (comp ? comp.name : e.targetId)
+                + ' → ' + (LOC_LABEL[e.payload.to] || 'unknown'),
+          componentId: e.targetId });
+      }
+      if ((e.kind === 'item.received' || e.kind === 'item.shipped') && e.targetId === id) {
+        stops.push({ at: e.at, on: e.kind === 'item.received', by: e.by,
+          what: (e.kind === 'item.received' ? 'Received into ' : 'Sent to ')
+                + (LOC_LABEL[e.payload.to] || 'unknown')
+                + (e.payload.leadTimeDays ? ' · ' + e.payload.leadTimeDays + ' day lead' : '') });
+      }
+    }
+    stops.reverse();
+
+    // Events that happened on a component while this item was in the slot.
+    const inherited = [];
+    for (const e of c.events) {
+      if (e.at > c.at) break;
+      if (!['issue.opened', 'issue.closed', 'wo.opened', 'wo.closed'].includes(e.kind)) continue;
+      if (E.itemAt(c.events, e.targetId, e.at) !== id) continue;
+      inherited.push(e);
+    }
+    inherited.reverse();
+
+    root.append(el('div', { class: 'compwrap' },
+      el('div', {},
+        el('section', { class: 'panel' },
+          el('h3', {}, 'This item'),
+          el('div', { class: 'installed', style: 'margin-bottom:0' },
+            el('div', { class: 'lbl' }, 'Part number'),
+            el('div', { class: 'val' }, pn ? pn.pn : '—'),
+            el('div', { class: 'pn' }, pn ? pn.description : ''),
+            el('div', { style: 'margin-top:9px' },
+              el('span', { class: 'lbl' }, 'Location '),
+              el('span', { class: 'mono' }, loc.locationLabel)),
+            item.mfc
+              ? el('div', { class: 'pn', style: 'margin-top:6px' },
+                  flow(item.mfc) + ' · ' + item.mfc.gas + ' · type ' + item.mfc.type)
+              : null,
+            item.lot
+              ? el('div', { class: 'pn', style: 'margin-top:6px' }, 'Lot ' + item.lot)
+              : null)),
+        el('section', { class: 'panel', style: 'margin-top:14px' },
+          el('h3', {}, 'Where it has been'),
+          stops.length
+            ? el('ul', { class: 'tl' }, stops.map(s => el('li', { class: s.on ? 'on' : 'off' },
+                el('div', { class: 'tl-when' }, fmtDay(s.at) + ' · ' + s.by),
+                s.componentId
+                  ? el('a', { class: 'tl-what serial-link', ...link('component', s.componentId) }, s.what)
+                  : el('div', { class: 'tl-what' }, s.what))))
+            : el('p', { class: 'note' }, 'No movement recorded.'))),
+      el('div', {},
+        el('section', { class: 'panel' },
+          el('h3', {}, 'Inherited while installed'),
+          inherited.length
+            ? el('ul', { class: 'tl' }, inherited.map(e => el('li', {},
+                el('div', { class: 'tl-when' }, fmtDay(e.at) + ' · ' + e.by),
+                el('div', { class: 'tl-what' },
+                  (DEFAULT_KIND_LABEL[e.kind] || e.kind) + ' — '
+                  + (e.payload.text || c.entities[e.targetId]?.name || '')))))
+            : el('p', { class: 'note' },
+                'Nothing was raised against a slot while this item filled it.')))));
+  };
+
+  const LOC_LABEL = {
+    'loc.storage': 'storage', 'loc.repair': 'repair',
+    'loc.onorder': 'on order', 'loc.scrap': 'scrap',
+  };
+  const DEFAULT_KIND_LABEL = {
+    'issue.opened': 'Issue opened', 'issue.closed': 'Issue closed',
+    'wo.opened': 'Work order opened', 'wo.closed': 'Work order closed',
   };
 
   function render() {
