@@ -330,6 +330,79 @@ tr.r-comment td{background:rgba(255,255,255,.02)}
 .tl li.off::before{background:var(--warn)}
 .tl-when{font-family:var(--mono);font-size:10px;color:var(--mute2)}
 .tl-what{font-size:12.5px;margin-top:1px}
+
+/* ---------- modals ---------- */
+.scrim{
+  position:fixed;inset:0;background:rgba(4,7,8,.72);z-index:60;
+  display:flex;align-items:flex-start;justify-content:center;padding:60px 16px 40px;
+  overflow-y:auto
+}
+.modal{
+  background:var(--slate);border:1px solid var(--line);border-radius:6px;
+  width:100%;max-width:560px;box-shadow:0 24px 70px rgba(0,0,0,.65)
+}
+.modal.wide{max-width:820px}
+.modal-head{
+  padding:13px 16px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px
+}
+.modal-title{font-family:var(--display);font-weight:500;font-size:18px;flex:1}
+.modal-body{padding:15px 16px}
+.modal-foot{
+  padding:12px 16px;border-top:1px solid var(--line);
+  display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap
+}
+.modal-q{font-size:15px;margin:2px 0 16px}
+.bigchoice{display:flex;gap:10px}
+.bigchoice .btn{flex:1;padding:14px;font-size:14px;text-align:center}
+
+.field{margin-bottom:12px}
+.field label{
+  display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--mute2);margin-bottom:5px
+}
+.field input[type=text],.field textarea,.field select{
+  width:100%;background:var(--deep);border:1px solid var(--line);border-radius:4px;
+  padding:8px 10px;font-size:13px
+}
+.field textarea{min-height:82px;resize:vertical;font-family:inherit}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--amber);outline:none}
+.checkline{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mute)}
+.checkline input{accent-color:var(--amber);width:15px;height:15px}
+
+.pickitem{
+  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  border:1px solid var(--line);border-radius:4px;padding:8px 10px;margin-bottom:6px;
+  background:var(--rise)
+}
+.pickitem:hover{border-color:var(--amber);background:var(--rise2)}
+.pickitem.sel{border-color:var(--amber);box-shadow:inset 3px 0 0 var(--amber)}
+.pickitem .pi-serial{font-family:var(--mono);font-size:12px;min-width:64px}
+.pickitem .pi-name{flex:1;font-size:12.5px}
+.pickitem .pi-loc{font-family:var(--mono);font-size:10.5px}
+.loc-storage{color:var(--up)} .loc-tool{color:var(--warn)}
+.loc-onorder{color:var(--mute2)} .loc-repair{color:var(--down)} .loc-scrap{color:var(--mute2)}
+
+.filterbar{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px}
+.fgroup{min-width:120px}
+.fgroup h5{margin:0 0 6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--mute2);font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chipbtn{
+  border:1px solid var(--line);border-radius:12px;padding:3px 10px;font-size:11.5px;
+  color:var(--mute);background:var(--rise)
+}
+.chipbtn.on{border-color:var(--amber);color:var(--amber);background:rgba(255,176,32,.12)}
+.rangeinputs{display:flex;align-items:center;gap:6px}
+.rangeinputs input{
+  width:78px;background:var(--deep);border:1px solid var(--line);border-radius:4px;
+  padding:5px 7px;font-family:var(--mono);font-size:12px
+}
+.toast{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:80;
+  background:var(--rise2);border:1px solid var(--amber);border-radius:5px;
+  padding:10px 16px;font-size:13px;box-shadow:0 10px 34px rgba(0,0,0,.6)
+}
 </style>
 
 <script id="engine">
@@ -1104,12 +1177,28 @@ globalThis.EpiTrax = (() => {
     }
   }
 
-  let asOf = S.today;
+  // The demo's "now". Actions are stamped against this rather than the wall
+  // clock: the seed ends at a fixed instant, so an event stamped with real
+  // time would sort after the view's as-of date and vanish — immediately for
+  // anyone opening the page later in the day, and permanently for anyone
+  // opening it in a later year.
+  let now = S.today;
+  const tick = () => {
+    now = new Date(Date.parse(now) + 60000).toISOString();
+    return now;
+  };
+
+  // A reloaded page must pick up where the stored overlay left off, otherwise
+  // the next action would be stamped before events that already exist.
+  const lastStored = store.events()[store.events().length - 1];
+  if (lastStored && lastStored.at > now) now = lastStored.at;
+
+  let asOf = now;
 
   function ctx() {
     return { entities: S.entities, events: store.events(), at: asOf, store };
   }
-  const isToday = () => dayOf(asOf) === dayOf(S.today);
+  const isToday = () => asOf === now;
 
   // --- routing -----------------------------------------------------------
   function parseHash() {
@@ -1712,6 +1801,449 @@ globalThis.EpiTrax = (() => {
     'wo.opened': 'Work order opened', 'wo.closed': 'Work order closed',
   };
 
+  // --- modals ------------------------------------------------------------
+
+  function closeModal() {
+    const root = document.getElementById('modalRoot');
+    root.replaceChildren();
+    document.removeEventListener('keydown', escClose);
+  }
+  function escClose(e) { if (e.key === 'Escape') closeModal(); }
+
+  function modal(opts) {
+    const root = document.getElementById('modalRoot');
+    root.replaceChildren();
+    const box = el('div', { class: 'modal' + (opts.wide ? ' wide' : '') },
+      el('div', { class: 'modal-head' },
+        el('div', { class: 'modal-title' }, opts.title),
+        el('button', { class: 'btn', onclick: closeModal }, 'Close')),
+      el('div', { class: 'modal-body' }, opts.body),
+      opts.foot ? el('div', { class: 'modal-foot' }, opts.foot) : null);
+    const scrim = el('div', {
+      class: 'scrim',
+      onclick: e => { if (e.target === e.currentTarget) closeModal(); },
+    }, box);
+    root.append(scrim);
+    document.addEventListener('keydown', escClose);
+    const focusable = box.querySelector('textarea, input, button.btn.primary');
+    if (focusable) focusable.focus();
+    return box;
+  }
+
+  function toast(message) {
+    const t = el('div', { class: 'toast' }, message);
+    document.body.append(t);
+    setTimeout(() => t.remove(), 2600);
+  }
+
+  // Every action lands here. Nothing is mutated; events are appended and the
+  // view re-derives.
+  let userSeq = 0;
+  function emit(kind, targetId, payload) {
+    userSeq += 1;
+    const at = tick();
+    // Acting always happens at the demo's now. If the user was scrubbed back
+    // in time, bring them forward so they can see what they just did.
+    asOf = now;
+    return store.append({
+      id: 'u' + userSeq + '-' + at,
+      at,
+      by: 'you',
+      kind, targetId, payload,
+    });
+  }
+
+  const entName = id => (S.entities[id] ? S.entities[id].name : id);
+
+  // --- report issue -------------------------------------------------------
+  // Slide 8's fork: new issue, or view the existing ones.
+
+  ACTIONS.reportIssue = (c, entityId) => {
+    const body = el('div', {},
+      el('p', { class: 'modal-q' }, 'Would you like to open a new issue?'),
+      el('div', { class: 'bigchoice' },
+        el('button', { class: 'btn primary', onclick: () => newIssueForm(c, entityId) },
+          'Yes — new issue'),
+        el('button', { class: 'btn', onclick: () => viewIssues(c, entityId) },
+          'No — view all issues')));
+    modal({ title: 'Report issue · ' + entName(entityId), body });
+  };
+
+  function newIssueForm(c, entityId) {
+    const text = el('textarea', { placeholder: 'Describe the issue…' });
+    // The deck is explicit: putting the tool down is NOT the autoselected
+    // option.
+    const down = el('input', { type: 'checkbox' });
+    const body = el('div', {},
+      el('div', { class: 'field' },
+        el('label', {}, 'Issue on ' + entName(entityId)), text),
+      el('label', { class: 'checkline' }, down, 'Also put the tool down'));
+
+    const save = () => {
+      const value = text.value.trim();
+      if (!value) { text.focus(); return; }
+      emit('issue.opened', entityId, { text: value });
+      if (down.checked) {
+        const tool = toolOf(S.entities, entityId);
+        if (tool) emit('state.changed', tool.id, { state: 'down', text: value });
+      }
+      closeModal(); render(); toast('Issue opened on ' + entName(entityId));
+    };
+    modal({
+      title: 'New issue · ' + entName(entityId), body,
+      foot: [el('button', { class: 'btn', onclick: closeModal }, 'Cancel'),
+             el('button', { class: 'btn primary', onclick: save }, 'Save issue')],
+    });
+  }
+
+  function viewIssues(c, entityId) {
+    const cc = ctx();
+    const st = E.stateAt(cc.events, cc.at);
+    const scope = new Set(E.descendantsOf(cc.entities, entityId));
+    const issues = st.openIssues.filter(o => scope.has(o.targetId));
+    const body = issues.length
+      ? el('div', { class: 'openlist' }, issues.map(o => el('div', { class: 'openrow' },
+          el('div', { class: 'otxt' }, o.text,
+            el('div', { class: 'ometa' },
+              entName(o.targetId) + ' · ' + fmtDay(o.at) + ' · ' + o.by)),
+          el('button', { class: 'btn', onclick: () => commentOn(o) }, 'Comment'),
+          el('button', { class: 'btn primary', onclick: () => {
+            emit('issue.closed', o.targetId, { issueId: o.id, text: o.text,
+              comment: 'Closed from the issue list.' });
+            closeModal(); render(); toast('Issue closed');
+          } }, 'Close'))))
+      : el('p', { class: 'note' }, 'No open issues here.');
+    modal({ title: 'Open issues · ' + entName(entityId), body });
+  }
+
+  function commentOn(issue) {
+    const text = el('textarea', { placeholder: 'Add a comment…' });
+    const body = el('div', { class: 'field' },
+      el('label', {}, 'Comment on: ' + issue.text), text);
+    modal({
+      title: 'Comment', body,
+      foot: [el('button', { class: 'btn', onclick: closeModal }, 'Cancel'),
+             el('button', { class: 'btn primary', onclick: () => {
+               if (!text.value.trim()) return;
+               emit('issue.commented', issue.targetId,
+                 { issueId: issue.id, text: issue.text, comment: text.value.trim() });
+               closeModal(); render(); toast('Comment added');
+             } }, 'Save comment')],
+    });
+  }
+
+  // Close a single issue or WO straight from a component view.
+  ACTIONS.closeOne = (c, o, isWO) => {
+    if (isWO) emit('wo.closed', o.targetId, { woId: o.id, text: o.text, comment: 'Closed.' });
+    else emit('issue.closed', o.targetId, { issueId: o.id, text: o.text, comment: 'Closed.' });
+    render(); toast(isWO ? 'Work order closed' : 'Issue closed');
+  };
+
+  // --- record maintenance -------------------------------------------------
+  // Slide 9, in order: record it, then walk the open issues offering to close
+  // each one against the work order just written.
+
+  ACTIONS.recordMaintenance = (c, entityId) => {
+    const body = el('div', {},
+      el('p', { class: 'modal-q' }, 'Would you like to record new maintenance?'),
+      el('div', { class: 'bigchoice' },
+        el('button', { class: 'btn primary', onclick: () => maintForm(entityId) },
+          'Yes — new item'),
+        el('button', { class: 'btn', onclick: () => { closeModal(); go('component', entityId); } },
+          'No — view log')));
+    modal({ title: 'Record maintenance · ' + entName(entityId), body });
+  };
+
+  let woCounter = 300;
+  function maintForm(entityId) {
+    const title = el('input', { type: 'text', placeholder: 'e.g. Trap 1 clean and reseal' });
+    const work = el('textarea', { placeholder: 'What was done…' });
+    const body = el('div', {},
+      el('div', { class: 'field' }, el('label', {}, 'Maintenance item'), title),
+      el('div', { class: 'field' }, el('label', {}, 'Description of work'), work));
+
+    const save = () => {
+      if (!title.value.trim()) { title.focus(); return; }
+      woCounter += 1;
+      const woNumber = 'M' + String(woCounter).padStart(5, '0');
+      const wo = emit('wo.opened', entityId,
+        { text: title.value.trim(), info: 'Maint WO: ' + woNumber });
+      emit('wo.closed', entityId, {
+        woId: wo.id, info: 'Maint WO: ' + woNumber, text: title.value.trim(),
+        comment: work.value.trim() || 'Completed.',
+      });
+      offerToCloseIssues(entityId, woNumber);
+    };
+    modal({
+      title: 'Record maintenance · ' + entName(entityId), body,
+      foot: [el('button', { class: 'btn', onclick: closeModal }, 'Cancel'),
+             el('button', { class: 'btn primary', onclick: save }, 'Resolve and close')],
+    });
+  }
+
+  // The loop the users drew: close one, then ask again.
+  function offerToCloseIssues(entityId, woNumber) {
+    const cc = ctx();
+    const st = E.stateAt(cc.events, cc.at);
+    const scope = new Set(E.descendantsOf(cc.entities, entityId));
+    const issues = st.openIssues.filter(o => scope.has(o.targetId));
+
+    if (!issues.length) {
+      closeModal(); render();
+      toast('Work order ' + woNumber + ' recorded');
+      return;
+    }
+
+    const list = el('div', { class: 'openlist' }, issues.map(o =>
+      el('button', { class: 'pickitem', onclick: () => {
+        emit('issue.closed', o.targetId, {
+          issueId: o.id, text: o.text,
+          comment: 'Closed by work order ' + woNumber + '.',
+        });
+        offerToCloseIssues(entityId, woNumber);   // ask about the next one
+      } },
+        el('span', { class: 'pi-name' }, o.text),
+        el('span', { class: 'pi-loc loc-tool' }, entName(o.targetId)))));
+
+    modal({
+      title: 'Work order ' + woNumber + ' recorded',
+      body: el('div', {},
+        el('p', { class: 'modal-q' }, 'Would you like to close any open issues?'),
+        list),
+      foot: [el('button', { class: 'btn primary', onclick: () => {
+        closeModal(); render(); toast('Work order ' + woNumber + ' recorded');
+      } }, 'No — done')],
+    });
+  }
+
+  ACTIONS.viewLog = (c, entityId) => {
+    const cc = ctx();
+    modal({
+      wide: true, title: 'Log · ' + entName(entityId),
+      body: logPanel(cc, entityId, { limit: 200, title: 'All entries' }),
+    });
+  };
+
+  // --- replace component / MFC selector ------------------------------------
+
+  ACTIONS.replace = (c, componentId) => {
+    const comp = S.entities[componentId];
+    if (comp.isMFC) mfcSelector(componentId);
+    else replaceDialog(componentId);
+  };
+
+  const LOC_ORDER_NOTE =
+    'Sorted by availability: in storage first, then on another tool, then on order.';
+
+  function replaceDialog(componentId) {
+    const cc = ctx();
+    const candidates = E.replacementCandidates(cc.entities, cc.events, componentId, cc.at);
+    let chosen = null;
+
+    const rows = el('div', {}, candidates.map(cand => {
+      const row = el('button', { class: 'pickitem' },
+        el('span', { class: 'pi-serial' }, cand.serial),
+        el('span', { class: 'pi-name' }, cand.name),
+        el('span', { class: 'pi-loc loc-' + cand.locationKind },
+          cand.locationLabel + (cand.leadTimeDays ? ' · ' + cand.leadTimeDays + ' d' : '')));
+      row.addEventListener('click', () => {
+        chosen = cand;
+        rows.querySelectorAll('.pickitem').forEach(n => n.classList.remove('sel'));
+        row.classList.add('sel');
+      });
+      return row;
+    }));
+
+    const body = candidates.length
+      ? el('div', {}, el('p', { class: 'note', style: 'margin:0 0 10px' }, LOC_ORDER_NOTE), rows)
+      : el('p', { class: 'note' },
+          'No compatible spares are on the books for this component.');
+
+    modal({
+      title: 'Replace · ' + entName(componentId), body,
+      foot: [
+        el('button', { class: 'btn', onclick: () => removeDestination(componentId, null) },
+          'Remove without replacing'),
+        el('button', { class: 'btn primary', onclick: () => {
+          if (!chosen) { toast('Pick a replacement first'); return; }
+          removeDestination(componentId, chosen);
+        } }, 'Replace part'),
+      ],
+    });
+  }
+
+  // The deck asks where the old part is going, so ask.
+  function removeDestination(componentId, chosen) {
+    const cc = ctx();
+    const current = E.itemAt(cc.events, componentId, cc.at);
+    if (!current) { commitSwap(componentId, chosen, null); return; }
+
+    const DESTS = [
+      ['loc.storage', 'Storage'], ['loc.repair', 'Repair'],
+      ['loc.onorder', 'On order'], ['loc.scrap', 'Scrap'],
+    ];
+    const body = el('div', {},
+      el('p', { class: 'modal-q' },
+        'Where is ' + (S.entities[current] ? S.entities[current].serial : 'the old part')
+        + ' going?'),
+      el('div', {}, DESTS.map(([value, label]) =>
+        el('button', { class: 'pickitem', onclick: () => commitSwap(componentId, chosen, value) },
+          el('span', { class: 'pi-name' }, label)))));
+    modal({ title: 'Removed part destination', body });
+  }
+
+  function commitSwap(componentId, chosen, destination) {
+    const cc = ctx();
+    const current = E.itemAt(cc.events, componentId, cc.at);
+    if (current) {
+      emit('item.removed', componentId, { itemId: current, to: destination || 'loc.storage' });
+    }
+    if (chosen) emit('item.installed', componentId, { itemId: chosen.itemId });
+    closeModal(); render();
+    toast(chosen ? 'Replaced with ' + chosen.serial : 'Part removed');
+  }
+
+  // MFCs carry no compatibility list, so they get their own selector with
+  // multi-select filters and a size range.
+  const MFC_TYPES = ['1100', '1400', 'G-series', 'black', 'green'];
+  const MFC_GASES = ['N2', 'Ar', 'NH3', 'O2', 'H2', 'CH4', 'HCl', 'SiH4'];
+
+  function mfcSelector(componentId) {
+    const filters = { type: [], gas: [], sccmMin: null, sccmMax: null };
+    let chosen = null;
+
+    const results = el('div', {});
+    const minInput = el('input', { type: 'text', placeholder: 'min' });
+    const maxInput = el('input', { type: 'text', placeholder: 'max' });
+
+    function refresh() {
+      const cc = ctx();
+      filters.sccmMin = minInput.value.trim() ? Number(minInput.value) : null;
+      filters.sccmMax = maxInput.value.trim() ? Number(maxInput.value) : null;
+      const found = E.filterMFCs(cc.entities, cc.events, filters, cc.at)
+        .filter(m => m.locationKind !== 'scrap');
+      results.replaceChildren();
+      if (!found.length) {
+        results.append(el('p', { class: 'note' }, 'No MFC matches those filters.'));
+        return;
+      }
+      results.append(el('p', { class: 'note', style: 'margin:0 0 8px' },
+        found.length + ' match' + (found.length === 1 ? '' : 'es')));
+      for (const m of found) {
+        const row = el('button', { class: 'pickitem' },
+          el('span', { class: 'pi-serial' }, m.serial),
+          el('span', { class: 'pi-name' },
+            flow(m.mfc) + ' · ' + m.mfc.gas + ' · type ' + m.mfc.type),
+          el('span', { class: 'pi-loc loc-' + m.locationKind }, m.locationLabel));
+        row.addEventListener('click', () => {
+          chosen = { itemId: m.id, serial: m.serial };
+          results.querySelectorAll('.pickitem').forEach(n => n.classList.remove('sel'));
+          row.classList.add('sel');
+        });
+        results.append(row);
+      }
+    }
+
+    const chipGroup = (name, values, key) => el('div', { class: 'fgroup' },
+      el('h5', {}, name),
+      el('div', { class: 'chips' }, values.map(v => {
+        const b = el('button', { class: 'chipbtn' }, v);
+        b.addEventListener('click', () => {
+          const at = filters[key].indexOf(v);
+          if (at >= 0) filters[key].splice(at, 1); else filters[key].push(v);
+          b.classList.toggle('on');
+          refresh();
+        });
+        return b;
+      })));
+
+    minInput.addEventListener('input', refresh);
+    maxInput.addEventListener('input', refresh);
+
+    const body = el('div', {},
+      el('div', { class: 'filterbar' },
+        chipGroup('Type', MFC_TYPES, 'type'),
+        chipGroup('Calibrated gas', MFC_GASES, 'gas'),
+        el('div', { class: 'fgroup' },
+          el('h5', {}, 'Size (sccm)'),
+          el('div', { class: 'rangeinputs' }, minInput, el('span', { class: 'note' }, 'to'), maxInput))),
+      el('p', { class: 'note', style: 'margin:0 0 10px' },
+        'Filters combine across categories; multiple values within a category widen the match.'),
+      results);
+
+    modal({
+      wide: true, title: 'MFC Selector · ' + entName(componentId), body,
+      foot: [
+        el('button', { class: 'btn', onclick: () => removeDestination(componentId, null) },
+          'Remove without replacing'),
+        el('button', { class: 'btn primary', onclick: () => {
+          if (!chosen) { toast('Pick an MFC first'); return; }
+          removeDestination(componentId, chosen);
+        } }, 'Replace component'),
+      ],
+    });
+    refresh();
+  }
+
+  // --- rebuild and refill --------------------------------------------------
+
+  ACTIONS.rebuild = (c, toolId) => {
+    const TASKS = [
+      'HVPE Rebuild (Tear Down/Cleaning)',
+      'HVPE Rebuild (Assembly)',
+      'HVPE Rebuild (Ramp Up)',
+    ];
+    const body = el('div', {},
+      el('p', { class: 'modal-q' }, 'Open a rebuild on ' + entName(toolId) + '?'),
+      el('p', { class: 'note' }, 'This creates three work orders:'),
+      el('ul', {}, TASKS.map(t => el('li', {}, t))));
+    modal({
+      title: 'Rebuild · ' + entName(toolId), body,
+      foot: [el('button', { class: 'btn', onclick: closeModal }, 'Cancel'),
+             el('button', { class: 'btn primary', onclick: () => {
+               woCounter += 1;
+               const base = woCounter;
+               TASKS.forEach((t, i) => emit('wo.opened', toolId,
+                 { text: t, info: 'Maint WO: M' + String(base + i).padStart(5, '0') }));
+               woCounter += TASKS.length;
+               closeModal(); render(); toast('Rebuild opened — three work orders');
+             } }, 'Create work orders')],
+    });
+  };
+
+  ACTIONS.refill = (c, toolId) => {
+    const cc = ctx();
+    const bottles = Object.values(cc.entities).filter(e =>
+      e.kind === 'item' && e.lot
+      && E.locationOf(cc.entities, cc.events, e.id, cc.at).locationKind === 'storage');
+    const lot = el('select', {},
+      bottles.length
+        ? bottles.map(b => el('option', { value: b.id }, b.lot + ' — ' + b.serial))
+        : [el('option', { value: '' }, 'No Ga in stock')]);
+    const grams = el('input', { type: 'text', placeholder: 'grams used' });
+
+    const body = el('div', {},
+      el('div', { class: 'field' }, el('label', {}, 'Ga lot number'), lot),
+      el('div', { class: 'field' }, el('label', {}, 'Amount used (g)'), grams));
+
+    modal({
+      title: 'Refill · ' + entName(toolId), body,
+      foot: [el('button', { class: 'btn', onclick: closeModal }, 'Cancel'),
+             el('button', { class: 'btn primary', onclick: () => {
+               const g = Number(grams.value);
+               if (!g || g <= 0) { grams.focus(); return; }
+               const bottle = cc.entities[lot.value];
+               emit('comment.added', toolId, {
+                 info: 'Refill',
+                 text: 'Ga refill — ' + g + ' g',
+                 comment: 'Lot ' + (bottle ? bottle.lot : 'unknown')
+                          + ' · ' + g + ' g used',
+               });
+               closeModal(); render(); toast('Refill recorded — ' + g + ' g');
+             } }, 'Record refill')],
+    });
+  };
+
   function render() {
     const { view, id } = parseHash();
     const c = ctx();
@@ -1772,14 +2304,14 @@ globalThis.EpiTrax = (() => {
   document.getElementById('asof').addEventListener('change', e => {
     const day = e.target.value;
     if (!day) return;
-    asOf = dayOf(S.today) === day ? S.today : endOfDay(day);
+    asOf = dayOf(now) === day ? now : endOfDay(day);
     render();
   });
   document.getElementById('todayBtn').addEventListener('click', () => {
-    asOf = S.today; render();
+    asOf = now; render();
   });
   document.getElementById('resetBtn').addEventListener('click', () => {
-    store.reset(); asOf = S.today; render();
+    store.reset(); now = S.today; asOf = now; render();
   });
   window.addEventListener('hashchange', render);
 
@@ -1791,7 +2323,7 @@ globalThis.EpiTrax = (() => {
     set asOf(v) { asOf = v; },
   };
 
-  document.getElementById('asof').max = dayOf(S.today);
+  document.getElementById('asof').max = dayOf(now);
   document.getElementById('asof').min = dayOf(S.events[0].at);
   render();
 })();
